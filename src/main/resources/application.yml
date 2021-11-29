@@ -4,6 +4,9 @@ logging:
     org.springframework.security: INFO
 
 spring:
+  security:
+    user:
+      password: disabled
   jpa:
     properties:
       hibernate:
