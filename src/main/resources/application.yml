@@ -1,0 +1,48 @@
+logging:
+  level:
+    org.springframework: INFO
+    org.springframework.security: INFO
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost/guests
+    username: root
+    password:
+  flyway:
+    locations: classpath:db/{vendor}/migration
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
+  mail:
+    host: localhost
+    port: 3025
+
+oidc:
+  introspection_uri: "https://connect.test2.surfconext.nl/oidc/introspect"
+  authorization_uri: "https://connect.test2.surfconext.nl/oidc/authorize"
+  token_uri: "https://connect.test2.surfconext.nl/oidc/token"
+  relying_party_id: "rp.guests.localhost"
+  client_redirect_uri: "http://localhost:3000/redirect"
+#  resource_server_id: "rs.guests.localhost"
+#  rs_secret: secret
+  resource_server_id: "resource-server-playground-client"
+  rs_secret: secret
+
+super-admin:
+  users:
+    - "j.doe@example.com"
+  institution:
+    entity_id: "http://mock-idp"
+    home_institution: "http://mock-sp"
+    displayName: "Mujina"
+
+email:
+  from: "no-reply@surf.nl"
+  base-url: "http://localhost:8080"

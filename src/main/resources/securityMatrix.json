@@ -1,0 +1,30 @@
+{
+  "institutions": {
+    "get": "super_admin",
+    "post": "super_admin",
+    "put": "super_admin",
+    "delete": "super_admin"
+  },
+  "applications": {
+    "get": "institution_administrator",
+    "post": "institution_administrator",
+    "put": "institution_administrator",
+    "delete": "institution_administrator"
+  },
+  "invitations": {
+    "get": "guest",
+    "post": "guest",
+    "put": "inviter",
+    "delete": "inviter"
+  },
+  "roles": {
+    "get": "inviter",
+    "post": "institution_administrator",
+    "put": "institution_administrator",
+    "delete": "institution_administrator"
+  },
+  "users": {
+    "get": "guest",
+    "delete": "guest"
+  }
+}
