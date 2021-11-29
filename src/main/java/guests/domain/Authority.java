@@ -13,4 +13,8 @@ public enum Authority {
     public boolean isAllowed(Authority requiredAuthority) {
         return rights >= requiredAuthority.rights;
     }
+
+    public String friendlyName() {
+        return this.name().replaceAll("_", " ").toLowerCase();
+    }
 }

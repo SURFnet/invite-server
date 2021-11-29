@@ -62,7 +62,7 @@ public abstract class AbstractTest {
     protected int port;
 
     @BeforeEach
-    void beforeEach() {
+    protected void beforeEach() {
         institutionRepository.deleteAll();
 
         seed();
@@ -92,7 +92,7 @@ public abstract class AbstractTest {
         List<User> users = Arrays.asList(mary, guest);
         userRepository.saveAll(users);
 
-        Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, HASH, mary);
+        Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, HASH, mary, "guest@test.com");
         invitation.addInvitationRole(new InvitationRole(role));
         List<Invitation> invitations = Arrays.asList(invitation);
         invitationRepository.saveAll(invitations);

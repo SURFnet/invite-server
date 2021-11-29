@@ -91,6 +91,7 @@ CREATE TABLE `invitations`
     `intended_role`          varchar(255) NOT NULL,
     `status`                 varchar(255) DEFAULT NULL,
     `hash`                   varchar(255) DEFAULT NULL,
+    `email`                  varchar(255) NOT NULL,
     `message`                varchar(255) DEFAULT NULL,
     `created_at`             datetime     DEFAULT CURRENT_TIMESTAMP,
     `expiry_date`            datetime     NOT NULL,

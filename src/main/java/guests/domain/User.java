@@ -1,9 +1,6 @@
 package guests.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -50,7 +47,7 @@ public class User implements Serializable {
     @JoinColumn(name = "institution_id")
     private Institution institution;
 
-    @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Aup> aups = new HashSet<>();
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)

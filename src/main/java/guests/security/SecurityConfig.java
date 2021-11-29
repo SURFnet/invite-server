@@ -9,11 +9,9 @@ import guests.repository.UserRepository;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -58,13 +56,6 @@ public class SecurityConfig {
             this.objectMapper = objectMapper;
             this.superAdmin = superAdmin;
         }
-
-//        @Bean
-//        @Override
-//        public AuthenticationManager authenticationManagerBean() throws Exception {
-//            // Although this seems like useless code, it's required to prevent spring boot auto-configuration
-//            return super.authenticationManagerBean();
-//        }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {

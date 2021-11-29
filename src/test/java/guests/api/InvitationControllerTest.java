@@ -57,6 +57,7 @@ class InvitationControllerTest extends AbstractTest {
         Role role = roleRepository.findAll().get(0);
         Invitation invitation = new Invitation(Authority.GUEST,
                 "Please accept",
+                "guest@example.com",
                 true,
                 Collections.singleton(new InvitationRole(role)));
         Invitation newInvitation = given()

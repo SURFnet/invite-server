@@ -7,6 +7,7 @@ import guests.domain.*;
 import guests.exception.InvitationNotOpenException;
 import guests.exception.NotFoundException;
 import guests.exception.UserRestrictionException;
+import guests.mail.MailBox;
 import guests.repository.InvitationRepository;
 import guests.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
+import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,14 +33,14 @@ public class InvitationController {
 
     private final InvitationRepository invitationRepository;
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
+    private final MailBox mailBox;
 
     @Autowired
     public InvitationController(InvitationRepository roleRepository, UserRepository userRepository,
-                                ObjectMapper objectMapper) {
+                                MailBox mailBox) {
         this.invitationRepository = roleRepository;
         this.userRepository = userRepository;
-        this.objectMapper = objectMapper;
+        this.mailBox = mailBox;
     }
 
     @GetMapping("/{hash}")
@@ -64,7 +67,6 @@ public class InvitationController {
                 user.getAups().add(new Aup(user, institution));
             }
             User newUser = userRepository.save(user);
-            String s = objectMapper.writeValueAsString(newUser);
             //TODO send notifications to all applications connected to the roles
             return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         }
@@ -74,7 +76,7 @@ public class InvitationController {
 
     @PutMapping
     public ResponseEntity<Invitation> invite(User user,
-                                             @RequestBody Invitation invitation) throws JsonProcessingException {
+                                             @RequestBody Invitation invitation) throws IOException, MessagingException {
         invitation.setInviter(user);
         invitation.setStatus(Status.OPEN);
         invitation.setHash(HashGenerator.generateHash());
@@ -88,6 +90,9 @@ public class InvitationController {
             invitation.getRoles().forEach(role -> role.setInvitation(invitation));
         }
         Invitation saved = invitationRepository.save(invitation);
+
+        mailBox.sendInviteMail(saved);
+
         return ResponseEntity.ok(saved);
     }
 

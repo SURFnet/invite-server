@@ -6,7 +6,7 @@
     "delete": "super_admin"
   },
   "applications": {
-    "get": "institution_administrator",
+    "get": "inviter",
     "post": "institution_administrator",
     "put": "institution_administrator",
     "delete": "institution_administrator"

@@ -25,6 +25,7 @@ public class InvitationRole implements Serializable {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "invitation_id")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ToString.Exclude
     private Invitation invitation;
 
     @ManyToOne(fetch = FetchType.EAGER)

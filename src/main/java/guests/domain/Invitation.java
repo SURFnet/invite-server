@@ -9,8 +9,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.Period;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity(name = "invitations")
 @NoArgsConstructor
@@ -30,6 +29,9 @@ public class Invitation implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @Column
+    private String email;
 
     @Column
     private String message;
@@ -59,23 +61,25 @@ public class Invitation implements Serializable {
     @OneToMany(mappedBy = "invitation", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<InvitationRole> roles = new HashSet<>();
 
-    public Invitation(Authority intendedRole, String message, boolean enforceEmailEquality, Set<InvitationRole> roles) {
+    public Invitation(Authority intendedRole, String message, String email, boolean enforceEmailEquality, Set<InvitationRole> roles) {
         this.intendedRole = intendedRole;
         this.message = message;
         this.enforceEmailEquality = enforceEmailEquality;
         this.status = Status.OPEN;
         this.roles = roles;
+        this.email = email;
         if (!CollectionUtils.isEmpty(roles)) {
             roles.forEach(role -> role.setInvitation(this));
         }
         this.defaults();
     }
 
-    public Invitation(Authority intendedRole, Status status, String hash, User inviter) {
+    public Invitation(Authority intendedRole, Status status, String hash, User inviter, String email) {
         this.intendedRole = intendedRole;
         this.status = status;
         this.hash = hash;
         this.inviter = inviter;
+        this.email = email;
         this.institution = inviter.getInstitution();
         this.defaults();
     }
@@ -90,4 +94,11 @@ public class Invitation implements Serializable {
         this.roles.add(role);
         role.setInvitation(this);
     }
+
+    //used in the mustache templates
+    @JsonIgnore
+    public List<String> anyRoles() {
+        return CollectionUtils.isEmpty(this.roles) ? Collections.emptyList() : Arrays.asList("will-iterate-once");
+    }
+
 }

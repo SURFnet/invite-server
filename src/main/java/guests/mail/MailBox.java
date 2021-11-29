@@ -11,18 +11,16 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
 
 public class MailBox {
-
-    private static final String TITLE = "title";
-    private static final String BASE_URL = "baseUrl";
 
     private JavaMailSender mailSender;
     private String baseUrl;
     private String emailFrom;
 
-    private final MustacheFactory mustacheFactory = new DefaultMustacheFactory();
+    private final MustacheFactory mustacheFactory = new DefaultMustacheFactory("templates");
 
     public MailBox(JavaMailSender mailSender, String emailFrom, String baseUrl) {
         this.mailSender = mailSender;
@@ -30,25 +28,20 @@ public class MailBox {
         this.baseUrl = baseUrl;
     }
 
-    public void sendInviteMail(Invitation invitation, User user) throws MessagingException, IOException {
-//        String languageCode = invitation.getLanguage().getLanguageCode();
-//
-//        String title = String.format("%s %s ",
-//                languageCode.equals(Language.DUTCH.getLanguageCode()) ? "Uitnodiging voor" :
-//                        languageCode.equals(Language.ENGLISH.getLanguageCode()) ? "Invitation for" : "Convite para",
-//                invitation.getTeam().getName());
-//
-//        Map<String, Object> variables = new HashMap<>();
-//        variables.put(TITLE, title);
-//        variables.put(FEDERATED_USER, federatedUser);
-//        variables.put("invitation", invitation);
-//        variables.put("invitationMessage", invitation.getLatestInvitationMessage());
-//        variables.put(BASE_URL, baseUrl);
-//        sendMail(
-//                String.format("mail_templates/invitation_%s.html", languageCode),
-//                title,
-//                variables,
-//                invitation.getEmail());
+    public void sendInviteMail(Invitation invitation) throws MessagingException, IOException {
+        String languageCode = "en";
+        String role = invitation.getIntendedRole().friendlyName();
+        String title = String.format("Invitation for %s at eduID inviters", role);
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("title", title);
+        variables.put("role", role);
+        variables.put("invitation", invitation);
+        variables.put("url", String.format("%s/invitations?h=%s", baseUrl, invitation.getHash()));
+        sendMail(String.format("invitation_%s.html", languageCode),
+                title,
+                variables,
+                invitation.getEmail());
     }
 
     private void sendMail(String templateName, String subject, Map<String, Object> variables, String... to) throws MessagingException, IOException {
@@ -71,7 +64,7 @@ public class MailBox {
         new Thread(() -> mailSender.send(message)).start();
     }
 
-    private String mailTemplate(String templateName, Map<String, Object> context) throws IOException {
+    private String mailTemplate(String templateName, Map<String, Object> context) {
         return mustacheFactory.compile(templateName).execute(new StringWriter(), context).toString();
     }
 

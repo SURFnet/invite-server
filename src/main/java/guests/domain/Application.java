@@ -49,6 +49,7 @@ public class Application implements Serializable {
     public Application(Institution institution, String entityId) {
         this.institution = institution;
         this.entityId = entityId;
+        this.displayName = entityId;
     }
 
 }
