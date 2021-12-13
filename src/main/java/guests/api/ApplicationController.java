@@ -28,6 +28,11 @@ public class ApplicationController {
         return ResponseEntity.ok(repository.findAll());
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Long> count() {
+        return ResponseEntity.ok(repository.count());
+    }
+
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Application> save(@RequestBody Application application) {
         return ResponseEntity.status(HttpStatus.CREATED).body(repository.save(application));

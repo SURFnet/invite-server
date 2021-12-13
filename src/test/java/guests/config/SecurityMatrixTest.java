@@ -30,8 +30,8 @@ class SecurityMatrixTest {
         doIsAllowed(Authority.SUPER_ADMIN, "/guests/api/institutions", "post", true);
         doIsAllowed(Authority.INSTITUTION_ADMINISTRATOR, "/guests/api/institutions", "post", false);
         doIsAllowed(Authority.INSTITUTION_ADMINISTRATOR, "/guests/api/applications/13", "get", true);
-        doIsAllowed(Authority.INVITER, "/guests/api/applications/13", "get", false);
-        doIsAllowed(Authority.INVITER, "/guests/api/applications", "get", false);
+        doIsAllowed(Authority.INVITER, "/guests/api/applications/13", "get", true);
+        doIsAllowed(Authority.INVITER, "/guests/api/applications", "get", true);
         doIsAllowed(Authority.GUEST, "/nope", "get", false);
     }
 
