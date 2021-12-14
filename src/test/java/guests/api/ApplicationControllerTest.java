@@ -5,6 +5,7 @@ import guests.domain.Application;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +48,7 @@ class ApplicationControllerTest extends AbstractTest {
         application.setDisplayName("Changed");
         //We mimic the client behaviour
         Map<String, Object> appMap = this.convertObjectToMap(application);
+        appMap.put("institution", Collections.singletonMap("id", application.getInstitution().getId()));
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -57,7 +59,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .then()
                 .statusCode(201);
         application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
-        assertEquals("Changed", application.getDisplayName()    );
+        assertEquals("Changed", application.getDisplayName());
     }
 
     @Test
@@ -74,5 +76,21 @@ class ApplicationControllerTest extends AbstractTest {
         assertEquals(false, optionalApplication.isPresent());
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void applicationsForUser() throws Exception {
+        List<Application> results = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .get("/guests/api/applications/user")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", Application.class);
+        assertEquals(1, results.size());
+        assertEquals(1, results.get(0).getRoles().size());
+    }
 
 }

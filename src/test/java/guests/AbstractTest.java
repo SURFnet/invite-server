@@ -77,8 +77,9 @@ public abstract class AbstractTest {
         );
         institutionRepository.saveAll(institutions);
 
+        Institution ut = institutions.get(0);
         List<Application> applications = Arrays.asList(
-                new Application(institutions.get(0), "CANVAS"),
+                new Application(ut, "CANVAS"),
                 new Application(institutions.get(1), "blackboard")
         );
         applicationRepository.saveAll(applications);
@@ -86,9 +87,10 @@ public abstract class AbstractTest {
         Role role = new Role("administrator", applications.get(0));
         role = roleRepository.save(role);
 
-        User mary = new User(Authority.INSTITUTION_ADMINISTRATOR, "mdoe@surf.nl", "Mary", "Doe", "mdoe@surf.nl", institutions.get(0));
+        User mary = new User(Authority.INSTITUTION_ADMINISTRATOR, "mdoe@surf.nl", "Mary", "Doe", "mdoe@surf.nl", ut);
         mary.getRoles().add(new UserRole(mary, role, Instant.now().plus(Period.ofDays(90))));
-        User guest = new User(Authority.GUEST, "guest@ut.nl", "fn", "ln", "guest@ut.nl", institutions.get(0));
+        mary.getAups().add(new Aup(mary, ut));
+        User guest = new User(Authority.GUEST, "guest@ut.nl", "fn", "ln", "guest@ut.nl", ut);
         List<User> users = Arrays.asList(mary, guest);
         userRepository.saveAll(users);
 

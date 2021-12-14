@@ -45,4 +45,20 @@ class UserControllerTest extends AbstractTest {
         assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("j.doe@example.com").isPresent());
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void getWithRoles() throws Exception {
+        User user = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .get("/guests/api/users")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", User.class);
+        assertEquals(1, user.getRoles().size());
+    }
+
 }

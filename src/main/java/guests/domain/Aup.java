@@ -14,7 +14,6 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 public class Aup implements Serializable {
 
     @Id

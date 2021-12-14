@@ -16,7 +16,6 @@ import java.util.*;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 public class Invitation implements Serializable {
 
     @Id

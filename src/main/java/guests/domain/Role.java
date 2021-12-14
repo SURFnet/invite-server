@@ -15,7 +15,6 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 public class Role implements Serializable {
 
     @Id
@@ -32,7 +31,6 @@ public class Role implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @ToString.Exclude
     private Application application;
 
     @Embedded

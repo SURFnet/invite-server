@@ -1,5 +1,7 @@
 package guests.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import javax.persistence.*;
@@ -13,7 +15,6 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 public class Application implements Serializable {
 
     @Id
@@ -38,6 +39,7 @@ public class Application implements Serializable {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "institution_id")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Institution institution;
 
     @OneToMany(mappedBy = "application", orphanRemoval = true, fetch = FetchType.EAGER)

@@ -12,7 +12,6 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 public class UserRole implements Serializable {
 
     @Id
