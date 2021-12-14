@@ -14,6 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static guests.api.Shared.doesExists;
 
 @RestController
 @RequestMapping(value = "/guests/api/roles", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -35,12 +39,25 @@ public class RoleController {
         return ResponseEntity.ok(roles);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Role> getById(@PathVariable("id") Long id) {
+        Role role = roleRepository.findById(id).orElseThrow(NotFoundException::new);
+        return ResponseEntity.ok(role);
+    }
+
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Role> save(User user, @RequestBody Role role) {
         this.restrictUser(user, role);
         role = roleRepository.save(role);
         return ResponseEntity.status(HttpStatus.CREATED).body(role);
     }
+
+    @PostMapping("name-exists")
+    public ResponseEntity<Map<String, Boolean>> namExists(@RequestBody RoleExists roleExists) {
+        Optional<Role> optional = roleRepository.findByApplication_idAndNameIgnoreCase(roleExists.getApplicationId(), roleExists.getUniqueAttribute());
+        return doesExists(roleExists, optional);
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(User user, @PathVariable("id") Long id) {

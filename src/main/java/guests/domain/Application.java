@@ -34,6 +34,12 @@ public class Application implements Serializable {
     @Column(name = "provisioning_hook_url")
     private String provisioningHookUrl;
 
+    @Column(name = "provisioning_hook_username")
+    private String provisioningHookUsername;
+
+    @Column(name = "provisioning_hook_password")
+    private String provisioningHookPassword;
+
     @Column(name = "provisioning_hook_email")
     private String provisioningHookEmail;
 

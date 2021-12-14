@@ -72,8 +72,8 @@ public abstract class AbstractTest {
     private void seed() {
         SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("Principal", "N/A", "ADMIN"));
         List<Institution> institutions = Arrays.asList(
-                new Institution("https://ut", "utrecht.nl", "https://utrecht.nl/aup", "V1"),
-                new Institution("https://uva", "uva.nl", "https://uva.nl/aup", "V1")
+                new Institution("ut", "https://ut", "utrecht.nl", "https://utrecht.nl/aup", "V1"),
+                new Institution("uva", "https://uva", "uva.nl", "https://uva.nl/aup", "V1")
         );
         institutionRepository.saveAll(institutions);
 

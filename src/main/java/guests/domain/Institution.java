@@ -37,7 +37,8 @@ public class Institution implements Serializable {
     @Embedded
     private Auditable auditable = new Auditable();
 
-    public Institution(String entityId, String homeInstitution, String aupUrl, String aupVersion) {
+    public Institution(String displayName, String entityId, String homeInstitution, String aupUrl, String aupVersion) {
+        this.displayName = displayName;
         this.entityId = entityId;
         this.homeInstitution = homeInstitution;
         this.aupUrl = aupUrl;

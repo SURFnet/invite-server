@@ -2,8 +2,11 @@ package guests.api;
 
 import guests.AbstractTest;
 import guests.domain.Application;
+import guests.domain.ObjectExists;
 import guests.domain.Role;
+import guests.domain.RoleExists;
 import io.restassured.http.ContentType;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -117,5 +120,53 @@ class RoleControllerTest extends AbstractTest {
                 .statusCode(204);
         Optional<Role> optionalRole = roleRepository.findById(role.getId());
         assertEquals(false, optionalRole.isPresent());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void existingRoleNotExists() throws Exception {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new RoleExists(true, "administrator", application.getId()))
+                .post("/guests/api/roles/name-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(false));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void roleNotExists() throws Exception {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new RoleExists(false, "nope", application.getId()))
+                .post("/guests/api/roles/name-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(false));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void roleExists() throws Exception {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new RoleExists(false, "administrator", application.getId()))
+                .post("/guests/api/roles/name-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(true));
     }
 }

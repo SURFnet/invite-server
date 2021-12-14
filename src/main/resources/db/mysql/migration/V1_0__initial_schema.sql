@@ -11,24 +11,27 @@ CREATE TABLE `institutions`
     `updated_by`       varchar(255) DEFAULT NULL,
     `updated_at`       datetime     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `applications_unique_entity_id` (`entity_id`)
+    UNIQUE KEY `applications_unique_entity_id` (`entity_id`),
+    UNIQUE KEY `applications_unique_home_institution` (`home_institution`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `applications`
 (
-    `id`                      bigint       NOT NULL AUTO_INCREMENT,
-    `entity_id`               varchar(255) NOT NULL,
-    `display_name`            varchar(255) DEFAULT NULL,
-    `provisioning_hook_url`   varchar(255) DEFAULT NULL,
-    `provisioning_hook_email` varchar(255) DEFAULT NULL,
-    `landing_page`            varchar(255) DEFAULT NULL,
-    `institution_id`          bigint       NOT NULL,
-    `created_by`              varchar(255) NOT NULL,
-    `created_at`              datetime     DEFAULT CURRENT_TIMESTAMP,
-    `updated_by`              varchar(255) DEFAULT NULL,
-    `updated_at`              datetime     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`                         bigint       NOT NULL AUTO_INCREMENT,
+    `entity_id`                  varchar(255) NOT NULL,
+    `display_name`               varchar(255) DEFAULT NULL,
+    `provisioning_hook_url`      varchar(255) DEFAULT NULL,
+    `provisioning_hook_username` varchar(255) DEFAULT NULL,
+    `provisioning_hook_password` varchar(255) DEFAULT NULL,
+    `provisioning_hook_email`    varchar(255) DEFAULT NULL,
+    `landing_page`               varchar(255) DEFAULT NULL,
+    `institution_id`             bigint       NOT NULL,
+    `created_by`                 varchar(255) NOT NULL,
+    `created_at`                 datetime     DEFAULT CURRENT_TIMESTAMP,
+    `updated_by`                 varchar(255) DEFAULT NULL,
+    `updated_at`                 datetime     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `applications_unique_entity_id` (`entity_id`),
     CONSTRAINT `fk_applications_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`id`) ON DELETE CASCADE

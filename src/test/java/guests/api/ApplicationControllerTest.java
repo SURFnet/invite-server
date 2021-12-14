@@ -2,7 +2,9 @@ package guests.api;
 
 import guests.AbstractTest;
 import guests.domain.Application;
+import guests.domain.ObjectExists;
 import io.restassured.http.ContentType;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -29,6 +31,23 @@ class ApplicationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", Application.class);
         assertEquals(2, results.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void applicationById() throws Exception {
+        Long id = applicationRepository.findByEntityIdIgnoreCase("blackboard").get().getId();
+        Application application = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .get("/guests/api/applications/{id}", id)
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", Application.class);
+        assertEquals("blackboard", application.getEntityId());
     }
 
     @Test
@@ -91,6 +110,48 @@ class ApplicationControllerTest extends AbstractTest {
                 .getList(".", Application.class);
         assertEquals(1, results.size());
         assertEquals(1, results.get(0).getRoles().size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void existingApplicationEntityIdNotExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(true, "blackboard"))
+                .post("/guests/api/applications/entity-id-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(false));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void applicationEntityIdNotExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(false, "nope"))
+                .post("/guests/api/applications/entity-id-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(false));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void applicationEntityIdExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(false, "blackboard"))
+                .post("/guests/api/applications/entity-id-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(true));
     }
 
 }

@@ -12,4 +12,5 @@ public interface InstitutionRepository extends JpaRepository<Institution, Long> 
 
     Optional<Institution> findByHomeInstitutionIgnoreCase(String homeInstitution);
 
+    Optional<Institution> findByEntityIdIgnoreCase(String entityId);
 }

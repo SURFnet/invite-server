@@ -3,7 +3,9 @@ package guests.api;
 import guests.AbstractTest;
 import guests.domain.Application;
 import guests.domain.Institution;
+import guests.domain.ObjectExists;
 import io.restassured.http.ContentType;
+import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -29,6 +31,108 @@ class InstitutionControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", Institution.class);
         assertEquals(3, results.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void institutionById() throws Exception {
+        Long id = institutionRepository.findByEntityIdIgnoreCase("https://ut").get().getId();
+        Institution institution = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .get("/guests/api/institutions/{id}", id)
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", Institution.class);
+        assertEquals("https://ut", institution.getEntityId());
+    }
+
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void existingInstitutionEntityIdNotExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(true, "https://ut"))
+                .post("/guests/api/institutions/entity-id-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(false));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void institutionEntityIdNotExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(false, "nope"))
+                .post("/guests/api/institutions/entity-id-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(false));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void institutionEntityIdExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(false, "uva"))
+                .post("/guests/api/institutions/name-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(true));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void existingInstitutionSchacHomeNotExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(true, "uva.nl"))
+                .post("/guests/api/institutions/schac-home-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(false));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void institutionSchacHomeNotExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(false, "nope"))
+                .post("/guests/api/institutions/schac-home-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(false));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void institutionSchacHomeExists() throws Exception {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(new ObjectExists(false, "uva.nl"))
+                .post("/guests/api/institutions/schac-home-exists")
+                .then()
+                .body("exists", IsEqual.equalTo(true));
     }
 
     @Test
