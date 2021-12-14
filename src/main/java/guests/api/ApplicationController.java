@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static guests.api.Shared.doesExists;
+import static guests.api.Shared.unProxy;
 
 @RestController
 @RequestMapping(value = "/guests/api/applications", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -47,9 +48,7 @@ public class ApplicationController {
         Optional<User> userOptional = userRepository.findById(authenticatedUser.getId());
         User user = userOptional.orElseThrow(NotFoundException::new);
         List<Long> roleIdentifiers = user.getRoles().stream().map(role -> role.getRole().getId()).collect(Collectors.toList());
-        List<Application> applications = applicationRepository.findByRoles_IdIn(roleIdentifiers).stream()
-                .map(application -> Hibernate.unproxy(application, Application.class)).collect(Collectors.toList());
-        return ResponseEntity.ok(applications);
+        return ResponseEntity.ok(unProxy(applicationRepository.findByRoles_IdIn(roleIdentifiers), Application.class));
     }
 
     @GetMapping("/{id}")
