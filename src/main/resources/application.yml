@@ -2,6 +2,7 @@ logging:
   level:
     org.springframework: INFO
     org.springframework.security: INFO
+    com.zaxxer.hikari: ERROR
 
 spring:
   security:
