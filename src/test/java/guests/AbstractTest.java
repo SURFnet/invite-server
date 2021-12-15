@@ -79,8 +79,8 @@ public abstract class AbstractTest {
 
         Institution ut = institutions.get(0);
         List<Application> applications = Arrays.asList(
-                new Application(ut, "CANVAS"),
-                new Application(institutions.get(1), "blackboard")
+                new Application(ut, "CANVAS", "secret"),
+                new Application(institutions.get(1), "blackboard", "secret")
         );
         applicationRepository.saveAll(applications);
 

@@ -2,6 +2,7 @@ package guests.api;
 
 import guests.AbstractTest;
 import guests.domain.Application;
+import guests.domain.Institution;
 import guests.domain.ObjectExists;
 import io.restassured.http.ContentType;
 import org.hamcrest.core.IsEqual;
@@ -14,6 +15,7 @@ import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ApplicationControllerTest extends AbstractTest {
 
@@ -48,6 +50,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", Application.class);
         assertEquals("blackboard", application.getEntityId());
+        assertNull(application.getProvisioningHookPassword());
     }
 
     @Test
@@ -68,6 +71,7 @@ class ApplicationControllerTest extends AbstractTest {
         //We mimic the client behaviour
         Map<String, Object> appMap = this.convertObjectToMap(application);
         appMap.put("institution", Collections.singletonMap("id", application.getInstitution().getId()));
+        appMap.put("provisioningHookPassword", "Changed");
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -79,6 +83,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .statusCode(201);
         application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
         assertEquals("Changed", application.getDisplayName());
+        assertEquals("Changed", application.getProvisioningHookPassword());
     }
 
     @Test
@@ -103,6 +108,25 @@ class ApplicationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
                 .get("/guests/api/applications/user")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", Application.class);
+        assertEquals(1, results.size());
+        assertEquals(1, results.get(0).getRoles().size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void applicationsFoInstitution() throws Exception {
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://ut").get();
+        List<Application> results = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/applications/institution/{institutionId}")
                 .then()
                 .extract()
                 .body()

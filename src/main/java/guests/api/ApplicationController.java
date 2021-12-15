@@ -51,6 +51,11 @@ public class ApplicationController {
         return ResponseEntity.ok(unProxy(applicationRepository.findByRoles_IdIn(roleIdentifiers), Application.class));
     }
 
+    @GetMapping("/institution/{institutionId}")
+    public ResponseEntity<List<Application>> getForInstitution(@PathVariable("institutionId") Long institutionId) {
+        return ResponseEntity.ok(applicationRepository.findByInstitution_id(institutionId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Application> getById(@PathVariable("id") Long id) {
         Application application = applicationRepository.findById(id).orElseThrow(NotFoundException::new);

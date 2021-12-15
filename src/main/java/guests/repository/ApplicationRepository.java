@@ -15,4 +15,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     List<Application> findByRoles_IdIn(List roleIdentifiers);
 
+    List<Application> findByInstitution_id(long institutionId);
+
 }
