@@ -44,8 +44,13 @@ public class UserAuthenticationFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String requestURI = request.getRequestURI();
-        if (authentication instanceof AnonymousAuthenticationToken && requestURI.startsWith("/guests/api/public")) {
+        if (authentication instanceof AnonymousAuthenticationToken &&
+                (requestURI.startsWith("/guests/api/public") || requestURI.startsWith("/guests/api/validations"))) {
             filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+        if (!(authentication instanceof BearerTokenAuthentication)) {
+            responseForbidden(servletResponse);
             return;
         }
         BearerTokenAuthentication tokenAuthentication = (BearerTokenAuthentication) authentication;

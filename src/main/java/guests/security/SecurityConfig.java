@@ -73,7 +73,7 @@ public class SecurityConfig {
                     .anonymous()
                     .and()
                     .authorizeRequests(authz -> authz
-                            .antMatchers("/guests/api/public/**")
+                            .antMatchers("/guests/api/public/**", "/guests/api/validations/**")
                             .permitAll())
                     .addFilterAfter(
                             new UserAuthenticationFilter(institutionRepository, userRepository, new SecurityMatrix(securityMap), superAdmin),
@@ -81,6 +81,7 @@ public class SecurityConfig {
                     .authorizeRequests(authz -> authz
                             .antMatchers("/guests/api/**").hasAuthority("SCOPE_openid")
                             .anyRequest().authenticated())
+                    //TODO Change this to JWT
                     .oauth2ResourceServer(oauth2 -> oauth2.opaqueToken(token -> token
                             .introspectionUri(introspectionUri)
                             .introspectionClientCredentials(clientId, secret)));
