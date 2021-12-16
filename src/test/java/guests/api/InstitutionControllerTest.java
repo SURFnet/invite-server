@@ -87,8 +87,8 @@ class InstitutionControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .body(new ObjectExists(false, "uva"))
-                .post("/guests/api/institutions/name-exists")
+                .body(new ObjectExists(false, "https://uva"))
+                .post("/guests/api/institutions/entity-id-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(true));
     }
