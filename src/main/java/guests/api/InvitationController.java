@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,15 @@ public class InvitationController {
     public ResponseEntity<Invitation> invitation(@PathVariable("hash") String hash) throws JsonProcessingException {
         Invitation invitation = invitationRepository.findByHash(hash).orElseThrow(NotFoundException::new);
         return ResponseEntity.ok(invitation);
+    }
+
+    @GetMapping("/institution/{institutionId}")
+    public ResponseEntity<List<Invitation>> get(@PathVariable("institutionId") Long institutionId, User user) {
+        if (!user.getAuthority().equals(Authority.SUPER_ADMIN) && !user.getInstitution().getId().equals(institutionId)) {
+            throw new UserRestrictionException(String.format("User %s is only allowed to access users from %s",
+                    user.getEduPersonPrincipalName(), user.getInstitution().getDisplayName()));
+        }
+        return ResponseEntity.ok(invitationRepository.findByInstitution_id(institutionId));
     }
 
     @PostMapping

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -31,6 +32,39 @@ class InvitationControllerTest extends AbstractTest {
         assertEquals(Status.OPEN, invitation.getStatus());
         assertEquals("administrator", invitation.getRoles().iterator().next().getRole().getName());
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void allByInstitution() throws Exception {
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://ut").get();
+        List<Invitation> invitations = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/invitations/institution/{institutionId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", Invitation.class);
+        assertEquals(1, invitations.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void allByInstitutionNotAllowed() throws Exception {
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://uva").get();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/invitations/institution/{institutionId}")
+                .then()
+                .statusCode(403);
+    }
+
 
     @Test
     void post() throws Exception {

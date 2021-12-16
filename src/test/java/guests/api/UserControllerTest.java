@@ -8,8 +8,6 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,13 +22,45 @@ class UserControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .get("/guests/api/users")
+                .get("/guests/api/users/me")
                 .then()
                 .extract()
                 .body()
                 .jsonPath()
                 .getObject(".", User.class);
         assertEquals(Authority.SUPER_ADMIN, user.getAuthority());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void allByInstitution() throws Exception {
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://ut").get();
+        List<User> users = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/users/institution/{institutionId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", User.class);
+        assertEquals(2, users.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void allByInstitutionNotAllowed() throws Exception {
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://uva").get();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/users/institution/{institutionId}")
+                .then()
+                .statusCode(403);
     }
 
     @Test
@@ -52,7 +82,7 @@ class UserControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
-                .get("/guests/api/users")
+                .get("/guests/api/users/me")
                 .then()
                 .extract()
                 .body()
