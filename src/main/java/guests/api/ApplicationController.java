@@ -1,10 +1,8 @@
 package guests.api;
 
-import guests.domain.Application;
-import guests.domain.Institution;
-import guests.domain.ObjectExists;
-import guests.domain.User;
+import guests.domain.*;
 import guests.exception.NotFoundException;
+import guests.exception.UserRestrictionException;
 import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
 import org.hibernate.Hibernate;
@@ -63,7 +61,12 @@ public class ApplicationController {
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
-    public ResponseEntity<Application> save(@RequestBody Application application) {
+    public ResponseEntity<Application> save(User authenticatedUser, @RequestBody Application application) {
+        if (authenticatedUser.getAuthority().equals(Authority.INSTITUTION_ADMINISTRATOR) &&
+                !authenticatedUser.getInstitution().getId().equals(application.getInstitution().getId())) {
+            throw new UserRestrictionException(String.format("User %s is not allowed to create an application for institution %s",
+                    authenticatedUser.getEduPersonPrincipalName(), application.getInstitution().getDisplayName()));
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(applicationRepository.save(application));
     }
 

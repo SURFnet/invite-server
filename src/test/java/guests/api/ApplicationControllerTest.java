@@ -87,6 +87,24 @@ class ApplicationControllerTest extends AbstractTest {
     }
 
     @Test
+    void updateUserRestriction() throws Exception {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("BLACKBOARD").get();
+        application.setDisplayName("Changed");
+        //We mimic the client behaviour
+        Map<String, Object> appMap = this.convertObjectToMap(application);
+        appMap.put("institution", Collections.singletonMap("id", application.getInstitution().getId()));
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .body(appMap)
+                .put("/guests/api/applications")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
     void deleteApplication() throws Exception {
         Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
         given()
