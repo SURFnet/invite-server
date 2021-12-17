@@ -62,6 +62,7 @@ public class SecurityConfig {
             String json = IOUtils.toString(new ClassPathResource("securityMatrix.json").getInputStream(), Charset.defaultCharset());
             Map<String, Map<String, String>> securityMap = objectMapper.readValue(json, new TypeReference<>() {
             });
+            http.cors().configurationSource(new OidcCorsConfigurationSource()).configure(http);
             http
                     .requestMatchers()
                     .antMatchers("/guests/api/**")
@@ -81,7 +82,6 @@ public class SecurityConfig {
                     .authorizeRequests(authz -> authz
                             .antMatchers("/guests/api/**").hasAuthority("SCOPE_openid")
                             .anyRequest().authenticated())
-                    //TODO Change this to JWT
                     .oauth2ResourceServer(oauth2 -> oauth2.opaqueToken(token -> token
                             .introspectionUri(introspectionUri)
                             .introspectionClientCredentials(clientId, secret)));
