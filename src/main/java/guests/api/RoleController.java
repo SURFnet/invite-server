@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static guests.api.Shared.doesExists;
+import static guests.api.Shared.verifyUser;
 
 @RestController
 @RequestMapping(value = "/guests/api/roles", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -33,9 +34,19 @@ public class RoleController {
         this.applicationRepository = applicationRepository;
     }
 
-    @GetMapping()
-    public ResponseEntity<List<Role>> roles(User user) {
-        List<Role> roles = roleRepository.findByApplication_institution(user.getInstitution());
+    @GetMapping("/institution/{institutionId}")
+    public ResponseEntity<List<Role>> rolesByInstitution(@PathVariable("institutionId") Long institutionId, User user) {
+        verifyUser(user, institutionId);
+        List<Role> roles = roleRepository.findByApplication_institution_id(institutionId);
+        return ResponseEntity.ok(roles);
+    }
+
+    @GetMapping("/application/{applicationId}")
+    public ResponseEntity<List<Role>> rolesByApplication(@PathVariable("applicationId") Long applicationId, User user) {
+        Application application = applicationRepository.findById(applicationId).orElseThrow(NotFoundException::new);
+        verifyUser(user, application.getInstitution().getId());
+
+        List<Role> roles = roleRepository.findByApplication_id(applicationId);
         return ResponseEntity.ok(roles);
     }
 
@@ -69,9 +80,6 @@ public class RoleController {
 
     private void restrictUser(User user, Role role) throws AuthenticationException {
         Application application = applicationRepository.findById(role.getApplication().getId()).orElseThrow(NotFoundException::new);
-        Institution institution = application.getInstitution();
-        if (!user.getAuthority().equals(Authority.SUPER_ADMIN) && !institution.getId().equals(user.getInstitution().getId())) {
-            throw new UserRestrictionException("Application mismatch");
-        }
+        verifyUser(user, application.getInstitution().getId());
     }
 }

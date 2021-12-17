@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static guests.api.Shared.verifyAuthority;
+import static guests.api.Shared.verifyUser;
+
 @RestController
 @RequestMapping(value = "/guests/api/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
@@ -51,11 +54,8 @@ public class InvitationController {
     }
 
     @GetMapping("/institution/{institutionId}")
-    public ResponseEntity<List<Invitation>> get(@PathVariable("institutionId") Long institutionId, User user) {
-        if (!user.getAuthority().equals(Authority.SUPER_ADMIN) && !user.getInstitution().getId().equals(institutionId)) {
-            throw new UserRestrictionException(String.format("User %s is only allowed to access users from %s",
-                    user.getEduPersonPrincipalName(), user.getInstitution().getDisplayName()));
-        }
+    public ResponseEntity<List<Invitation>> get(@PathVariable("institutionId") Long institutionId, User authenticatedUser) {
+        verifyUser(authenticatedUser, institutionId);
         return ResponseEntity.ok(invitationRepository.findByInstitution_id(institutionId));
     }
 
@@ -107,12 +107,8 @@ public class InvitationController {
     }
 
     private void restrictUser(User user, Invitation invitation) throws AuthenticationException {
-        if (!user.getAuthority().equals(Authority.SUPER_ADMIN) && !invitation.getInstitution().getId().equals(user.getInstitution().getId())) {
-            throw new UserRestrictionException("Invitation mismatch");
-        }
-        if (!user.getAuthority().isAllowed(invitation.getIntendedRole())) {
-            throw new UserRestrictionException("Authority mismatch");
-        }
+        verifyUser(user, invitation.getInstitution().getId());
+        verifyAuthority(user, invitation.getIntendedRole());
     }
 
 }

@@ -1,10 +1,7 @@
 package guests.api;
 
 import guests.AbstractTest;
-import guests.domain.Application;
-import guests.domain.ObjectExists;
-import guests.domain.Role;
-import guests.domain.RoleExists;
+import guests.domain.*;
 import io.restassured.http.ContentType;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
@@ -18,12 +15,31 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class RoleControllerTest extends AbstractTest {
 
     @Test
-    void roles() throws Exception {
+    void rolesByInstitution() throws Exception {
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://ut").get();
         List<Role> results = given()
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
-                .get("/guests/api/roles")
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/roles/institution/{institutionId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", Role.class);
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    void rolesByApplication() throws Exception {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
+        List<Role> results = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .pathParam("applicationId", application.getId())
+                .get("/guests/api/roles/application/{applicationId}")
                 .then()
                 .extract()
                 .body()

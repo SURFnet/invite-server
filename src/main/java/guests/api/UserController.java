@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import static guests.api.Shared.verifyUser;
+
 @RestController
 @RequestMapping(value = "/guests/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
@@ -36,13 +38,9 @@ public class UserController {
 
     @GetMapping("/institution/{institutionId}")
     public ResponseEntity<List<User>> get(@PathVariable("institutionId") Long institutionId, User user) {
-        if (!user.getAuthority().equals(Authority.SUPER_ADMIN) && !user.getInstitution().getId().equals(institutionId)) {
-            throw new UserRestrictionException(String.format("User %s is only allowed to access users from %s",
-                    user.getEduPersonPrincipalName(), user.getInstitution().getDisplayName()));
-        }
+        verifyUser(user, institutionId);
         return ResponseEntity.ok(userRepository.findByInstitution_id(institutionId));
     }
-
 
     @DeleteMapping
     public ResponseEntity<Void> delete(User user) {

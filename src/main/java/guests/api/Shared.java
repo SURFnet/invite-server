@@ -1,8 +1,7 @@
 package guests.api;
 
-import guests.domain.Application;
-import guests.domain.Institution;
-import guests.domain.ObjectExists;
+import guests.domain.*;
+import guests.exception.UserRestrictionException;
 import org.hibernate.Hibernate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,4 +23,18 @@ public class Shared {
         return objects.stream().map(obj -> Hibernate.unproxy(obj, clazz)).collect(Collectors.toList());
     }
 
+    public static void verifyUser(User authenticatedUser, Long institutionId) {
+        if (authenticatedUser.getAuthority().equals(Authority.INSTITUTION_ADMINISTRATOR) &&
+                !authenticatedUser.getInstitution().getId().equals(institutionId)) {
+            throw new UserRestrictionException(String.format("User %s is not allowed to create an application for institution %s",
+                    authenticatedUser.getEduPersonPrincipalName(), institutionId));
+        }
+    }
+
+    public static void verifyAuthority(User user, Authority required) {
+        if (!user.getAuthority().isAllowed(required)) {
+            throw new UserRestrictionException("Authority mismatch");
+        }
+
+    }
 }

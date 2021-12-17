@@ -19,8 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static guests.api.Shared.doesExists;
-import static guests.api.Shared.unProxy;
+import static guests.api.Shared.*;
 
 @RestController
 @RequestMapping(value = "/guests/api/applications", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -62,11 +61,7 @@ public class ApplicationController {
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Application> save(User authenticatedUser, @RequestBody Application application) {
-        if (authenticatedUser.getAuthority().equals(Authority.INSTITUTION_ADMINISTRATOR) &&
-                !authenticatedUser.getInstitution().getId().equals(application.getInstitution().getId())) {
-            throw new UserRestrictionException(String.format("User %s is not allowed to create an application for institution %s",
-                    authenticatedUser.getEduPersonPrincipalName(), application.getInstitution().getDisplayName()));
-        }
+        verifyUser(authenticatedUser, application.getInstitution().getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(applicationRepository.save(application));
     }
 
