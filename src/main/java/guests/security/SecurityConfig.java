@@ -83,8 +83,7 @@ public class SecurityConfig {
                             .antMatchers("/guests/api/**").hasAuthority("SCOPE_openid")
                             .anyRequest().authenticated())
                     .oauth2ResourceServer(oauth2 -> oauth2.opaqueToken(token -> token
-                            .introspectionUri(introspectionUri)
-                            .introspectionClientCredentials(clientId, secret)));
+                            .introspector(new CachingOpaqueTokenIntrospector(introspectionUri, clientId, secret))));
         }
     }
 
