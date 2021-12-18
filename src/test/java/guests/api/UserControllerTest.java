@@ -1,6 +1,7 @@
 package guests.api;
 
 import guests.AbstractTest;
+import guests.domain.Application;
 import guests.domain.Authority;
 import guests.domain.Institution;
 import guests.domain.User;
@@ -47,6 +48,24 @@ class UserControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", User.class);
         assertEquals(2, users.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void allByApplication() throws Exception {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("CANVAS").get();
+        List<User> users = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("applicationId", application.getId())
+                .get("/guests/api/users/application/{applicationId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", User.class);
+        assertEquals(1, users.size());
     }
 
     @Test

@@ -21,7 +21,7 @@ import javax.mail.internet.MimeMessage;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertTrue;
 
-@ActiveProfiles(value = "prod")
+@ActiveProfiles(value = "prod", inheritProfiles = false)
 class MailBoxTest extends AbstractTest {
 
     @Autowired

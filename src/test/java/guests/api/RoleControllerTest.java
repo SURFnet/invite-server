@@ -17,7 +17,7 @@ class RoleControllerTest extends AbstractTest {
     @Test
     void rolesByInstitution() throws Exception {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://ut").get();
-        List<Role> results = given()
+        List<Map> results = given()
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
@@ -27,8 +27,9 @@ class RoleControllerTest extends AbstractTest {
                 .extract()
                 .body()
                 .jsonPath()
-                .getList(".", Role.class);
+                .getList(".", Map.class);
         assertEquals(1, results.size());
+        assertEquals(results.get(0).get("applicationName"), "CANVAS");
     }
 
     @Test

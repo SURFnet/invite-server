@@ -26,10 +26,10 @@
         <p>Hi,</p>
         <p>You have been invited to become a {{role}} in the inviters website.</p>
         {{#invitation.anyRoles}}
-        <p>You will be granted guest access to the following applications in {{invitation.institution.displayName}}:</p>
+        <p>You will be granted the guest access to the following applications in {{invitation.institution.displayName}}:</p>
         <ul>
             {{#invitation.roles}}
-            <li>{{role.application.displayName}}</li>
+            <li>{{role.application.displayName}} (role: {{role.name}})</li>
             {{/invitation.roles}}
         </ul>
         {{/invitation.anyRoles}}

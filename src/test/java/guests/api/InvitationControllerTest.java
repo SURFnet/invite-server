@@ -53,6 +53,24 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void allByApplication() throws Exception {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("CANVAS").get();
+        List<Invitation> invitations = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("applicationId", application.getId())
+                .get("/guests/api/invitations/application/{applicationId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", Invitation.class);
+        assertEquals(1, invitations.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void allByInstitutionNotAllowed() throws Exception {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://uva").get();
         given()

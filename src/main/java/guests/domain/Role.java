@@ -4,6 +4,8 @@ package guests.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.hibernate.LazyInitializationException;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -40,4 +42,15 @@ public class Role implements Serializable {
         this.name = name;
         this.application = application;
     }
+
+    @JsonProperty(value = "applicationName", access = JsonProperty.Access.READ_ONLY)
+    public String getApplicationName() {
+        try {
+            return this.getApplication().getDisplayName();
+        } catch (LazyInitializationException e) {
+            return null;
+        }
+
+    }
+
 }

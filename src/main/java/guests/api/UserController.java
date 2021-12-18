@@ -1,9 +1,11 @@
 package guests.api;
 
+import guests.domain.Application;
 import guests.domain.Authority;
 import guests.domain.User;
 import guests.exception.NotFoundException;
 import guests.exception.UserRestrictionException;
+import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,11 +25,7 @@ import static guests.api.Shared.verifyUser;
 public class UserController {
 
     private final UserRepository userRepository;
-
-    @Autowired
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private final ApplicationRepository applicationRepository;
 
     @GetMapping("me")
     public ResponseEntity<User> me(User authenticatedUser) {
@@ -36,10 +34,23 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @Autowired
+    public UserController(UserRepository userRepository, ApplicationRepository applicationRepository) {
+        this.userRepository = userRepository;
+        this.applicationRepository = applicationRepository;
+    }
+
     @GetMapping("/institution/{institutionId}")
-    public ResponseEntity<List<User>> get(@PathVariable("institutionId") Long institutionId, User user) {
+    public ResponseEntity<List<User>> getByInstitution(@PathVariable("institutionId") Long institutionId, User user) {
         verifyUser(user, institutionId);
         return ResponseEntity.ok(userRepository.findByInstitution_id(institutionId));
+    }
+
+    @GetMapping("/application/{applicationId}")
+    public ResponseEntity<List<User>> getyApplication(@PathVariable("applicationId") Long applicationId, User user) {
+        Application application = applicationRepository.findById(applicationId).orElseThrow(NotFoundException::new);
+        verifyUser(user, application.getInstitution().getId());
+        return ResponseEntity.ok(userRepository.findByRoles_role_application_id(applicationId));
     }
 
     @DeleteMapping

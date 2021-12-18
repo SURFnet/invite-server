@@ -1,14 +1,14 @@
 package guests.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import guests.config.HashGenerator;
 import guests.domain.*;
 import guests.exception.InvitationNotOpenException;
 import guests.exception.NotFoundException;
-import guests.exception.UserRestrictionException;
 import guests.mail.MailBox;
+import guests.repository.ApplicationRepository;
 import guests.repository.InvitationRepository;
+import guests.repository.RoleRepository;
 import guests.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,13 +37,20 @@ public class InvitationController {
 
     private final InvitationRepository invitationRepository;
     private final UserRepository userRepository;
+    private final ApplicationRepository applicationRepository;
+    private final RoleRepository roleRepository;
     private final MailBox mailBox;
 
     @Autowired
-    public InvitationController(InvitationRepository roleRepository, UserRepository userRepository,
+    public InvitationController(InvitationRepository invitationRepository,
+                                UserRepository userRepository,
+                                ApplicationRepository applicationRepository,
+                                RoleRepository roleRepository,
                                 MailBox mailBox) {
-        this.invitationRepository = roleRepository;
+        this.invitationRepository = invitationRepository;
         this.userRepository = userRepository;
+        this.applicationRepository = applicationRepository;
+        this.roleRepository = roleRepository;
         this.mailBox = mailBox;
     }
 
@@ -54,9 +61,16 @@ public class InvitationController {
     }
 
     @GetMapping("/institution/{institutionId}")
-    public ResponseEntity<List<Invitation>> get(@PathVariable("institutionId") Long institutionId, User authenticatedUser) {
+    public ResponseEntity<List<Invitation>> getByInstitution(@PathVariable("institutionId") Long institutionId, User authenticatedUser) {
         verifyUser(authenticatedUser, institutionId);
         return ResponseEntity.ok(invitationRepository.findByInstitution_id(institutionId));
+    }
+
+    @GetMapping("/application/{applicationId}")
+    public ResponseEntity<List<Invitation>> getByApplication(@PathVariable("applicationId") Long applicationId, User authenticatedUser) {
+        Application application = applicationRepository.findById(applicationId).orElseThrow(NotFoundException::new);
+        verifyUser(authenticatedUser, application.getInstitution().getId());
+        return ResponseEntity.ok(invitationRepository.findByRoles_role_application_id(applicationId));
     }
 
     @PostMapping
@@ -100,7 +114,13 @@ public class InvitationController {
             invitation.getRoles().forEach(role -> role.setInvitation(invitation));
         }
         Invitation saved = invitationRepository.save(invitation);
-
+        //Ensure all applications are loaded for the roles
+        if (!CollectionUtils.isEmpty(saved.getRoles())) {
+            saved.getRoles().forEach(role -> {
+                Role transientRole = role.getRole();
+                transientRole.setApplication(roleRepository.findById(transientRole.getId()).get().getApplication());
+            });
+        }
         mailBox.sendInviteMail(saved);
 
         return ResponseEntity.ok(saved);

@@ -19,4 +19,5 @@ public interface InvitationRepository extends JpaRepository<Invitation, Long> {
 
     List<Invitation> findByInstitution_id(Long institutionId);
 
+    List<Invitation> findByRoles_role_application_id(Long applicationId);
 }
