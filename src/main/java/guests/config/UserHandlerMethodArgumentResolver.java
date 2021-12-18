@@ -17,7 +17,7 @@ public class UserHandlerMethodArgumentResolver implements HandlerMethodArgumentR
     public User resolveArgument(MethodParameter methodParameter,
                                 ModelAndViewContainer mavContainer,
                                 NativeWebRequest webRequest,
-                                WebDataBinderFactory binderFactory) throws Exception {
+                                WebDataBinderFactory binderFactory) {
         BearerTokenAuthentication authentication = (BearerTokenAuthentication) webRequest.getUserPrincipal();
         User user = (User) authentication.getDetails();
         return user;

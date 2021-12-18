@@ -35,6 +35,5 @@ public class Shared {
         if (!user.getAuthority().isAllowed(required)) {
             throw new UserRestrictionException("Authority mismatch");
         }
-
     }
 }
