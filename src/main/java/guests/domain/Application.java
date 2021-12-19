@@ -38,7 +38,6 @@ public class Application implements Serializable {
     private String provisioningHookUsername;
 
     @Column(name = "provisioning_hook_password")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String provisioningHookPassword;
 
     @Column(name = "provisioning_hook_email")

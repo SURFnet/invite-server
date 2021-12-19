@@ -50,7 +50,6 @@ class ApplicationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", Application.class);
         assertEquals("blackboard", application.getEntityId());
-        assertNull(application.getProvisioningHookPassword());
     }
 
     @Test

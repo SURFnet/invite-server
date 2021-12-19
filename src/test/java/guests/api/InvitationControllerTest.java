@@ -113,17 +113,17 @@ class InvitationControllerTest extends AbstractTest {
                 true,
                 Collections.singleton(new InvitationRole(role)));
         Invitation newInvitation = given()
-                        .when()
-                        .accept(ContentType.JSON)
-                        .contentType(ContentType.JSON)
-                        .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
-                        .body(invitation)
-                        .put("/guests/api/invitations")
-                        .then()
-                        .extract()
-                        .body()
-                        .jsonPath()
-                        .getObject(".", Invitation.class);
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .body(invitation)
+                .put("/guests/api/invitations")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", Invitation.class);
         assertEquals(Status.OPEN, newInvitation.getStatus());
         assertNull(newInvitation.getHash());
     }
