@@ -50,7 +50,6 @@ public class Role implements Serializable {
         } catch (LazyInitializationException e) {
             return null;
         }
-
     }
 
 }

@@ -3,6 +3,7 @@ package guests.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.hibernate.LazyInitializationException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -59,6 +60,15 @@ public class Application implements Serializable {
         this.entityId = entityId;
         this.displayName = entityId;
         this.provisioningHookPassword = password;
+    }
+
+    @JsonProperty(value = "institutionName", access = JsonProperty.Access.READ_ONLY)
+    public String getInstitutionName() {
+        try {
+            return this.getInstitution().getDisplayName();
+        } catch (LazyInitializationException e) {
+            return null;
+        }
     }
 
 }
