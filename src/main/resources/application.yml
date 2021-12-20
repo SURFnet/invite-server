@@ -48,6 +48,11 @@ super-admin:
     home_institution: "http://mock-sp"
     displayName: "Mujina"
 
+voot:
+  user: voot
+  password: secret
+  group_urn_domain: test.eduid.nl
+
 email:
   from: "no-reply@surf.nl"
   base-url: "http://localhost:3000"
