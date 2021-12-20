@@ -16,6 +16,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
+@EntityListeners(NameHolderListener.class)
 public class Application implements Serializable, NameHolder {
 
     @Id

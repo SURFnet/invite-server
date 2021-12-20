@@ -17,6 +17,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
+@EntityListeners(NameHolderListener.class)
 public class Role implements Serializable, NameHolder {
 
     @Id
