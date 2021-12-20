@@ -17,7 +17,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Role implements Serializable {
+public class Role implements Serializable, NameHolder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,6 +50,12 @@ public class Role implements Serializable {
         } catch (LazyInitializationException e) {
             return null;
         }
+    }
+
+    @Override
+    @JsonIgnore
+    public void nameUrnCompatibilityCheck() {
+        this.name = compatibleUrnName(this.name);
     }
 
 }

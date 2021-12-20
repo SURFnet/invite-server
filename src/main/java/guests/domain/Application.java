@@ -16,7 +16,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Application implements Serializable {
+public class Application implements Serializable, NameHolder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,4 +71,9 @@ public class Application implements Serializable {
         }
     }
 
+    @Override
+    @JsonIgnore
+    public void nameUrnCompatibilityCheck() {
+        this.displayName = compatibleUrnName(this.displayName);
+    }
 }

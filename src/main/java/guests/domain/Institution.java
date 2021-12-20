@@ -1,5 +1,6 @@
 package guests.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -11,7 +12,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Institution implements Serializable {
+@EntityListeners(NameHolderListener.class)
+public class Institution implements Serializable, NameHolder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,4 +52,11 @@ public class Institution implements Serializable {
         this.homeInstitution = institution.getHomeInstitution();
         this.displayName = institution.getDisplayName();
     }
+
+    @Override
+    @JsonIgnore
+    public void nameUrnCompatibilityCheck() {
+        this.homeInstitution = compatibleUrnName(this.homeInstitution);
+    }
+
 }
