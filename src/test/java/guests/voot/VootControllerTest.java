@@ -29,4 +29,32 @@ class VootControllerTest extends AbstractTest {
         assertEquals(results.get(0).get("urn"), "urn:collab:group:test.eduid.nl:utrecht.nl:canvas:administrator");
     }
 
+    @Test
+    void getEmptyGroupMemberships() {
+        List<Map> results = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().basic("voot", "secret")
+                .pathParam("unspecifiedId", "nope")
+                .get("/api/voot/{unspecifiedId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", Map.class);
+        assertEquals(0, results.size());
+    }
+
+    @Test
+    void getGroupMemberships401() {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().basic("nope", "nope")
+                .pathParam("unspecifiedId", "nope")
+                .get("/api/voot/{unspecifiedId}")
+                .then()
+                .statusCode(401);
+    }
+
 }
