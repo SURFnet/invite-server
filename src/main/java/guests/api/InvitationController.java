@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -103,17 +104,14 @@ public class InvitationController {
     }
 
     @PutMapping
-    public ResponseEntity<Void> invite(User user, @RequestBody InvitationRequest invitationRequest) throws IOException, MessagingException {
+    public ResponseEntity<Map<String, Integer>> invite(User user, @RequestBody InvitationRequest invitationRequest) throws IOException, MessagingException {
         Invitation invitationData = invitationRequest.getInvitation();
         List<String> invites = invitationRequest.getInvites();
         Set<String> emails = emailFormatValidator.validateEmails(invites);
         emails.forEach(email -> {
             Invitation invitation = new Invitation(invitationData.getIntendedRole(), Status.OPEN, HashGenerator.generateHash(), user, email);
             invitation.setMessage(invitationData.getMessage());
-            if (invitationData.getInstitution() == null || invitationData.getInstitution().getId() == null ||
-                    !user.getAuthority().isAllowed(Authority.SUPER_ADMIN)) {
-                invitation.setInstitution(user.getInstitution());
-            }
+            invitation.setInstitution(invitationData.getInstitution());
             invitation.defaults();
             invitation.setEnforceEmailEquality(invitationData.isEnforceEmailEquality());
             invitation.setExpiryDate(invitationData.getExpiryDate());
@@ -131,7 +129,7 @@ public class InvitationController {
             mailBox.sendInviteMail(saved);
         });
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
     }
 
     private void restrictUser(User user, Invitation invitation) throws AuthenticationException {
