@@ -5,10 +5,7 @@ import guests.domain.*;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -112,19 +109,17 @@ class InvitationControllerTest extends AbstractTest {
                 "guest@example.com",
                 true,
                 Collections.singleton(new InvitationRole(role)));
-        Invitation newInvitation = given()
+        InvitationRequest invitationRequest = new InvitationRequest(invitation, Arrays.asList("guest@example.com", "admin@example.com"));
+
+        given()
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
-                .body(invitation)
+                .body(invitationRequest)
                 .put("/guests/api/invitations")
                 .then()
-                .extract()
-                .body()
-                .jsonPath()
-                .getObject(".", Invitation.class);
-        assertEquals(Status.OPEN, newInvitation.getStatus());
-        assertNull(newInvitation.getHash());
+                .statusCode(201);
+        assertEquals(3, invitationRepository.count());
     }
 }

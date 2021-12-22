@@ -4,6 +4,7 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import guests.domain.Invitation;
 import guests.domain.User;
+import lombok.SneakyThrows;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
@@ -28,7 +29,7 @@ public class MailBox {
         this.baseUrl = baseUrl;
     }
 
-    public void sendInviteMail(Invitation invitation) throws MessagingException, IOException {
+    public void sendInviteMail(Invitation invitation) {
         String languageCode = "en";
         String role = invitation.getIntendedRole().friendlyName();
         String title = String.format("Invitation for %s at eduID inviters", role);
@@ -44,7 +45,8 @@ public class MailBox {
                 invitation.getEmail());
     }
 
-    private void sendMail(String templateName, String subject, Map<String, Object> variables, String... to) throws MessagingException, IOException {
+    @SneakyThrows
+    private void sendMail(String templateName, String subject, Map<String, Object> variables, String... to) {
         String html = this.mailTemplate(templateName, variables);
 
         MimeMessage message = mailSender.createMimeMessage();

@@ -10,6 +10,7 @@ import guests.repository.ApplicationRepository;
 import guests.repository.InvitationRepository;
 import guests.repository.RoleRepository;
 import guests.repository.UserRepository;
+import guests.validation.EmailFormatValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.mail.MessagingException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,8 @@ public class InvitationController {
     private final ApplicationRepository applicationRepository;
     private final RoleRepository roleRepository;
     private final MailBox mailBox;
+
+    private final EmailFormatValidator emailFormatValidator = new EmailFormatValidator();
 
     @Autowired
     public InvitationController(InvitationRepository invitationRepository,
@@ -99,31 +103,35 @@ public class InvitationController {
     }
 
     @PutMapping
-    public ResponseEntity<Invitation> invite(User user,
-                                             @RequestBody Invitation invitation) throws IOException, MessagingException {
-        invitation.setInviter(user);
-        invitation.setStatus(Status.OPEN);
-        invitation.setHash(HashGenerator.generateHash());
-        if (invitation.getInstitution() == null || invitation.getInstitution().getId() == null ||
-                !user.getAuthority().isAllowed(Authority.SUPER_ADMIN)) {
-            invitation.setInstitution(user.getInstitution());
-        }
-        restrictUser(user, invitation);
-        invitation.defaults();
-        if (!CollectionUtils.isEmpty(invitation.getRoles())) {
-            invitation.getRoles().forEach(role -> role.setInvitation(invitation));
-        }
-        Invitation saved = invitationRepository.save(invitation);
-        //Ensure all applications are loaded for the roles
-        if (!CollectionUtils.isEmpty(saved.getRoles())) {
-            saved.getRoles().forEach(role -> {
-                Role transientRole = role.getRole();
-                transientRole.setApplication(roleRepository.findById(transientRole.getId()).get().getApplication());
-            });
-        }
-        mailBox.sendInviteMail(saved);
+    public ResponseEntity<Void> invite(User user, @RequestBody InvitationRequest invitationRequest) throws IOException, MessagingException {
+        Invitation invitationData = invitationRequest.getInvitation();
+        List<String> invites = invitationRequest.getInvites();
+        Set<String> emails = emailFormatValidator.validateEmails(invites);
+        emails.forEach(email -> {
+            Invitation invitation = new Invitation(invitationData.getIntendedRole(), Status.OPEN, HashGenerator.generateHash(), user, email);
+            invitation.setMessage(invitationData.getMessage());
+            if (invitationData.getInstitution() == null || invitationData.getInstitution().getId() == null ||
+                    !user.getAuthority().isAllowed(Authority.SUPER_ADMIN)) {
+                invitation.setInstitution(user.getInstitution());
+            }
+            invitation.defaults();
+            invitation.setEnforceEmailEquality(invitationData.isEnforceEmailEquality());
+            invitation.setExpiryDate(invitationData.getExpiryDate());
+            if (!CollectionUtils.isEmpty(invitation.getRoles())) {
+                invitation.getRoles().forEach(role -> role.setInvitation(invitation));
+            }
+            Invitation saved = invitationRepository.save(invitation);
+            //Ensure all applications are loaded for the roles
+            if (!CollectionUtils.isEmpty(saved.getRoles())) {
+                saved.getRoles().forEach(role -> {
+                    Role transientRole = role.getRole();
+                    transientRole.setApplication(roleRepository.findById(transientRole.getId()).get().getApplication());
+                });
+            }
+            mailBox.sendInviteMail(saved);
+        });
 
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     private void restrictUser(User user, Invitation invitation) throws AuthenticationException {
