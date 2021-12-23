@@ -4,6 +4,7 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import guests.domain.Invitation;
 import guests.domain.User;
+import guests.scim.UserRequest;
 import lombok.SneakyThrows;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -17,9 +18,10 @@ import java.util.Map;
 
 public class MailBox {
 
-    private JavaMailSender mailSender;
-    private String baseUrl;
-    private String emailFrom;
+    private final JavaMailSender mailSender;
+    private final String baseUrl;
+    private final String emailFrom;
+    private final String languageCode = "en";
 
     private final MustacheFactory mustacheFactory = new DefaultMustacheFactory("templates");
 
@@ -30,7 +32,6 @@ public class MailBox {
     }
 
     public void sendInviteMail(User user, Invitation invitation) {
-        String languageCode = "en";
         String role = invitation.getIntendedRole().friendlyName();
         String title = String.format("Invitation for %s at eduID inviters", role);
 
@@ -44,6 +45,15 @@ public class MailBox {
                 title,
                 variables,
                 invitation.getEmail());
+    }
+
+    public void sendProvisioningMail(String userRequest, String email) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("userRequest", userRequest);
+        sendMail(String.format("scim_provisioning_%s.html", languageCode),
+                "Provisioning SCIM user",
+                variables,
+                email);
     }
 
     @SneakyThrows

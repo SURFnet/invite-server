@@ -2,8 +2,10 @@ package guests.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import guests.exception.InvalidProvisioningException;
 import lombok.*;
 import org.hibernate.LazyInitializationException;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -77,4 +79,21 @@ public class Application implements Serializable, NameHolder {
     public void nameUrnCompatibilityCheck() {
         this.displayName = compatibleUrnName(this.displayName);
     }
+
+    @JsonIgnore
+    public void validateProvisioning() {
+        if (StringUtils.hasText(provisioningHookUrl) &&
+                (!StringUtils.hasText(provisioningHookUsername) || !StringUtils.hasText(provisioningHookPassword))) {
+            throw new InvalidProvisioningException("provisioningHookUsername and provisioningHookPassword are required when provisioningHookUrl is configured");
+        }
+        if (StringUtils.hasText(provisioningHookUrl) && StringUtils.hasText(provisioningHookEmail)) {
+            throw new InvalidProvisioningException("Can not specify both provisioningHookUrl and provisioningHookEmail");
+        }
+    }
+
+    @JsonIgnore
+    public boolean provisioningEnabled() {
+        return StringUtils.hasText(provisioningHookUrl) || StringUtils.hasText(provisioningHookEmail);
+    }
+
 }

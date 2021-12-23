@@ -62,6 +62,7 @@ public class ApplicationController {
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Application> save(User authenticatedUser, @RequestBody Application application) {
         verifyUser(authenticatedUser, application.getInstitution().getId());
+        application.validateProvisioning();
         return ResponseEntity.status(HttpStatus.CREATED).body(applicationRepository.save(application));
     }
 

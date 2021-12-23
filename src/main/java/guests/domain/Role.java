@@ -28,6 +28,11 @@ public class Role implements Serializable, NameHolder {
     @NotNull
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    @NotNull
+    private Authority authority = Authority.INVITER;
+
     @Column(name = "instant_available")
     private boolean instantAvailable;
 
