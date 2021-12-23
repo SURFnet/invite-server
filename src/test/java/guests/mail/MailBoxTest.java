@@ -18,6 +18,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.mail.internet.MimeMessage;
 
+import java.util.Collections;
+
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertTrue;
 
@@ -57,7 +59,9 @@ class MailBoxTest extends AbstractTest {
         invitation.addInvitationRole(new InvitationRole(new Role("students", new Application(institution, "Canvas", "secret"))));
         invitation.addInvitationRole(new InvitationRole(new Role("students", new Application(institution, "Blackboard", "secret"))));
 
-        mailBox.sendInviteMail(invitation);
+        User user = new User(Authority.SUPER_ADMIN,"eppn@example.com", "urn:collab:test","John", "Doe", "jdoe@example.com",institution );
+
+        mailBox.sendInviteMail(user, invitation);
 
         MimeMessage mimeMessage = mailMessage();
         MimeMessageParser parser = new MimeMessageParser(mimeMessage);

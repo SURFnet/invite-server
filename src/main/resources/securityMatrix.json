@@ -1,6 +1,6 @@
 {
   "institutions": {
-    "get": "super_admin",
+    "get": "guest",
     "post": "super_admin",
     "put": "super_admin",
     "delete": "super_admin"

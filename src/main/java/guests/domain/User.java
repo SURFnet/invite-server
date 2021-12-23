@@ -74,5 +74,6 @@ public class User implements Serializable {
         this.familyName = familyName;
         this.email = email;
         this.institution = institution;
+        this.createdAt = Instant.now();
     }
 }

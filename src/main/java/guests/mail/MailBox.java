@@ -29,7 +29,7 @@ public class MailBox {
         this.baseUrl = baseUrl;
     }
 
-    public void sendInviteMail(Invitation invitation) {
+    public void sendInviteMail(User user, Invitation invitation) {
         String languageCode = "en";
         String role = invitation.getIntendedRole().friendlyName();
         String title = String.format("Invitation for %s at eduID inviters", role);
@@ -38,6 +38,7 @@ public class MailBox {
         variables.put("title", title);
         variables.put("role", role);
         variables.put("invitation", invitation);
+        variables.put("user", user);
         variables.put("url", String.format("%s/invitations?h=%s", baseUrl, invitation.getHash()));
         sendMail(String.format("invitation_%s.html", languageCode),
                 title,

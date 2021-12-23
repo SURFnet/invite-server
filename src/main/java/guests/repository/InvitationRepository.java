@@ -1,9 +1,6 @@
 package guests.repository;
 
-import guests.domain.Application;
-import guests.domain.Invitation;
-import guests.domain.Role;
-import guests.domain.User;
+import guests.domain.*;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,7 +12,7 @@ import java.util.Optional;
 public interface InvitationRepository extends JpaRepository<Invitation, Long> {
 
     @EntityGraph(value = "findByHash", type = EntityGraph.EntityGraphType.LOAD, attributePaths = {"inviter.institution"})
-    Optional<Invitation> findByHash(String hash);
+    Optional<Invitation> findByHashAndStatus(String hash, Status status);
 
     List<Invitation> findByInstitution_id(Long institutionId);
 

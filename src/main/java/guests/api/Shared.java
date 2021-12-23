@@ -26,7 +26,7 @@ public class Shared {
     public static void verifyUser(User authenticatedUser, Long institutionId) {
         if (authenticatedUser.getAuthority().equals(Authority.INSTITUTION_ADMINISTRATOR) &&
                 !authenticatedUser.getInstitution().getId().equals(institutionId)) {
-            throw new UserRestrictionException(String.format("User %s is not allowed to create an application for institution %s",
+            throw new UserRestrictionException(String.format("User %s is not allowed to act for institution %s",
                     authenticatedUser.getEduPersonPrincipalName(), institutionId));
         }
     }

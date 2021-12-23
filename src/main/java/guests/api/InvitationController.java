@@ -3,7 +3,6 @@ package guests.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.config.HashGenerator;
 import guests.domain.*;
-import guests.exception.InvitationNotOpenException;
 import guests.exception.NotFoundException;
 import guests.mail.MailBox;
 import guests.repository.ApplicationRepository;
@@ -18,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,7 +59,7 @@ public class InvitationController {
 
     @GetMapping("/{hash}")
     public ResponseEntity<Invitation> invitation(@PathVariable("hash") String hash) throws JsonProcessingException {
-        Invitation invitation = invitationRepository.findByHash(hash).orElseThrow(NotFoundException::new);
+        Invitation invitation = invitationRepository.findByHashAndStatus(hash, Status.OPEN).orElseThrow(NotFoundException::new);
         return ResponseEntity.ok(invitation);
     }
 
@@ -81,10 +79,7 @@ public class InvitationController {
     @PostMapping
     public ResponseEntity accept(BearerTokenAuthentication authentication,
                                  @RequestBody Invitation invitation) throws JsonProcessingException {
-        Invitation invitationFromDB = invitationRepository.findByHash(invitation.getHash()).orElseThrow(NotFoundException::new);
-        if (!invitationFromDB.getStatus().equals(Status.OPEN)) {
-            throw new InvitationNotOpenException();
-        }
+        Invitation invitationFromDB = invitationRepository.findByHashAndStatus(invitation.getHash(), Status.OPEN).orElseThrow(NotFoundException::new);
         invitationFromDB.setStatus(invitation.getStatus());
         if (invitation.getStatus().equals(Status.ACCEPTED)) {
             //create user
@@ -106,6 +101,7 @@ public class InvitationController {
     @PutMapping
     public ResponseEntity<Map<String, Integer>> invite(User user, @RequestBody InvitationRequest invitationRequest) throws IOException, MessagingException {
         Invitation invitationData = invitationRequest.getInvitation();
+        restrictUser(user, invitationData);
         List<String> invites = invitationRequest.getInvites();
         Set<String> emails = emailFormatValidator.validateEmails(invites);
         emails.forEach(email -> {
@@ -115,18 +111,16 @@ public class InvitationController {
             invitation.defaults();
             invitation.setEnforceEmailEquality(invitationData.isEnforceEmailEquality());
             invitation.setExpiryDate(invitationData.getExpiryDate());
-            if (!CollectionUtils.isEmpty(invitation.getRoles())) {
-                invitation.getRoles().forEach(role -> role.setInvitation(invitation));
-            }
+            invitationData.getRoles().forEach(invitation::addInvitationRole);
             Invitation saved = invitationRepository.save(invitation);
-            //Ensure all applications are loaded for the roles
-            if (!CollectionUtils.isEmpty(saved.getRoles())) {
-                saved.getRoles().forEach(role -> {
-                    Role transientRole = role.getRole();
-                    transientRole.setApplication(roleRepository.findById(transientRole.getId()).get().getApplication());
-                });
-            }
-            mailBox.sendInviteMail(saved);
+            //Ensure all the data is loaded for the roles to be rendered in the email
+            saved.getRoles().forEach(invitationRole -> {
+                Role transientRole = invitationRole.getRole();
+                Role persistentRole = roleRepository.findById(transientRole.getId()).get();
+                transientRole.setApplication(persistentRole.getApplication());
+                transientRole.setName(persistentRole.getName());
+            });
+            mailBox.sendInviteMail(user, saved);
         });
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
