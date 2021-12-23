@@ -82,7 +82,6 @@ public class InvitationController {
         Invitation invitationFromDB = invitationRepository.findByHashAndStatus(invitation.getHash(), Status.OPEN).orElseThrow(NotFoundException::new);
         invitationFromDB.setStatus(invitation.getStatus());
         if (invitation.getStatus().equals(Status.ACCEPTED)) {
-            //create user
             Institution institution = invitationFromDB.getInstitution();
             User user = new User(institution, invitationFromDB.getIntendedRole(), authentication.getTokenAttributes());
             Set<UserRole> userRoles = invitationFromDB.getRoles().stream().map(invitationRole -> new UserRole(user, invitationRole.getRole(), invitationRole.getEndDate())).collect(Collectors.toSet());
@@ -99,7 +98,7 @@ public class InvitationController {
     }
 
     @PutMapping
-    public ResponseEntity<Map<String, Integer>> invite(User user, @RequestBody InvitationRequest invitationRequest) throws IOException, MessagingException {
+    public ResponseEntity<Map<String, Integer>> invite(User user, @RequestBody InvitationRequest invitationRequest) {
         Invitation invitationData = invitationRequest.getInvitation();
         restrictUser(user, invitationData);
         List<String> invites = invitationRequest.getInvites();
