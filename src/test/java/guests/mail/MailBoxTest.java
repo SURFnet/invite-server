@@ -6,22 +6,18 @@ import guests.AbstractTest;
 import guests.domain.*;
 import lombok.SneakyThrows;
 import org.apache.commons.mail.util.MimeMessageParser;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.mail.internet.MimeMessage;
 
-import java.util.Collections;
-
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 @ActiveProfiles(value = "prod", inheritProfiles = false)
 class MailBoxTest extends AbstractTest {
@@ -47,9 +43,8 @@ class MailBoxTest extends AbstractTest {
 
     @Test
     void sendInvitation() throws Exception {
-        Institution institution = new Institution();
-        institution.setDisplayName("University");
-
+        User user = super.user();
+        Institution institution = user.getInstitution();
         Invitation invitation = new Invitation();
         invitation.setHash("hash");
         invitation.setEmail("guest@example.com");
@@ -58,8 +53,6 @@ class MailBoxTest extends AbstractTest {
         invitation.setIntendedRole(Authority.GUEST);
         invitation.addInvitationRole(new InvitationRole(new Role("students", new Application(institution, "Canvas", "secret"))));
         invitation.addInvitationRole(new InvitationRole(new Role("students", new Application(institution, "Blackboard", "secret"))));
-
-        User user = new User(Authority.SUPER_ADMIN,"eppn@example.com", "urn:collab:test","John", "Doe", "jdoe@example.com",institution );
 
         mailBox.sendInviteMail(user, invitation);
 

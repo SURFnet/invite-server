@@ -2,24 +2,25 @@ package guests.scim;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guests.domain.Application;
-import guests.domain.Role;
 import guests.domain.User;
 import guests.domain.UserRole;
 import guests.mail.MailBox;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,9 +45,10 @@ public class SCIMService {
         String userRequest = prettyJson(new UserRequest(user));
         applications.forEach(application -> {
             if (StringUtils.hasText(application.getProvisioningHookEmail())) {
-                mailBox.sendProvisioningMail(userRequest, application.getProvisioningHookEmail());
+                mailBox.sendProvisioningMail("SCIM user: CREATE", userRequest, application.getProvisioningHookEmail());
             } else {
-                RequestEntity<String> requestEntity = new RequestEntity<>(userRequest, httpHeaders(application), HttpMethod.POST, URI.create(application.getProvisioningHookUrl()));
+                URI uri = this.provisioningUri(application, Optional.empty());
+                RequestEntity<String> requestEntity = new RequestEntity<>(userRequest, httpHeaders(application), HttpMethod.POST, uri);
                 Map<String, Object> results = restTemplate.exchange(requestEntity, mapParameterizedTypeReference).getBody();
                 String id = (String) results.get("id");
                 //update the correct user role
@@ -58,19 +60,43 @@ public class SCIMService {
     }
 
     @SneakyThrows
-    public boolean updateUserRequest(User user) {
+    public void updateUserRequest(User user) {
         Collection<Application> applications = getApplicationsFromUserRoles(user);
         applications.forEach(application -> {
             UserRole userRole = userRoles(user, application);
             String userRequest = prettyJson(new UserRequest(user, userRole));
             if (StringUtils.hasText(application.getProvisioningHookEmail())) {
-                mailBox.sendProvisioningMail(userRequest, application.getProvisioningHookEmail());
+                mailBox.sendProvisioningMail("SCIM user: UPDATE", userRequest, application.getProvisioningHookEmail());
             } else {
-                RequestEntity<String> requestEntity = new RequestEntity<>(userRequest, httpHeaders(application), HttpMethod.PATCH, URI.create(application.getProvisioningHookUrl()));
+                URI uri = this.provisioningUri(application, Optional.of(userRole));
+                RequestEntity<String> requestEntity = new RequestEntity<>(userRequest, httpHeaders(application), HttpMethod.PATCH, uri);
                 restTemplate.exchange(requestEntity, mapParameterizedTypeReference);
             }
         });
-        return !applications.isEmpty();
+    }
+
+    @SneakyThrows
+    public void deleteUserRequest(User user) {
+        Collection<Application> applications = getApplicationsFromUserRoles(user);
+        applications.forEach(application -> {
+            UserRole userRole = userRoles(user, application);
+            if (StringUtils.hasText(application.getProvisioningHookEmail())) {
+                String userRequest = prettyJson(new UserRequest(user, userRole));
+                mailBox.sendProvisioningMail("SCIM user: DELETE", userRequest, application.getProvisioningHookEmail());
+            } else {
+                URI uri = this.provisioningUri(application, Optional.of(userRole));
+                RequestEntity<String> requestEntity = new RequestEntity<>(httpHeaders(application), HttpMethod.DELETE, uri);
+                restTemplate.exchange(requestEntity, mapParameterizedTypeReference);
+            }
+        });
+    }
+
+    private URI provisioningUri(Application application, Optional<UserRole> userRoleOptional) {
+        String postFix = userRoleOptional.map(userRole -> "/" + userRole.getServiceProviderId()).orElse("");
+        return URI.create(String.format("%s%s%s",
+                application.getProvisioningHookUrl(),
+                "/v1/Users",
+                postFix));
     }
 
     private Collection<Application> getApplicationsFromUserRoles(User user) {

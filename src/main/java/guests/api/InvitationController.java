@@ -9,6 +9,7 @@ import guests.repository.ApplicationRepository;
 import guests.repository.InvitationRepository;
 import guests.repository.RoleRepository;
 import guests.repository.UserRepository;
+import guests.scim.SCIMService;
 import guests.validation.EmailFormatValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,13 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.mail.MessagingException;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static guests.api.Shared.verifyAuthority;
 import static guests.api.Shared.verifyUser;
@@ -41,6 +36,7 @@ public class InvitationController {
     private final ApplicationRepository applicationRepository;
     private final RoleRepository roleRepository;
     private final MailBox mailBox;
+    private final SCIMService scimService;
 
     private final EmailFormatValidator emailFormatValidator = new EmailFormatValidator();
 
@@ -49,16 +45,18 @@ public class InvitationController {
                                 UserRepository userRepository,
                                 ApplicationRepository applicationRepository,
                                 RoleRepository roleRepository,
-                                MailBox mailBox) {
+                                MailBox mailBox,
+                                SCIMService scimService) {
         this.invitationRepository = invitationRepository;
         this.userRepository = userRepository;
         this.applicationRepository = applicationRepository;
         this.roleRepository = roleRepository;
         this.mailBox = mailBox;
+        this.scimService = scimService;
     }
 
     @GetMapping("/{hash}")
-    public ResponseEntity<Invitation> invitation(@PathVariable("hash") String hash) throws JsonProcessingException {
+    public ResponseEntity<Invitation> invitationI(@PathVariable("hash") String hash) throws JsonProcessingException {
         Invitation invitation = invitationRepository.findByHashAndStatus(hash, Status.OPEN).orElseThrow(NotFoundException::new);
         return ResponseEntity.ok(invitation);
     }
@@ -82,16 +80,28 @@ public class InvitationController {
         Invitation invitationFromDB = invitationRepository.findByHashAndStatus(invitation.getHash(), Status.OPEN).orElseThrow(NotFoundException::new);
         invitationFromDB.setStatus(invitation.getStatus());
         if (invitation.getStatus().equals(Status.ACCEPTED)) {
-            Institution institution = invitationFromDB.getInstitution();
-            User user = new User(institution, invitationFromDB.getIntendedRole(), authentication.getTokenAttributes());
-            Set<UserRole> userRoles = invitationFromDB.getRoles().stream().map(invitationRole -> new UserRole(user, invitationRole.getRole(), invitationRole.getEndDate())).collect(Collectors.toSet());
-            user.setRoles(userRoles);
-            if (StringUtils.hasText(institution.getAupUrl())) {
-                user.getAups().add(new Aup(user, institution));
+            Object details = authentication.getDetails();
+            if (details instanceof User) {
+                User user = (User) details;
+                invitationFromDB.getRoles()
+                        .forEach(invitationRole -> user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate())));
+                User newUser = userRepository.save(user);
+
+                scimService.updateUserRequest(user);
+
+                return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+            } else {
+                Institution institution = invitationFromDB.getInstitution();
+                User user = new User(institution, invitationFromDB.getIntendedRole(), authentication.getTokenAttributes());
+                invitationFromDB.getRoles()
+                        .forEach(invitationRole -> user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate())));
+                if (StringUtils.hasText(institution.getAupUrl())) {
+                    user.getAups().add(new Aup(user, institution));
+                }
+                User newUser = userRepository.save(user);
+                scimService.newUserRequest(user);
+                return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
             }
-            User newUser = userRepository.save(user);
-            //TODO send notifications to all applications connected to the roles
-            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         }
         invitationFromDB.setStatus(Status.DENIED);
         return ResponseEntity.noContent().build();

@@ -34,8 +34,7 @@ public class UserRole implements Serializable {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    public UserRole(User user, Role role, Instant endDate) {
-        this.user = user;
+    public UserRole(Role role, Instant endDate) {
         this.role = role;
         this.endDate = endDate;
     }

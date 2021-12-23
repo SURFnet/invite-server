@@ -47,11 +47,11 @@ public class MailBox {
                 invitation.getEmail());
     }
 
-    public void sendProvisioningMail(String userRequest, String email) {
+    public void sendProvisioningMail(String title, String userRequest, String email) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("userRequest", userRequest);
         sendMail(String.format("scim_provisioning_%s.html", languageCode),
-                "Provisioning SCIM user",
+                title,
                 variables,
                 email);
     }

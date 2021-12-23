@@ -1,5 +1,6 @@
 package guests.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -76,4 +77,11 @@ public class User implements Serializable {
         this.institution = institution;
         this.createdAt = Instant.now();
     }
+
+    @JsonIgnore
+    public void addUserRole(UserRole role) {
+        this.roles.add(role);
+        role.setUser(this);
+    }
+
 }
