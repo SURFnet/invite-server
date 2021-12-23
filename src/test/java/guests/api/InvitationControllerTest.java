@@ -5,6 +5,7 @@ import guests.domain.*;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
@@ -104,11 +105,14 @@ class InvitationControllerTest extends AbstractTest {
     @Test
     void put() throws Exception {
         Role role = roleRepository.findAll().get(0);
+        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("mdoe@surf.nl").get();
         Invitation invitation = new Invitation(Authority.GUEST,
                 "Please accept",
                 "guest@example.com",
                 true,
                 Collections.singleton(new InvitationRole(role)));
+        invitation.setExpiryDate(Instant.now());
+        invitation.setInstitution(user.getInstitution());
         InvitationRequest invitationRequest = new InvitationRequest(invitation, Arrays.asList("guest@example.com", "admin@example.com"));
 
         given()
