@@ -38,7 +38,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void newUserRequest() throws JsonProcessingException {
         String serviceProviderId = UUID.randomUUID().toString();
-        stubFor(post(urlPathMatching("/scim/v1/Users")).willReturn(aResponse()
+        stubFor(post(urlPathMatching("/scim/v1/users")).willReturn(aResponse()
                 .withHeader("Content-Type", "application/json")
                 .withBody(objectMapper.writeValueAsString(Collections.singletonMap("id", serviceProviderId)))));
         User user = seedUser();
@@ -65,7 +65,7 @@ class SCIMServiceTest extends AbstractMailTest {
         UserRole userRole = user.getRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
 
-        stubFor(delete(urlPathMatching(String.format("/scim/v1/Users/%s", serviceProviderId)))
+        stubFor(delete(urlPathMatching(String.format("/scim/v1/users/%s", serviceProviderId)))
                 .willReturn(aResponse()
                         .withStatus(201)));
 
@@ -78,7 +78,7 @@ class SCIMServiceTest extends AbstractMailTest {
         String serviceProviderId = UUID.randomUUID().toString();
         UserRole userRole = user.getRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
-        stubFor(patch(urlPathMatching(String.format("/scim/v1/Users/%s", serviceProviderId)))
+        stubFor(patch(urlPathMatching(String.format("/scim/v1/users/%s", serviceProviderId)))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(objectMapper.writeValueAsString(Collections.singletonMap("id", serviceProviderId)))));

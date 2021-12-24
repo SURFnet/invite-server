@@ -33,8 +33,8 @@ public class SCIMService {
     private final ObjectMapper objectMapper;
     private final MailBox mailBox;
     private final String groupUrnPrefix;
-    private final String userAPI = "Users";
-    private final String groupAPI = "Groups";
+    private final String userAPI = "users";
+    private final String groupAPI = "groups";
 
     @Autowired
     public SCIMService(ObjectMapper objectMapper, MailBox mailBox, @Value("${voot.group_urn_domain}") String groupUrnDomain) {
