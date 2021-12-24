@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.Period;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ResourceCleaner {
@@ -45,10 +46,15 @@ public class ResourceCleaner {
         }
         Instant past = Instant.now().minus(Period.ofDays(lastActivityDurationDays));
         List<User> users = userRepository.findByLastActivityBefore(past);
-        users.forEach(scimService::deleteUserRequest);
-        userRepository.deleteAll(users);
-
-        LOG.info(String.format("Deleted users %s", users.stream().map(User::getEduPersonPrincipalName)));
+        if (users.isEmpty()) {
+            LOG.info(String.format("No users deleted with no activity in the last %s days", lastActivityDurationDays));
+        } else {
+            users.forEach(scimService::deleteUserRequest);
+            userRepository.deleteAll(users);
+            LOG.info(String.format("Deleted users with no activity in the last %s days: %s ",
+                    lastActivityDurationDays,
+                    users.stream().map(User::getEduPersonPrincipalName).collect(Collectors.toList())));
+        }
     }
 
 }

@@ -33,7 +33,7 @@ class SCIMServiceTest extends AbstractMailTest {
 
     @Autowired
     private SCIMService scimService;
-    private final String provisioningUri = "http://localhost:8081/scim";
+    private final String provisioningUri = "http://localhost:8081";
 
     @Test
     void newUserRequest() throws JsonProcessingException {

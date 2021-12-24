@@ -41,9 +41,9 @@ public class SCIMService {
         this.objectMapper = objectMapper;
         this.mailBox = mailBox;
         this.groupUrnPrefix = String.format("urn:collab:group:%s", groupUrnDomain);
-        // Otherwise, we can use method PATCH
+        // Otherwise, we can't use method PATCH
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.connectTimeout(5, TimeUnit.SECONDS);
+        builder.connectTimeout(1, TimeUnit.MINUTES);
         builder.retryOnConnectionFailure(true);
         restTemplate.setRequestFactory(new OkHttp3ClientHttpRequestFactory(builder.build()));
     }
@@ -151,7 +151,7 @@ public class SCIMService {
 
     private URI provisioningUri(Application application, String objectType, Optional<ServiceProviderIdentifier> spIdentifier) {
         String postFix = spIdentifier.map(role -> "/" + role.getServiceProviderId()).orElse("");
-        return URI.create(String.format("%s/v1/%s%s",
+        return URI.create(String.format("%s/scim/v1/%s%s",
                 application.getProvisioningHookUrl(),
                 objectType,
                 postFix));
