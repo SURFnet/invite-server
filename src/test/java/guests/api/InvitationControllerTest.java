@@ -34,7 +34,7 @@ class InvitationControllerTest extends AbstractTest {
     @Test
     @SuppressWarnings("unchecked")
     void allByInstitution() throws Exception {
-        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://ut").get();
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Invitation> invitations = given()
                 .when()
                 .accept(ContentType.JSON)

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.Period;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,6 +20,7 @@ class ResourceCleanerTest extends AbstractTest {
     void clean() {
         long before = userRepository.count();
         markUser();
+        stubForDeleteUser();
         subject.clean();
 
         long after = userRepository.count();

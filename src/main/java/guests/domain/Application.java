@@ -61,11 +61,17 @@ public class Application implements Serializable, NameHolder {
     @Embedded
     private Auditable auditable = new Auditable();
 
-    public Application(Institution institution, String entityId, String password) {
+    public Application(Institution institution,
+                       String entityId,
+                       String provisioningHookUrl,
+                       String provisioningHookUsername,
+                       String provisioningHookPassword) {
         this.institution = institution;
         this.entityId = entityId;
         this.name = entityId;
-        this.provisioningHookPassword = password;
+        this.provisioningHookUrl = provisioningHookUrl;
+        this.provisioningHookUsername = provisioningHookUsername;
+        this.provisioningHookPassword = provisioningHookPassword;
     }
 
     @JsonProperty(value = "institutionName", access = JsonProperty.Access.READ_ONLY)

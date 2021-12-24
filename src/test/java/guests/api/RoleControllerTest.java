@@ -16,7 +16,7 @@ class RoleControllerTest extends AbstractTest {
 
     @Test
     void rolesByInstitution() throws Exception {
-        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://ut").get();
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Map> results = given()
                 .when()
                 .accept(ContentType.JSON)

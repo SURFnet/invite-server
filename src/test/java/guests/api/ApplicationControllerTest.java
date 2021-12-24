@@ -136,7 +136,7 @@ class ApplicationControllerTest extends AbstractTest {
     @Test
     @SuppressWarnings("unchecked")
     void applicationsFoInstitution() throws Exception {
-        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://ut").get();
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Application> results = given()
                 .when()
                 .accept(ContentType.JSON)

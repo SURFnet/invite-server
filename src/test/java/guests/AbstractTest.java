@@ -8,7 +8,6 @@ import guests.repository.*;
 import io.restassured.RestAssured;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -21,7 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.Period;
@@ -74,15 +72,15 @@ public abstract class AbstractTest {
     private void seed() {
         SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("Principal", "N/A", "ADMIN"));
         List<Institution> institutions = Arrays.asList(
-                new Institution("ut", "https://ut", "utrecht.nl", "https://utrecht.nl/aup", "V1"),
-                new Institution("uva", "https://uva", "uva.nl", "https://uva.nl/aup", "V1")
+                this.institution("Utrecht"),
+                this.institution("UVA")
         );
         institutionRepository.saveAll(institutions);
 
         Institution ut = institutions.get(0);
         List<Application> applications = Arrays.asList(
-                new Application(ut, "CANVAS", "secret"),
-                new Application(institutions.get(1), "blackboard", "secret")
+                this.application(ut, "CANVAS"),
+                this.application(institutions.get(1), "blackboard")
         );
         applicationRepository.saveAll(applications);
 
@@ -103,7 +101,7 @@ public abstract class AbstractTest {
     }
 
     @SneakyThrows
-    protected String opaqueAccessToken(String eppn, String responseJsonFileName, String... scopes)  {
+    protected String opaqueAccessToken(String eppn, String responseJsonFileName, String... scopes) {
         List<String> scopeList = new ArrayList<>(Arrays.asList(scopes));
         scopeList.add("openid");
 
@@ -125,5 +123,25 @@ public abstract class AbstractTest {
         institution.setDisplayName("University");
         return new User(Authority.SUPER_ADMIN, "eppn@example.com", "urn:collab:test", "John", "Doe", "jdoe@example.com", institution);
     }
+
+    protected Application application(Institution institution, String entityId) {
+        return new Application(institution, entityId, "http://localhost:8081", "inviter", "secret");
+    }
+
+    protected Institution institution(String base) {
+        String baseLowerCase = base.toLowerCase();
+        return new Institution(base,
+                "https://" + baseLowerCase,
+                baseLowerCase + ".nl",
+                "https://" + baseLowerCase + ".nl/aup",
+                "V1");
+    }
+
+    protected void stubForDeleteUser() {
+        stubFor(delete(urlPathMatching("/scim/v1/users/(.*)"))
+                .willReturn(aResponse()
+                        .withStatus(201)));
+    }
+
 
 }

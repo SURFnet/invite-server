@@ -33,7 +33,6 @@ class SCIMServiceTest extends AbstractMailTest {
 
     @Autowired
     private SCIMService scimService;
-    private final String provisioningUri = "http://localhost:8081";
 
     @Test
     void newUserRequest() throws JsonProcessingException {
@@ -56,20 +55,6 @@ class SCIMServiceTest extends AbstractMailTest {
         String htmlContent = parser.getHtmlContent();
 
         assertTrue(htmlContent.contains(user.getEmail()));
-    }
-
-    @Test
-    void deleteUserRequest() {
-        User user = seedUser();
-        String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getRoles().iterator().next();
-        userRole.setServiceProviderId(serviceProviderId);
-
-        stubFor(delete(urlPathMatching(String.format("/scim/v1/users/%s", serviceProviderId)))
-                .willReturn(aResponse()
-                        .withStatus(201)));
-
-        scimService.deleteUserRequest(user);
     }
 
     @Test
@@ -102,6 +87,18 @@ class SCIMServiceTest extends AbstractMailTest {
     }
 
     @Test
+    void deleteUserRequest() {
+        User user = seedUser();
+        String serviceProviderId = UUID.randomUUID().toString();
+        UserRole userRole = user.getRoles().iterator().next();
+        userRole.setServiceProviderId(serviceProviderId);
+
+        stubForDeleteUser();
+
+        scimService.deleteUserRequest(user);
+    }
+
+    @Test
     void deleteUserRequestMail() {
         User user = seedUserWithEmailProvisioning();
         String serviceProviderId = UUID.randomUUID().toString();
@@ -118,7 +115,8 @@ class SCIMServiceTest extends AbstractMailTest {
 
     private User seedUser() {
         User user = user();
-        Application application = new Application(user.getInstitution(), "https://entity", "secret");
+        Application application = this.application(user.getInstitution(), "https://entity");
+        String provisioningUri = "http://localhost:8081";
         application.setProvisioningHookUrl(provisioningUri);
         application.setProvisioningHookUsername("user");
         application.setId(1L);

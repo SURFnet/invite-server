@@ -25,8 +25,8 @@ class MailBoxTest extends AbstractMailTest {
         invitation.setInstitution(institution);
         invitation.setMessage("Please join");
         invitation.setIntendedAuthority(Authority.GUEST);
-        invitation.addInvitationRole(new InvitationRole(new Role("students", new Application(institution, "Canvas", "secret"))));
-        invitation.addInvitationRole(new InvitationRole(new Role("students", new Application(institution, "Blackboard", "secret"))));
+        invitation.addInvitationRole(new InvitationRole(new Role("students", this.application(institution, "Canvas"))));
+        invitation.addInvitationRole(new InvitationRole(new Role("students", this.application(institution, "Blackboard"))));
 
         mailBox.sendInviteMail(user, invitation);
 

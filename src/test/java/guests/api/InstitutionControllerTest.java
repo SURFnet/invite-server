@@ -36,7 +36,7 @@ class InstitutionControllerTest extends AbstractTest {
     @Test
     @SuppressWarnings("unchecked")
     void institutionById() throws Exception {
-        Long id = institutionRepository.findByEntityIdIgnoreCase("https://ut").get().getId();
+        Long id = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get().getId();
         Institution institution = given()
                 .when()
                 .accept(ContentType.JSON)
