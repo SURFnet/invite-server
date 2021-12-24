@@ -9,7 +9,6 @@ import java.time.Instant;
 
 @Entity(name = "invitation_roles")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class InvitationRole implements Serializable {

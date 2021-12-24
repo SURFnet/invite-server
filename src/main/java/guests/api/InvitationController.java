@@ -21,7 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static guests.api.Shared.verifyAuthority;
 import static guests.api.Shared.verifyUser;
@@ -81,27 +84,28 @@ public class InvitationController {
         invitationFromDB.setStatus(invitation.getStatus());
         if (invitation.getStatus().equals(Status.ACCEPTED)) {
             Object details = authentication.getDetails();
-            if (details instanceof User) {
-                User user = (User) details;
+            User newUser;
+            if (details instanceof User user) {
                 invitationFromDB.getRoles()
                         .forEach(invitationRole -> user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate())));
-                User newUser = userRepository.save(user);
-
-                scimService.updateUserRequest(user);
-
-                return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+                newUser = userRepository.save(user);
             } else {
                 Institution institution = invitationFromDB.getInstitution();
-                User user = new User(institution, invitationFromDB.getIntendedRole(), authentication.getTokenAttributes());
+                User user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
                 invitationFromDB.getRoles()
                         .forEach(invitationRole -> user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate())));
                 if (StringUtils.hasText(institution.getAupUrl())) {
                     user.getAups().add(new Aup(user, institution));
                 }
-                User newUser = userRepository.save(user);
+
                 scimService.newUserRequest(user);
-                return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+                newUser = userRepository.save(user);
             }
+            invitationFromDB.getRoles().forEach(invitationRole -> {
+                List<User> users = userRepository.findByRoles_role_id(invitationRole.getRole().getId());
+                scimService.updateRoleRequest(invitationRole.getRole(), users);
+            });
+            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         }
         invitationFromDB.setStatus(Status.DENIED);
         return ResponseEntity.noContent().build();
@@ -114,7 +118,7 @@ public class InvitationController {
         List<String> invites = invitationRequest.getInvites();
         Set<String> emails = emailFormatValidator.validateEmails(invites);
         emails.forEach(email -> {
-            Invitation invitation = new Invitation(invitationData.getIntendedRole(), Status.OPEN, HashGenerator.generateHash(), user, email);
+            Invitation invitation = new Invitation(invitationData.getIntendedAuthority(), Status.OPEN, HashGenerator.generateHash(), user, email);
             invitation.setMessage(invitationData.getMessage());
             invitation.setInstitution(invitationData.getInstitution());
             invitation.defaults();
@@ -137,7 +141,7 @@ public class InvitationController {
 
     private void restrictUser(User user, Invitation invitation) throws AuthenticationException {
         verifyUser(user, invitation.getInstitution().getId());
-        verifyAuthority(user, invitation.getIntendedRole());
+        verifyAuthority(user, invitation.getIntendedAuthority());
     }
 
 }

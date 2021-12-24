@@ -10,10 +10,9 @@ import java.time.Instant;
 
 @Entity(name = "user_roles")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-public class UserRole implements Serializable {
+public class UserRole implements Serializable, ServiceProviderIdentifier {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

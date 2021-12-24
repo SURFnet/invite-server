@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
-@NoArgsConstructor
 @Getter
 public class Email implements Serializable {
 

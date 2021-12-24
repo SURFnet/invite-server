@@ -11,7 +11,6 @@ import java.time.Instant;
 
 @Entity(name = "aups")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class Aup implements Serializable {

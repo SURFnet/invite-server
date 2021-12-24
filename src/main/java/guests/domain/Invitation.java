@@ -13,7 +13,6 @@ import java.util.*;
 
 @Entity(name = "invitations")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class Invitation implements Serializable {
@@ -23,8 +22,8 @@ public class Invitation implements Serializable {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "intended_role")
-    private Authority intendedRole;
+    @Column(name = "intended_authority")
+    private Authority intendedAuthority;
 
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -60,8 +59,8 @@ public class Invitation implements Serializable {
     @OneToMany(mappedBy = "invitation", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<InvitationRole> roles = new HashSet<>();
 
-    public Invitation(Authority intendedRole, String message, String email, boolean enforceEmailEquality, Set<InvitationRole> roles) {
-        this.intendedRole = intendedRole;
+    public Invitation(Authority intendedAuthority, String message, String email, boolean enforceEmailEquality, Set<InvitationRole> roles) {
+        this.intendedAuthority = intendedAuthority;
         this.message = message;
         this.enforceEmailEquality = enforceEmailEquality;
         this.status = Status.OPEN;
@@ -73,8 +72,8 @@ public class Invitation implements Serializable {
         this.defaults();
     }
 
-    public Invitation(Authority intendedRole, Status status, String hash, User inviter, String email) {
-        this.intendedRole = intendedRole;
+    public Invitation(Authority intendedAuthority, Status status, String hash, User inviter, String email) {
+        this.intendedAuthority = intendedAuthority;
         this.status = status;
         this.hash = hash;
         this.inviter = inviter;

@@ -5,7 +5,6 @@ import guests.domain.Application;
 import guests.domain.Institution;
 import guests.domain.ObjectExists;
 import io.restassured.http.ContentType;
-import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -14,8 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ApplicationControllerTest extends AbstractTest {
 
@@ -164,7 +163,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .body(new ObjectExists(true, "blackboard"))
                 .post("/guests/api/applications/entity-id-exists")
                 .then()
-                .body("exists", IsEqual.equalTo(false));
+                .body("exists", equalTo(false));
     }
 
     @Test
@@ -178,7 +177,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .body(new ObjectExists(false, "nope"))
                 .post("/guests/api/applications/entity-id-exists")
                 .then()
-                .body("exists", IsEqual.equalTo(false));
+                .body("exists", equalTo(false));
     }
 
     @Test
@@ -192,7 +191,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .body(new ObjectExists(false, "blackboard"))
                 .post("/guests/api/applications/entity-id-exists")
                 .then()
-                .body("exists", IsEqual.equalTo(true));
+                .body("exists", equalTo(true));
     }
 
 }

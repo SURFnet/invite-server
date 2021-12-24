@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 public class Name implements Serializable {
 

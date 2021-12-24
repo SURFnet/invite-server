@@ -14,11 +14,10 @@ import java.time.Instant;
 
 @Entity(name = "roles")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @EntityListeners(NameHolderListener.class)
-public class Role implements Serializable, NameHolder {
+public class Role implements Serializable, NameHolder, ServiceProviderIdentifier {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +26,12 @@ public class Role implements Serializable, NameHolder {
     @Column
     @NotNull
     private String name;
+
+    @Column(name = "display_name")
+    private String displayName;
+
+    @Column(name = "service_provider_id")
+    private String serviceProviderId;
 
     @Enumerated(EnumType.STRING)
     @Column
@@ -52,7 +57,7 @@ public class Role implements Serializable, NameHolder {
     @JsonProperty(value = "applicationName", access = JsonProperty.Access.READ_ONLY)
     public String getApplicationName() {
         try {
-            return this.getApplication().getDisplayName();
+            return this.getApplication().getName();
         } catch (LazyInitializationException e) {
             return null;
         }

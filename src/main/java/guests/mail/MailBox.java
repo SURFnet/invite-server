@@ -4,7 +4,6 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import guests.domain.Invitation;
 import guests.domain.User;
-import guests.scim.UserRequest;
 import lombok.SneakyThrows;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -32,7 +31,7 @@ public class MailBox {
     }
 
     public void sendInviteMail(User user, Invitation invitation) {
-        String role = invitation.getIntendedRole().friendlyName();
+        String role = invitation.getIntendedAuthority().friendlyName();
         String title = String.format("Invitation for %s at eduID inviters", role);
 
         Map<String, Object> variables = new HashMap<>();

@@ -6,6 +6,7 @@ import guests.config.HashGenerator;
 import guests.domain.*;
 import guests.repository.*;
 import io.restassured.RestAssured;
+import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +67,6 @@ public abstract class AbstractTest {
     @BeforeEach
     protected void beforeEach() {
         institutionRepository.deleteAll();
-
         seed();
         RestAssured.port = port;
     }
@@ -102,7 +102,8 @@ public abstract class AbstractTest {
         invitationRepository.saveAll(invitations);
     }
 
-    protected String opaqueAccessToken(String eppn, String responseJsonFileName, String... scopes) throws IOException {
+    @SneakyThrows
+    protected String opaqueAccessToken(String eppn, String responseJsonFileName, String... scopes)  {
         List<String> scopeList = new ArrayList<>(Arrays.asList(scopes));
         scopeList.add("openid");
 

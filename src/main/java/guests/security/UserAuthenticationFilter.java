@@ -6,11 +6,13 @@ import guests.domain.Institution;
 import guests.domain.User;
 import guests.repository.InstitutionRepository;
 import guests.repository.UserRepository;
+import guests.scim.SCIMService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.FilterChain;
@@ -20,6 +22,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Optional;
 
 public class UserAuthenticationFilter extends GenericFilterBean {
@@ -28,15 +31,18 @@ public class UserAuthenticationFilter extends GenericFilterBean {
     private final UserRepository userRepository;
     private final SecurityMatrix securityMatrix;
     private final SuperAdmin superAdmin;
+    private final SCIMService scimService;
 
     public UserAuthenticationFilter(InstitutionRepository institutionRepository,
                                     UserRepository userRepository,
                                     SecurityMatrix securityMatrix,
-                                    SuperAdmin superAdmin) {
+                                    SuperAdmin superAdmin,
+                                    SCIMService scimService) {
         this.institutionRepository = institutionRepository;
         this.userRepository = userRepository;
         this.securityMatrix = securityMatrix;
         this.superAdmin = superAdmin;
+        this.scimService = scimService;
     }
 
     @Override
@@ -62,6 +68,11 @@ public class UserAuthenticationFilter extends GenericFilterBean {
             boolean allowed = securityMatrix.isAllowed(requestURI, httpMethod, user);
             if (allowed) {
                 tokenAuthentication.setDetails(user);
+                user.setLastActivity(Instant.now());
+                userRepository.save(user);
+                if (user.hasChanged(tokenAuthentication.getTokenAttributes())) {
+                    scimService.updateUserRequest(user);
+                }
                 filterChain.doFilter(servletRequest, servletResponse);
             } else {
                 responseForbidden(servletResponse);

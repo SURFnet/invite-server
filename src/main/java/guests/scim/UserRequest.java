@@ -10,18 +10,16 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 public class UserRequest implements Serializable {
 
-    private List<String> schemas = Collections.singletonList("urn:ietf:params:scim:schemas:core:2.0:User");
-    private String externalId;
-    private String userName;
-    private Name name;
+    private final List<String> schemas = Collections.singletonList("urn:ietf:params:scim:schemas:core:2.0:User");
+    private final String externalId;
+    private final String userName;
+    private final Name name;
     private String id;
-    private String displayName;
-    private List<Email> emails;
+    private final String displayName;
+    private final List<Email> emails;
 
     public UserRequest(User user) {
         this.externalId = user.getEduPersonPrincipalName();

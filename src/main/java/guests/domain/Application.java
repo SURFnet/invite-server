@@ -15,7 +15,6 @@ import java.util.Set;
 
 @Entity(name = "applications")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @EntityListeners(NameHolderListener.class)
@@ -24,6 +23,10 @@ public class Application implements Serializable, NameHolder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column
+    @NotNull
+    private String name;
 
     @Column(name = "display_name")
     private String displayName;
@@ -61,7 +64,7 @@ public class Application implements Serializable, NameHolder {
     public Application(Institution institution, String entityId, String password) {
         this.institution = institution;
         this.entityId = entityId;
-        this.displayName = entityId;
+        this.name = entityId;
         this.provisioningHookPassword = password;
     }
 
@@ -77,7 +80,7 @@ public class Application implements Serializable, NameHolder {
     @Override
     @JsonIgnore
     public void nameUrnCompatibilityCheck() {
-        this.displayName = compatibleUrnName(this.displayName);
+        this.name = compatibleUrnName(this.name);
     }
 
     @JsonIgnore

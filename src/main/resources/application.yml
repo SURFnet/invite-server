@@ -40,6 +40,11 @@ oidc:
   resource_server_id: "resource-server-playground-client"
   rs_secret: secret
 
+cron:
+  node-cron-job-responsible: true
+  user-cleaner-expression: "0 0/30 * * * *"
+  last-activity-duration-days: 1000
+
 super-admin:
   users:
     - "j.doe@example.com"

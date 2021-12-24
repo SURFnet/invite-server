@@ -1,25 +1,22 @@
 package guests.voot;
 
-import guests.domain.Application;
 import guests.domain.Role;
+import guests.domain.User;
 import guests.domain.UserRole;
-import guests.domain.Validation;
 import guests.repository.UserRepository;
-import guests.validation.EmailFormatValidator;
-import guests.validation.FormatValidator;
-import guests.validation.URLFormatValidator;
+import guests.scim.GroupURN;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toMap;
 
 @RestController
 @RequestMapping(value = "/api/voot", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -36,22 +33,21 @@ public class VootController {
 
     @GetMapping("/{unspecified_id}")
     public ResponseEntity<List<Map<String, String>>> getGroupMemberships(@PathVariable("unspecified_id") String unspecifiedId) {
-        List<Map<String, String>> res = userRepository.findByUnspecifiedIdIgnoreCase(unspecifiedId)
-                .map(user -> user.getRoles().stream().map(this::parseUserRole).collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
-        return ResponseEntity.ok(res);
+        Optional<User> optionalUser = userRepository.findByUnspecifiedIdIgnoreCase(unspecifiedId);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setLastActivity(Instant.now());
+            userRepository.save(user);
+            List<Map<String, String>> roles = user.getRoles().stream().map(this::parseUserRole).collect(Collectors.toList());
+            return ResponseEntity.ok(roles);
+        }
+        return ResponseEntity.ok(Collections.emptyList());
     }
 
     private Map<String, String> parseUserRole(UserRole userRole) {
         Map<String, String> res = new HashMap<>();
         Role role = userRole.getRole();
-        Application application = role.getApplication();
-        String urn = String.format("%s:%s:%s:%s",
-                groupUrnPrefix,
-                application.getInstitution().getHomeInstitution().toLowerCase(),
-                application.getDisplayName().toLowerCase(),
-                role.getName()).toLowerCase();
-        res.put("urn", urn);
+        res.put("urn", GroupURN.urnFromRole(groupUrnPrefix, userRole.getRole()));
         res.put("name", role.getName());
         return res;
     }

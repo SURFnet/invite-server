@@ -6,6 +6,7 @@ import guests.config.SuperAdmin;
 import guests.config.UserHandlerMethodArgumentResolver;
 import guests.repository.InstitutionRepository;
 import guests.repository.UserRepository;
+import guests.scim.SCIMService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.provisioning.InMemoryUserDetailsManagerConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 @EnableWebSecurity
+@EnableScheduling
 public class SecurityConfig {
 
     @Configuration
@@ -50,15 +53,18 @@ public class SecurityConfig {
         private final UserRepository userRepository;
         private final ObjectMapper objectMapper;
         private final SuperAdmin superAdmin;
+        private SCIMService scimService;
 
         public JWTSecurityConfig(InstitutionRepository institutionRepository,
                                  UserRepository userRepository,
                                  ObjectMapper objectMapper,
-                                 SuperAdmin superAdmin) {
+                                 SuperAdmin superAdmin,
+                                 SCIMService scimService) {
             this.institutionRepository = institutionRepository;
             this.userRepository = userRepository;
             this.objectMapper = objectMapper;
             this.superAdmin = superAdmin;
+            this.scimService = scimService;
         }
 
         @Override
@@ -81,7 +87,7 @@ public class SecurityConfig {
                             .antMatchers("/guests/api/public/**", "/guests/api/validations/**")
                             .permitAll())
                     .addFilterAfter(
-                            new UserAuthenticationFilter(institutionRepository, userRepository, new SecurityMatrix(securityMap), superAdmin),
+                            new UserAuthenticationFilter(institutionRepository, userRepository, new SecurityMatrix(securityMap), superAdmin, scimService),
                             FilterSecurityInterceptor.class)
                     .authorizeRequests(authz -> authz
                             .antMatchers("/guests/api/**").hasAuthority("SCOPE_openid")

@@ -10,7 +10,6 @@ import java.io.Serializable;
 
 @Entity(name = "institutions")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @EntityListeners(NameHolderListener.class)

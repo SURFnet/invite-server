@@ -6,10 +6,7 @@ import org.hibernate.Hibernate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Shared {
@@ -19,7 +16,7 @@ public class Shared {
         return ResponseEntity.ok(Collections.singletonMap("exists", exists));
     }
 
-    public static <M> List<M> unProxy(List<M> objects, Class<M> clazz) {
+    public static <M> List<M> unProxy(Collection<M> objects, Class<M> clazz) {
         return objects.stream().map(obj -> Hibernate.unproxy(obj, clazz)).collect(Collectors.toList());
     }
 

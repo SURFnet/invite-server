@@ -29,7 +29,7 @@ class RoleControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", Map.class);
         assertEquals(1, results.size());
-        assertEquals(results.get(0).get("applicationName"), "CANVAS");
+        assertEquals("CANVAS", results.get(0).get("applicationName"));
     }
 
     @Test

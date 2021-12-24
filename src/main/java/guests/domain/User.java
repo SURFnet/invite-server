@@ -1,19 +1,21 @@
 package guests.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import guests.scim.Email;
+import guests.scim.Name;
 import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 @Entity(name = "users")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class User implements Serializable {
@@ -46,6 +48,9 @@ public class User implements Serializable {
 
     @Column(name = "created_at")
     private Instant createdAt;
+
+    @Column(name = "last_activity")
+    private Instant lastActivity = Instant.now();
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "institution_id")
@@ -82,6 +87,21 @@ public class User implements Serializable {
     public void addUserRole(UserRole role) {
         this.roles.add(role);
         role.setUser(this);
+    }
+
+    @JsonIgnore
+    public boolean hasChanged(Map<String, Object> tokenAttributes) {
+        User user = new User(institution, authority, tokenAttributes);
+        return !this.toScimString().equals(user.toScimString());
+    }
+
+    private String toScimString() {
+        return String.format("%s%s%s%s",
+                this.getEduPersonPrincipalName(),
+                this.getFamilyName(),
+                this.getGivenName(),
+                this.getEmail());
+
     }
 
 }

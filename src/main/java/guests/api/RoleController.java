@@ -2,9 +2,9 @@ package guests.api;
 
 import guests.domain.*;
 import guests.exception.NotFoundException;
-import guests.exception.UserRestrictionException;
 import guests.repository.ApplicationRepository;
 import guests.repository.RoleRepository;
+import guests.scim.SCIMService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,11 +27,13 @@ public class RoleController {
 
     private final RoleRepository roleRepository;
     private final ApplicationRepository applicationRepository;
+    private final SCIMService scimService;
 
     @Autowired
-    public RoleController(RoleRepository roleRepository, ApplicationRepository applicationRepository) {
+    public RoleController(RoleRepository roleRepository, ApplicationRepository applicationRepository, SCIMService scimService) {
         this.roleRepository = roleRepository;
         this.applicationRepository = applicationRepository;
+        this.scimService = scimService;
     }
 
     @GetMapping("/institution/{institutionId}")
@@ -59,7 +61,12 @@ public class RoleController {
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Role> save(User user, @RequestBody Role role) {
         this.restrictUser(user, role);
+        boolean isTransientRole = role.getId() == null;
         role = roleRepository.save(role);
+        if (isTransientRole) {
+            role.setApplication(applicationRepository.findById(role.getApplication().getId()).get());
+            scimService.newRoleRequest(role);
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(role);
     }
 
@@ -75,6 +82,7 @@ public class RoleController {
         Role role = roleRepository.findById(id).get();
         this.restrictUser(user, role);
         roleRepository.delete(role);
+        scimService.deleteRolesRequest(role);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
