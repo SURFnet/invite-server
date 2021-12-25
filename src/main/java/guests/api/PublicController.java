@@ -1,24 +1,24 @@
 package guests.api;
 
-import com.nimbusds.oauth2.sdk.ResponseType;
 import com.nimbusds.oauth2.sdk.pkce.CodeChallenge;
 import com.nimbusds.oauth2.sdk.pkce.CodeChallengeMethod;
 import com.nimbusds.oauth2.sdk.pkce.CodeVerifier;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.*;
-
-import static com.nimbusds.oauth2.sdk.ResponseMode.FRAGMENT;
-import static com.nimbusds.oauth2.sdk.ResponseMode.QUERY;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/guests/api/public", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -77,12 +77,9 @@ public class PublicController {
         return ResponseEntity.ok(results);
     }
 
+    @SneakyThrows
     private String encode(String s) {
-        try {
-            return URLEncoder.encode(s, Charset.defaultCharset().toString());
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        return URLEncoder.encode(s, Charset.defaultCharset().toString());
     }
 
 }

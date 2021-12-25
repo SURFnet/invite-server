@@ -54,5 +54,3 @@ public class ResourceCleaner {
                 users.stream().map(User::getEduPersonPrincipalName).collect(Collectors.toList())));
     }
 }
-
-}

@@ -192,4 +192,19 @@ class RoleControllerTest extends AbstractTest {
                 .then()
                 .body("exists", IsEqual.equalTo(true));
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getRole() {
+        Role role = roleRepository.findAll().get(0);
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("id", role.getId())
+                .get("/guests/api/roles/{id}")
+                .then()
+                .body("name", IsEqual.equalTo(role.getName()));
+    }
 }

@@ -113,6 +113,21 @@ class SCIMServiceTest extends AbstractMailTest {
         assertTrue(htmlContent.contains(serviceProviderId));
     }
 
+    @Test
+    void newRoleRequestNoProvisioning() {
+        scimService.newRoleRequest(new Role("name", new Application()));
+    }
+
+    @Test
+    void updateRoleRequestNoProvisioning() {
+        scimService.updateRoleRequest(new Role("name", new Application()), Collections.emptyList());
+    }
+
+    @Test
+    void deleteRolesRequestNoProvisioning() {
+        scimService.deleteRolesRequest(new Role("name", new Application()));
+    }
+
     private User seedUser() {
         User user = user();
         Application application = this.application(user.getInstitution(), "https://entity");

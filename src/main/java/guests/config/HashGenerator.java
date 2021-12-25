@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Random;
@@ -17,7 +18,7 @@ public class HashGenerator {
         byte[] aesKey = new byte[128];
         secureRandom.nextBytes(aesKey);
         String base64 = Base64.getEncoder().encodeToString(aesKey);
-        return URLEncoder.encode(base64, "UTF-8").replaceAll("%", "");
+        return URLEncoder.encode(base64, StandardCharsets.UTF_8).replaceAll("%", "");
     }
 
 }
