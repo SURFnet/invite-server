@@ -4,7 +4,9 @@ import guests.AbstractTest;
 import guests.domain.*;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.time.Instant;
 import java.util.*;
 
@@ -104,6 +106,33 @@ class InvitationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", User.class);
         assertEquals("new@user.nl", user.getEduPersonPrincipalName());
+    }
+
+    @Test
+    void postExistingUser() {
+        Map<String, Object> invitation = new HashMap<>();
+        invitation.put("hash", HASH);
+        invitation.put("status", Status.ACCEPTED);
+        //prevent user_roles_unique_user_role exception
+        User userFromDB = userRepository.findByEduPersonPrincipalNameIgnoreCase("mdoe@surf.nl").get();
+        userFromDB.setRoles(new HashSet<>());
+        userRepository.save(userFromDB);
+
+        this.stubForUpdateGroup();
+
+        User user = given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .body(invitation)
+                .post("/guests/api/invitations")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", User.class);
+        assertEquals("mdoe@surf.nl", user.getEduPersonPrincipalName());
     }
 
     @Test

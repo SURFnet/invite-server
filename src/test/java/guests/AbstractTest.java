@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import javax.persistence.EntityManager;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.Period;
@@ -55,6 +56,9 @@ public abstract class AbstractTest {
 
     @Autowired
     protected RoleRepository roleRepository;
+
+    @Autowired
+    protected EntityManager entityManager;
 
     @RegisterExtension
     WireMockExtension mockServer = new WireMockExtension(8081);

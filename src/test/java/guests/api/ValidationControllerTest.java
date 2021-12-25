@@ -57,4 +57,17 @@ class ValidationControllerTest extends AbstractTest {
                 .then()
                 .body("valid", equalTo(false));
     }
+
+    @Test
+    void validateNope() {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .body(new Validation("nope", "value"))
+                .post("/guests/api/validations/validate")
+                .then()
+                .statusCode(500);
+    }
+
 }
