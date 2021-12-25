@@ -62,7 +62,7 @@ public class SCIMService {
         getApplicationsFromUserRoles(user).forEach(application -> {
             UserRole userRole = userRoles(user, application);
             String userRequest = prettyJson(new UserRequest(user, userRole));
-            this.updateRequest(application, userRequest, groupAPI, userRole);
+            this.updateRequest(application, userRequest, userAPI, userRole);
         });
     }
 
@@ -118,7 +118,7 @@ public class SCIMService {
         if (hasEmailHook(application)) {
             mailBox.sendProvisioningMail(String.format("SCIM %s: UPDATE", apiType), request, application.getProvisioningHookEmail());
         } else {
-            URI uri = this.provisioningUri(application, userAPI, Optional.of(serviceProviderIdentifier));
+            URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.PATCH, uri);
             restTemplate.exchange(requestEntity, mapParameterizedTypeReference);
         }
@@ -129,7 +129,7 @@ public class SCIMService {
         if (hasEmailHook(application)) {
             mailBox.sendProvisioningMail(String.format("SCIM %s: DELETE", apiType), request, application.getProvisioningHookEmail());
         } else {
-            URI uri = this.provisioningUri(application, userAPI, Optional.of(serviceProviderIdentifier));
+            URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
             HttpHeaders headers = new HttpHeaders();
             headers.setBasicAuth(application.getProvisioningHookUsername(), application.getProvisioningHookPassword());
             RequestEntity<Void> requestEntity = new RequestEntity<>(headers, HttpMethod.DELETE, uri);

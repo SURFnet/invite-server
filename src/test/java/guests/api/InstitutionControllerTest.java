@@ -47,7 +47,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getObject(".", Institution.class);
-        assertEquals("https://ut", institution.getEntityId());
+        assertEquals("https://utrecht", institution.getEntityId());
     }
 
 

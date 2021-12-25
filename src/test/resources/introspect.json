@@ -3,11 +3,11 @@
   "authenticating_authority": "http://mock-idp",
   "client_id": "playground_client",
   "eduperson_principal_name": "%s",
-  "email": "j.doe@example.com",
+  "email": "mdoe@surf.nl",
   "email_verified": true,
   "exp": 1606140430,
   "family_name": "Doe",
-  "given_name": "John",
+  "given_name": "Mary",
   "iss": "https://connect.test2.surfconext.nl",
   "name": "John Doe",
   "nickname": "John Doe",
@@ -19,6 +19,6 @@
   "uids": [
     "1234567890"
   ],
-  "unspecified_id": "urn:collab:person:example.com:admin",
+  "unspecified_id": "%s",
   "updated_at": 1606133230
 }

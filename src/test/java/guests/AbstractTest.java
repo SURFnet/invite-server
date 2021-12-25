@@ -87,10 +87,11 @@ public abstract class AbstractTest {
         Role role = new Role("administrator", applications.get(0));
         role = roleRepository.save(role);
 
-        User mary = new User(Authority.INSTITUTION_ADMINISTRATOR, "mdoe@surf.nl", "urn:collab:person:example.com:mdoe", "Mary", "Doe", "mdoe@surf.nl", ut);
+        User mary = user(ut, Authority.INSTITUTION_ADMINISTRATOR, "mdoe@surf.nl", "Mary", "Doe", "mdoe@surf.nl");
         mary.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(90))));
         mary.getAups().add(new Aup(mary, ut));
-        User guest = new User(Authority.GUEST, "guest@ut.nl", "urn:collab:person:example.com:guest", "fn", "ln", "guest@ut.nl", ut);
+
+        User guest = user(ut, Authority.GUEST, "guest@ut.nl", "fn", "ln", "guest@ut.nl");
         List<User> users = Arrays.asList(mary, guest);
         userRepository.saveAll(users);
 
@@ -100,13 +101,18 @@ public abstract class AbstractTest {
         invitationRepository.saveAll(invitations);
     }
 
+
+    protected User user(Institution institution, Authority authority, String eppn, String givenName, String familyNmae, String email) {
+        return new User(authority, eppn, eppn, givenName, familyNmae, email, institution);
+    }
+
     @SneakyThrows
     protected String opaqueAccessToken(String eppn, String responseJsonFileName, String... scopes) {
         List<String> scopeList = new ArrayList<>(Arrays.asList(scopes));
         scopeList.add("openid");
 
         String introspectResult = IOUtils.toString(new ClassPathResource(responseJsonFileName).getInputStream(), Charset.defaultCharset().name());
-        String introspectResultWithScope = String.format(introspectResult, eppn, String.join(" ", scopeList));
+        String introspectResultWithScope = String.format(introspectResult, eppn, String.join(" ", scopeList), eppn);
         stubFor(post(urlPathMatching("/introspect")).willReturn(aResponse()
                 .withHeader("Content-Type", "application/json")
                 .withBody(introspectResultWithScope)));
@@ -121,7 +127,7 @@ public abstract class AbstractTest {
     protected User user() {
         Institution institution = new Institution();
         institution.setDisplayName("University");
-        return new User(Authority.SUPER_ADMIN, "eppn@example.com", "urn:collab:test", "John", "Doe", "jdoe@example.com", institution);
+        return user(institution, Authority.SUPER_ADMIN, "eppn@example.com", "John", "Doe", "jdoe@example.com");
     }
 
     protected Application application(Institution institution, String entityId) {
@@ -143,5 +149,36 @@ public abstract class AbstractTest {
                         .withStatus(201)));
     }
 
+    protected void stubForDeleteGroup() {
+        stubFor(delete(urlPathMatching("/scim/v1/groups/(.*)"))
+                .willReturn(aResponse()
+                        .withStatus(201)));
+    }
 
+    @SneakyThrows
+    protected void stubForCreateGroup() {
+        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", UUID.randomUUID().toString()));
+        stubFor(post(urlPathMatching(String.format("/scim/v1/groups")))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(body)));
+    }
+
+    @SneakyThrows
+    protected void stubForCreateUser() {
+        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", UUID.randomUUID().toString()));
+        stubFor(post(urlPathMatching(String.format("/scim/v1/users")))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(body)));
+    }
+
+    @SneakyThrows
+    protected void stubForUpdateGroup() {
+        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", UUID.randomUUID().toString()));
+        stubFor(patch(urlPathMatching(String.format("/scim/v1/groups/(.*)")))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(body)));
+    }
 }

@@ -83,10 +83,14 @@ class InvitationControllerTest extends AbstractTest {
 
 
     @Test
-    void post() throws Exception {
+    void post() {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("hash", HASH);
         invitation.put("status", Status.ACCEPTED);
+
+        this.stubForCreateUser();
+        this.stubForUpdateGroup();
+
         User user = given()
                 .when()
                 .accept(ContentType.JSON)

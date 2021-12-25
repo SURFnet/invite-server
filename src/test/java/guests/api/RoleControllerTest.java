@@ -56,6 +56,9 @@ class RoleControllerTest extends AbstractTest {
         Role role = new Role("test_role", application);
         Map<String, Object> roleMap = convertObjectToMap(role);
         roleMap.put("application", Collections.singletonMap("id", application.getId()));
+
+        this.stubForCreateGroup();
+
         Role newRole = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -126,8 +129,11 @@ class RoleControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteRole() throws Exception {
+    void deleteRole() {
         Role role = roleRepository.findAll().get(0);
+
+        this.stubForDeleteGroup();
+
         given()
                 .when()
                 .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))

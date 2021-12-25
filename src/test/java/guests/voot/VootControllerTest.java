@@ -18,7 +18,7 @@ class VootControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().basic("voot", "secret")
-                .pathParam("unspecifiedId", "urn:collab:person:example.com:mdoe")
+                .pathParam("unspecifiedId", "mdoe@surf.nl")
                 .get("/api/voot/{unspecifiedId}")
                 .then()
                 .extract()
