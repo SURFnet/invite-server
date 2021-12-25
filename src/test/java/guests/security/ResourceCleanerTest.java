@@ -21,10 +21,18 @@ class ResourceCleanerTest extends AbstractTest {
         long before = userRepository.count();
         markUser();
         stubForDeleteUser();
-        subject.clean();
 
-        long after = userRepository.count();
-        assertEquals(before, after + 1);
+        subject.clean();
+        assertEquals(before, userRepository.count() + 1);
+
+        subject.clean();
+        assertEquals(before, userRepository.count() + 1);
+    }
+
+    @Test
+    void notCronJobResponsible() {
+        ResourceCleaner resourceCleaner = new ResourceCleaner(null, null, 1, false);
+        resourceCleaner.clean();
     }
 
     private void markUser() {

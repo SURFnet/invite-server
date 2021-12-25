@@ -27,6 +27,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.charset.Charset;
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,7 @@ public class SecurityConfig {
         private final UserRepository userRepository;
         private final ObjectMapper objectMapper;
         private final SuperAdmin superAdmin;
-        private SCIMService scimService;
+        private final SCIMService scimService;
 
         public JWTSecurityConfig(InstitutionRepository institutionRepository,
                                  UserRepository userRepository,

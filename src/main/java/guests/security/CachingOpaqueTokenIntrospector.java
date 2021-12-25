@@ -22,10 +22,9 @@ public class CachingOpaqueTokenIntrospector extends SpringOpaqueTokenIntrospecto
     @Override
     public OAuth2AuthenticatedPrincipal introspect(String token) {
         return cache.computeIfAbsent(token, s -> super.introspect(token));
-//        return super.introspect(token);
     }
 
-    private void cleanUp() {
+    void cleanUp() {
         Instant now = Instant.now();
         cache.values().removeIf(principal -> ((Instant) principal.getAttribute("exp")).isBefore(now));
     }
