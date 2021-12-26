@@ -19,7 +19,6 @@ public class UserHandlerMethodArgumentResolver implements HandlerMethodArgumentR
                                 NativeWebRequest webRequest,
                                 WebDataBinderFactory binderFactory) {
         BearerTokenAuthentication authentication = (BearerTokenAuthentication) webRequest.getUserPrincipal();
-        User user = (User) authentication.getDetails();
-        return user;
+        return (User) authentication.getDetails();
     }
 }

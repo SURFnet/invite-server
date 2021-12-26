@@ -3,6 +3,7 @@ package guests.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.config.HashGenerator;
 import guests.domain.*;
+import guests.exception.InvitationEmailMatchingException;
 import guests.exception.NotFoundException;
 import guests.mail.MailBox;
 import guests.repository.ApplicationRepository;
@@ -21,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static guests.api.Shared.verifyAuthority;
 import static guests.api.Shared.verifyUser;
@@ -85,26 +83,26 @@ public class InvitationController {
         if (invitation.getStatus().equals(Status.ACCEPTED)) {
             Object details = authentication.getDetails();
             User newUser;
-            if (details instanceof User user) {
-                invitationFromDB.getRoles()
-                        .forEach(invitationRole -> user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate())));
-                newUser = userRepository.save(user);
+            User user;
+            if (details instanceof User) {
+                user = (User) details;
+                checkEmailEquality(user, invitation);
             } else {
                 Institution institution = invitationFromDB.getInstitution();
-                User user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
-                invitationFromDB.getRoles()
-                        .forEach(invitationRole -> user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate())));
+                user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
+                checkEmailEquality(user, invitation);
                 if (StringUtils.hasText(institution.getAupUrl())) {
                     user.getAups().add(new Aup(user, institution));
                 }
-
                 scimService.newUserRequest(user);
-                newUser = userRepository.save(user);
             }
-            invitationFromDB.getRoles().forEach(invitationRole -> {
-                List<User> users = userRepository.findByRoles_role_id(invitationRole.getRole().getId());
-                scimService.updateRoleRequest(invitationRole.getRole(), users);
-            });
+            invitationFromDB.getRoles()
+                    .forEach(invitationRole -> {
+                        user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate()));
+                        List<User> users = userRepository.findByRoles_role_id(invitationRole.getRole().getId());
+                        scimService.updateRoleRequest(invitationRole.getRole(), users);
+                    });
+            newUser = userRepository.save(user);
             return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         }
         invitationFromDB.setStatus(Status.DENIED);
@@ -142,6 +140,13 @@ public class InvitationController {
     private void restrictUser(User user, Invitation invitation) throws AuthenticationException {
         verifyUser(user, invitation.getInstitution().getId());
         verifyAuthority(user, invitation.getIntendedAuthority());
+    }
+
+    private void checkEmailEquality(User user, Invitation invitation) {
+        if (invitation.isEnforceEmailEquality() && !invitation.getEmail().equalsIgnoreCase(user.getEmail())) {
+            throw new InvitationEmailMatchingException(
+                    String.format("Invitation email %s does not match user email", invitation.getEmail(), user.getEmail()));
+        }
     }
 
 }
