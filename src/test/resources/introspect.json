@@ -3,7 +3,7 @@
   "authenticating_authority": "http://mock-idp",
   "client_id": "playground_client",
   "eduperson_principal_name": "%s",
-  "email": "mdoe@surf.nl",
+  "email": "admin@utrecht.nl",
   "email_verified": true,
   "exp": 1606140430,
   "family_name": "Doe",

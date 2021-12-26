@@ -14,7 +14,7 @@ class CachingOpaqueTokenIntrospectorTest extends AbstractTest {
 
     @Test
     void introspect() {
-        String token = super.opaqueAccessToken("mdoe@surf.nl", "introspect.json");
+        String token = super.opaqueAccessToken("admin@utrecht.nl", "introspect.json");
         subject.introspect(token);
         stubFor(post(urlPathMatching("/introspect")).willReturn(aResponse()
                 .withStatus(403)));

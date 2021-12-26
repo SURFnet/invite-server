@@ -74,7 +74,7 @@ class InvitationControllerTest extends AbstractTest {
         given()
                 .when()
                 .accept(ContentType.JSON)
-                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
                 .get("/guests/api/invitations/institution/{institutionId}")
                 .then()
@@ -128,7 +128,7 @@ class InvitationControllerTest extends AbstractTest {
         invitation.put("hash", INVITATION_HASH);
         invitation.put("status", Status.ACCEPTED);
         //prevent user_roles_unique_user_role exception
-        User userFromDB = userRepository.findByEduPersonPrincipalNameIgnoreCase("mdoe@surf.nl").get();
+        User userFromDB = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         userFromDB.setRoles(new HashSet<>());
         userRepository.save(userFromDB);
 
@@ -138,7 +138,7 @@ class InvitationControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
-                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitation)
                 .post("/guests/api/invitations")
                 .then()
@@ -146,13 +146,13 @@ class InvitationControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getObject(".", User.class);
-        assertEquals("mdoe@surf.nl", user.getEduPersonPrincipalName());
+        assertEquals("admin@utrecht.nl", user.getEduPersonPrincipalName());
     }
 
     @Test
     void put() throws Exception {
         Role role = roleRepository.findAll().get(0);
-        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("mdoe@surf.nl").get();
+        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         Invitation invitation = new Invitation(Authority.GUEST,
                 "Please accept",
                 "guest@example.com",
@@ -166,7 +166,7 @@ class InvitationControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
-                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitationRequest)
                 .put("/guests/api/invitations")
                 .then()

@@ -92,12 +92,12 @@ public abstract class AbstractTest {
         Role role = new Role("administrator", applications.get(0));
         role = roleRepository.save(role);
 
-        User mary = user(ut, Authority.INSTITUTION_ADMINISTRATOR, "mdoe@surf.nl", "Mary", "Doe", "mdoe@surf.nl");
+        User mary = user(ut, Authority.INSTITUTION_ADMINISTRATOR, "admin@utrecht.nl", "Mary", "Doe", "admin@utrecht.nl");
         mary.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(90))));
         mary.getAups().add(new Aup(mary, ut));
 
-        User inviter = user(ut, Authority.INVITER, "inviter@ut.nl", "inv", "iter", "inviter@ut.nl");
-        User guest = user(ut, Authority.GUEST, "guest@ut.nl", "fn", "ln", "guest@ut.nl");
+        User inviter = user(ut, Authority.INVITER, "inviter@utrecht.nl", "inv", "iter", "inviter@utrecht.nl");
+        User guest = user(ut, Authority.GUEST, "guest@utrecht.nl", "fn", "ln", "guest@utrecht.nl");
         List<User> users = Arrays.asList(mary, guest, inviter);
         userRepository.saveAll(users);
 

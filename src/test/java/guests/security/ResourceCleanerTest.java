@@ -36,7 +36,7 @@ class ResourceCleanerTest extends AbstractTest {
     }
 
     private void markUser() {
-        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("mdoe@surf.nl").get();
+        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         Instant past = Instant.now().minus(Period.ofDays(1050));
         user.setLastActivity(past);
         userRepository.save(user);

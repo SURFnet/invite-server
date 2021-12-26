@@ -172,7 +172,7 @@ class InstitutionControllerTest extends AbstractTest {
     void deleteInstitutionNotAllowed() throws Exception {
         given()
                 .when()
-                .auth().oauth2(opaqueAccessToken("mdoe@surf.nl", "introspect.json"))
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("id", 1)
                 .delete("/guests/api/institutions/{id}")
                 .then()
