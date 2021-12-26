@@ -96,8 +96,9 @@ public abstract class AbstractTest {
         mary.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(90))));
         mary.getAups().add(new Aup(mary, ut));
 
+        User inviter = user(ut, Authority.INVITER, "inviter@ut.nl", "inv", "iter", "inviter@ut.nl");
         User guest = user(ut, Authority.GUEST, "guest@ut.nl", "fn", "ln", "guest@ut.nl");
-        List<User> users = Arrays.asList(mary, guest);
+        List<User> users = Arrays.asList(mary, guest, inviter);
         userRepository.saveAll(users);
 
         Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_HASH, mary, "guest@test.com");

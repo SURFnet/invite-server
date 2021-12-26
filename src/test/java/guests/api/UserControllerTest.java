@@ -47,7 +47,7 @@ class UserControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getList(".", User.class);
-        assertEquals(2, users.size());
+        assertEquals(3, users.size());
     }
 
     @Test
