@@ -4,25 +4,23 @@ import guests.AbstractTest;
 import guests.domain.*;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
 
-import javax.persistence.EntityManager;
 import java.time.Instant;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class InvitationControllerTest extends AbstractTest {
 
     @Test
-    void get() throws Exception {
+    void get() {
         Invitation invitation = given()
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("unknown@user.nl", "introspect.json"))
-                .pathParam("hash", HASH)
+                .pathParam("hash", INVITATION_HASH)
                 .get("/guests/api/invitations/{hash}")
                 .then()
                 .extract()
@@ -48,7 +46,7 @@ class InvitationControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getList(".", Invitation.class);
-        assertEquals(1, invitations.size());
+        assertEquals(2, invitations.size());
     }
 
     @Test
@@ -66,12 +64,12 @@ class InvitationControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getList(".", Invitation.class);
-        assertEquals(1, invitations.size());
+        assertEquals(2, invitations.size());
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByInstitutionNotAllowed() throws Exception {
+    void allByInstitutionNotAllowed() {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://uva").get();
         given()
                 .when()
@@ -83,11 +81,10 @@ class InvitationControllerTest extends AbstractTest {
                 .statusCode(403);
     }
 
-
     @Test
     void post() {
         Map<String, Object> invitation = new HashMap<>();
-        invitation.put("hash", HASH);
+        invitation.put("hash", INVITATION_HASH);
         invitation.put("status", Status.ACCEPTED);
 
         this.stubForCreateUser();
@@ -109,9 +106,26 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
+    void postEmailInequality() {
+        Map<String, Object> invitation = new HashMap<>();
+        invitation.put("hash", INVITATION_EMAIL_EQUALITY_HASH);
+        invitation.put("status", Status.ACCEPTED);
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("new@user.nl", "introspect.json"))
+                .body(invitation)
+                .post("/guests/api/invitations")
+                .then()
+                .statusCode(HttpStatus.CONFLICT.value());
+    }
+
+    @Test
     void postExistingUser() {
         Map<String, Object> invitation = new HashMap<>();
-        invitation.put("hash", HASH);
+        invitation.put("hash", INVITATION_HASH);
         invitation.put("status", Status.ACCEPTED);
         //prevent user_roles_unique_user_role exception
         User userFromDB = userRepository.findByEduPersonPrincipalNameIgnoreCase("mdoe@surf.nl").get();
@@ -157,6 +171,6 @@ class InvitationControllerTest extends AbstractTest {
                 .put("/guests/api/invitations")
                 .then()
                 .statusCode(201);
-        assertEquals(3, invitationRepository.count());
+        assertEquals(4, invitationRepository.count());
     }
 }

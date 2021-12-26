@@ -37,7 +37,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 @SuppressWarnings("unchecked")
 public abstract class AbstractTest {
 
-    protected final String HASH = HashGenerator.generateHash();
+    protected final String INVITATION_HASH = HashGenerator.generateHash();
+    protected final String INVITATION_EMAIL_EQUALITY_HASH = HashGenerator.generateHash();
 
     @Autowired
     protected ObjectMapper objectMapper;
@@ -99,9 +100,14 @@ public abstract class AbstractTest {
         List<User> users = Arrays.asList(mary, guest);
         userRepository.saveAll(users);
 
-        Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, HASH, mary, "guest@test.com");
+        Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_HASH, mary, "guest@test.com");
         invitation.addInvitationRole(new InvitationRole(role));
-        List<Invitation> invitations = Arrays.asList(invitation);
+
+        Invitation invitationEmailEquality = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_EMAIL_EQUALITY_HASH, mary, "equals@test.com");
+        invitationEmailEquality.addInvitationRole(new InvitationRole(role));
+        invitationEmailEquality.setEnforceEmailEquality(true);
+
+        List<Invitation> invitations = Arrays.asList(invitation, invitationEmailEquality);
         invitationRepository.saveAll(invitations);
     }
 

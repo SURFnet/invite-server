@@ -86,11 +86,11 @@ public class InvitationController {
             User user;
             if (details instanceof User) {
                 user = (User) details;
-                checkEmailEquality(user, invitation);
+                checkEmailEquality(user, invitationFromDB);
             } else {
                 Institution institution = invitationFromDB.getInstitution();
                 user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
-                checkEmailEquality(user, invitation);
+                checkEmailEquality(user, invitationFromDB);
                 if (StringUtils.hasText(institution.getAupUrl())) {
                     user.getAups().add(new Aup(user, institution));
                 }
