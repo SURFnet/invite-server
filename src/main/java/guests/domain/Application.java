@@ -78,7 +78,7 @@ public class Application implements Serializable, NameHolder {
     public String getInstitutionName() {
         try {
             return this.getInstitution().getDisplayName();
-        } catch (LazyInitializationException e) {
+        } catch (LazyInitializationException | NullPointerException e) {
             return null;
         }
     }

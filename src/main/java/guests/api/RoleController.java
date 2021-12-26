@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static guests.api.Shared.doesExists;
-import static guests.api.Shared.verifyUser;
+import static guests.api.Shared.*;
 
 @RestController
 @RequestMapping(value = "/guests/api/roles", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -89,5 +88,6 @@ public class RoleController {
     private void restrictUser(User user, Role role) throws AuthenticationException {
         Application application = applicationRepository.findById(role.getApplication().getId()).orElseThrow(NotFoundException::new);
         verifyUser(user, application.getInstitution().getId());
+        verifyAuthority(user, role.getAuthority());
     }
 }
