@@ -92,15 +92,22 @@ public class User implements Serializable {
     @JsonIgnore
     public boolean hasChanged(Map<String, Object> tokenAttributes) {
         User user = new User(institution, authority, tokenAttributes);
-        return !this.toScimString().equals(user.toScimString());
+        boolean changed = !this.toScimString().equals(user.toScimString());
+        if (changed) {
+            this.eduPersonPrincipalName = user.eduPersonPrincipalName;
+            this.familyName = user.familyName;
+            this.givenName = user.givenName;
+            this.email = user.email;
+        }
+        return changed;
     }
 
     private String toScimString() {
         return String.format("%s%s%s%s",
-                this.getEduPersonPrincipalName(),
-                this.getFamilyName(),
-                this.getGivenName(),
-                this.getEmail());
+                this.eduPersonPrincipalName,
+                this.familyName,
+                this.givenName,
+                this.email);
 
     }
 

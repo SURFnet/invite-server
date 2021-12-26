@@ -68,11 +68,11 @@ public class UserAuthenticationFilter extends GenericFilterBean {
             boolean allowed = securityMatrix.isAllowed(requestURI, httpMethod, user);
             if (allowed) {
                 tokenAuthentication.setDetails(user);
-                user.setLastActivity(Instant.now());
-                userRepository.save(user);
                 if (user.hasChanged(tokenAuthentication.getTokenAttributes())) {
                     scimService.updateUserRequest(user);
                 }
+                user.setLastActivity(Instant.now());
+                userRepository.save(user);
                 filterChain.doFilter(servletRequest, servletResponse);
             } else {
                 responseForbidden(servletResponse);
