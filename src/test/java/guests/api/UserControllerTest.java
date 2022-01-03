@@ -9,6 +9,7 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -109,5 +110,38 @@ class UserControllerTest extends AbstractTest {
                 .getObject(".", User.class);
         assertEquals(1, user.getRoles().size());
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void other() {
+        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
+        User user = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .pathParam("userId", inviter.getId())
+                .get("/guests/api/users/{userId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", User.class);
+        assertEquals(Authority.INVITER, user.getAuthority());
+    }
+
+    @Test
+    void deleteOther() throws Exception {
+        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("userId", inviter.getId())
+                .delete("/guests/api/users/{userId}")
+                .then()
+                .statusCode(204);
+        assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").isPresent());
+    }
+
 
 }

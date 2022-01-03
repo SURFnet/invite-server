@@ -80,33 +80,29 @@ public class InvitationController {
                                  @RequestBody Invitation invitation) throws JsonProcessingException {
         Invitation invitationFromDB = invitationRepository.findByHashAndStatus(invitation.getHash(), Status.OPEN).orElseThrow(NotFoundException::new);
         invitationFromDB.setStatus(invitation.getStatus());
-        if (invitation.getStatus().equals(Status.ACCEPTED)) {
-            Object details = authentication.getDetails();
-            User newUser;
-            User user;
-            if (details instanceof User) {
-                user = (User) details;
-                checkEmailEquality(user, invitationFromDB);
-            } else {
-                Institution institution = invitationFromDB.getInstitution();
-                user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
-                checkEmailEquality(user, invitationFromDB);
-                if (StringUtils.hasText(institution.getAupUrl())) {
-                    user.getAups().add(new Aup(user, institution));
-                }
-                scimService.newUserRequest(user);
+        Object details = authentication.getDetails();
+        User newUser;
+        User user;
+        if (details instanceof User) {
+            user = (User) details;
+            checkEmailEquality(user, invitationFromDB);
+        } else {
+            Institution institution = invitationFromDB.getInstitution();
+            user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
+            checkEmailEquality(user, invitationFromDB);
+            if (StringUtils.hasText(institution.getAupUrl())) {
+                user.getAups().add(new Aup(user, institution));
             }
-            invitationFromDB.getRoles()
-                    .forEach(invitationRole -> {
-                        user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate()));
-                        List<User> users = userRepository.findByRoles_role_id(invitationRole.getRole().getId());
-                        scimService.updateRoleRequest(invitationRole.getRole(), users);
-                    });
-            newUser = userRepository.save(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+            scimService.newUserRequest(user);
         }
-        invitationFromDB.setStatus(Status.DENIED);
-        return ResponseEntity.noContent().build();
+        invitationFromDB.getRoles()
+                .forEach(invitationRole -> {
+                    user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate()));
+                    List<User> users = userRepository.findByRoles_role_id(invitationRole.getRole().getId());
+                    scimService.updateRoleRequest(invitationRole.getRole(), users);
+                });
+        newUser = userRepository.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
     @PutMapping

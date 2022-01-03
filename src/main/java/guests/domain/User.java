@@ -1,15 +1,15 @@
 package guests.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import guests.scim.Email;
-import guests.scim.Name;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -81,6 +81,11 @@ public class User implements Serializable {
         this.email = email;
         this.institution = institution;
         this.createdAt = Instant.now();
+    }
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public String getName() {
+        return String.format("%s %s", givenName, familyName);
     }
 
     @JsonIgnore

@@ -2,7 +2,7 @@
   "institutions": {
     "get": "guest",
     "post": "super_admin",
-    "put": "super_admin",
+    "put": "institution_administrator",
     "delete": "super_admin"
   },
   "applications": {

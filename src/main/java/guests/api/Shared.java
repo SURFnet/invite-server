@@ -21,7 +21,7 @@ public class Shared {
     }
 
     public static void verifyUser(User authenticatedUser, Long institutionId) {
-        if (authenticatedUser.getAuthority().equals(Authority.INSTITUTION_ADMINISTRATOR) &&
+        if (!authenticatedUser.getAuthority().equals(Authority.SUPER_ADMIN) &&
                 !authenticatedUser.getInstitution().getId().equals(institutionId)) {
             throw new UserRestrictionException(String.format("User %s is not allowed to act for institution %s",
                     authenticatedUser.getEduPersonPrincipalName(), institutionId));
@@ -29,7 +29,8 @@ public class Shared {
     }
 
     public static void verifyAuthority(User user, Authority required) {
-        if (!user.getAuthority().isAllowed(required)) {
+        Authority authority = user.getAuthority();
+        if (!authority.equals(Authority.SUPER_ADMIN) && !authority.isAllowed(required)) {
             throw new UserRestrictionException("Authority mismatch");
         }
     }

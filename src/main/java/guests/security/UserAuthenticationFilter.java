@@ -7,12 +7,12 @@ import guests.domain.User;
 import guests.repository.InstitutionRepository;
 import guests.repository.UserRepository;
 import guests.scim.SCIMService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.FilterChain;
@@ -26,6 +26,8 @@ import java.time.Instant;
 import java.util.Optional;
 
 public class UserAuthenticationFilter extends GenericFilterBean {
+
+    private static final Log LOG = LogFactory.getLog(UserAuthenticationFilter.class);
 
     private final InstitutionRepository institutionRepository;
     private final UserRepository userRepository;
@@ -50,16 +52,14 @@ public class UserAuthenticationFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String requestURI = request.getRequestURI();
-        if (authentication instanceof AnonymousAuthenticationToken &&
-                (requestURI.startsWith("/guests/api/public") || requestURI.startsWith("/guests/api/validations"))) {
+        if (requestURI.startsWith("/guests/api/public") || requestURI.startsWith("/guests/api/validations")) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
-        if (!(authentication instanceof BearerTokenAuthentication)) {
-            responseForbidden(servletResponse);
+        if (!(authentication instanceof BearerTokenAuthentication tokenAuthentication)) {
+            responseForbidden(servletResponse, authentication, requestURI);
             return;
         }
-        BearerTokenAuthentication tokenAuthentication = (BearerTokenAuthentication) authentication;
         String httpMethod = request.getMethod().toLowerCase();
         String edupersonPrincipalName = (String) tokenAuthentication.getTokenAttributes().get("eduperson_principal_name");
         Optional<User> optionalUser = userRepository.findByEduPersonPrincipalNameIgnoreCase(edupersonPrincipalName);
@@ -75,7 +75,7 @@ public class UserAuthenticationFilter extends GenericFilterBean {
                 userRepository.save(user);
                 filterChain.doFilter(servletRequest, servletResponse);
             } else {
-                responseForbidden(servletResponse);
+                responseForbidden(servletResponse, authentication, requestURI);
             }
         } else {
             Optional<String> optionalEppn = superAdmin.getUsers().stream().filter(eppn -> eppn.equalsIgnoreCase(edupersonPrincipalName)).findAny();
@@ -87,12 +87,13 @@ public class UserAuthenticationFilter extends GenericFilterBean {
             } else if (requestURI.startsWith("/guests/api/invitations") && (httpMethod.equals("post") || httpMethod.equals("get"))) {
                 filterChain.doFilter(servletRequest, servletResponse);
             } else {
-                responseForbidden(servletResponse);
+                responseForbidden(servletResponse, authentication, requestURI);
             }
         }
     }
 
-    private void responseForbidden(ServletResponse servletResponse) {
+    private void responseForbidden(ServletResponse servletResponse, Authentication authentication, String requestURI) {
+        LOG.warn(String.format("Returning 403 for authentication %s and requestURI %s", authentication, requestURI));
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         response.setHeader("Content-Type", "application/json");
         response.setStatus(HttpStatus.FORBIDDEN.value());

@@ -155,6 +155,27 @@ class InstitutionControllerTest extends AbstractTest {
     }
 
     @Test
+    void updateInstitutionAdmin() throws Exception {
+        Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
+        institution.setEntityId("https://changed");
+        institution.setHomeInstitution("changed");
+        //We mimic the client behaviour
+        Map<String, Object> institutionMap = this.convertObjectToMap(institution);
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .body(institutionMap)
+                .put("/guests/api/institutions")
+                .then()
+                .statusCode(201);
+        institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
+        assertEquals("https://utrecht", institution.getEntityId());
+        assertEquals("utrecht.nl", institution.getHomeInstitution());
+    }
+
+    @Test
     void deleteInstitution() throws Exception {
         Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
         given()
