@@ -33,5 +33,8 @@ public class Shared {
         if (!authority.equals(Authority.SUPER_ADMIN) && !authority.isAllowed(required)) {
             throw new UserRestrictionException("Authority mismatch");
         }
+        if (authority.equals(Authority.INVITER) && authority.getRights() > Authority.GUEST.getRights()) {
+            throw new UserRestrictionException("Authority mismatch");
+        }
     }
 }

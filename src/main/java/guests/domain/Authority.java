@@ -17,4 +17,8 @@ public enum Authority {
     public String friendlyName() {
         return this.name().replaceAll("_", " ").toLowerCase();
     }
+
+    public int getRights() {
+        return rights;
+    }
 }
