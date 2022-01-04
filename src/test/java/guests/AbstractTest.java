@@ -194,7 +194,7 @@ public abstract class AbstractTest {
     }
 
     protected Institution getInstitution(User user) {
-        return user.getMemberships().iterator().next().getInstitution();
+        return user.getInstitutionMemberships().iterator().next().getInstitution();
     }
 
 }

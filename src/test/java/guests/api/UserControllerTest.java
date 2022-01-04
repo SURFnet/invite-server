@@ -9,7 +9,6 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +18,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void get() throws Exception {
+    void get() {
         User user = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -30,7 +29,7 @@ class UserControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getObject(".", User.class);
-        assertEquals(Authority.SUPER_ADMIN, user.getAuthority());
+        assertEquals(Authority.SUPER_ADMIN, user.getInstitutionMemberships().iterator().next().getAuthority());
     }
 
     @Test
@@ -126,7 +125,7 @@ class UserControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getObject(".", User.class);
-        assertEquals(Authority.INVITER, user.getAuthority());
+        assertEquals("inviter@utrecht.nl", user.getEduPersonPrincipalName());
     }
 
     @Test

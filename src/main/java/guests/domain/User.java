@@ -55,7 +55,7 @@ public class User implements Serializable {
     private Set<UserRole> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<InstitutionMembership> memberships = new HashSet<>();
+    private Set<InstitutionMembership> institutionMemberships = new HashSet<>();
 
     public User(Institution institution, Authority authority, Map<String, Object> tokenAttributes) {
         this(authority,
@@ -96,7 +96,7 @@ public class User implements Serializable {
 
     @JsonIgnore
     public void addMembership(InstitutionMembership membership) {
-        this.memberships.add(membership);
+        this.institutionMemberships.add(membership);
         membership.setUser(this);
     }
 
@@ -116,7 +116,7 @@ public class User implements Serializable {
 
     @JsonIgnore
     public Optional<Authority> authorityByInstitution(Long institutionId) {
-        return this.memberships.stream()
+        return this.institutionMemberships.stream()
                 .filter(membership -> membership.getInstitution().getId().equals(institutionId))
                 .map(membership -> membership.getAuthority())
                 .findFirst();
@@ -124,7 +124,7 @@ public class User implements Serializable {
 
     @JsonIgnore
     public boolean isSuperAdmin() {
-        return this.memberships.stream().anyMatch(membership -> membership.getAuthority().equals(Authority.SUPER_ADMIN));
+        return this.institutionMemberships.stream().anyMatch(membership -> membership.getAuthority().equals(Authority.SUPER_ADMIN));
     }
 
     private String toScimString() {

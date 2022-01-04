@@ -28,8 +28,8 @@ public class Shared {
 
     public static void verifyUser(User authenticatedUser, User subject) {
         if (!authenticatedUser.isSuperAdmin()) {
-            Set<Long> institutionIdentifiers = authenticatedUser.getMemberships().stream().map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
-            if (subject.getMemberships().stream().noneMatch(membership -> institutionIdentifiers.contains(membership.getInstitution().getId()))) {
+            Set<Long> institutionIdentifiers = authenticatedUser.getInstitutionMemberships().stream().map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
+            if (subject.getInstitutionMemberships().stream().noneMatch(membership -> institutionIdentifiers.contains(membership.getInstitution().getId()))) {
                 throw userRestrictedException(authenticatedUser, institutionIdentifiers.iterator().next());
             }
         }
@@ -59,8 +59,8 @@ public class Shared {
 
     public static void verifyAuthority(User authenticatedUser, User subject, Authority required) {
         if (!authenticatedUser.isSuperAdmin()) {
-            Set<Long> institutionIdentifiers = authenticatedUser.getMemberships().stream().map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
-            if (subject.getMemberships().stream()
+            Set<Long> institutionIdentifiers = authenticatedUser.getInstitutionMemberships().stream().map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
+            if (subject.getInstitutionMemberships().stream()
                     .noneMatch(membership -> institutionIdentifiers.contains(membership.getInstitution().getId())
                             && membership.getAuthority().isAllowed(required))) {
                 throw userRestrictedException(authenticatedUser, institutionIdentifiers.iterator().next());
