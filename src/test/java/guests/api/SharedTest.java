@@ -17,5 +17,10 @@ class SharedTest {
         User user = new User();
         user.setAuthority(Authority.GUEST);
         assertThrows(UserRestrictionException.class, () -> shared.verifyAuthority(user, Authority.INVITER));
+
+        user.setAuthority(Authority.INVITER);
+        assertThrows(UserRestrictionException.class, () -> shared.verifyAuthority(user, Authority.INVITER));
+
+        shared.verifyAuthority(user, Authority.GUEST);
     }
 }

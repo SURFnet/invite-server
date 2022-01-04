@@ -32,6 +32,22 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
+    void getExistingUser() {
+        Map<String, Object> invitation = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .pathParam("hash", INVITATION_EMAIL_EQUALITY_HASH)
+                .get("/guests/api/invitations/{hash}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getMap(".");
+        assertEquals(true, invitation.get("emailEqualityConflict"));
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void allByInstitution() throws Exception {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
@@ -133,6 +149,27 @@ class InvitationControllerTest extends AbstractTest {
         userRepository.save(userFromDB);
 
         this.stubForUpdateGroup();
+
+        User user = given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .body(invitation)
+                .post("/guests/api/invitations")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", User.class);
+        assertEquals("admin@utrecht.nl", user.getEduPersonPrincipalName());
+    }
+
+    @Test
+    void postExistingUserNoDuplicateRoles() {
+        Map<String, Object> invitation = new HashMap<>();
+        invitation.put("hash", INVITATION_HASH);
+        invitation.put("status", Status.ACCEPTED);
 
         User user = given()
                 .when()

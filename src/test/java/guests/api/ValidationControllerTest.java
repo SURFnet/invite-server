@@ -23,6 +23,18 @@ class ValidationControllerTest extends AbstractTest {
     }
 
     @Test
+    void validateEmptyEmail() {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .body(new Validation("email", ""))
+                .post("/guests/api/validations/validate")
+                .then()
+                .body("valid", equalTo(true));
+    }
+
+    @Test
     void validateInvalidEmail() {
         given()
                 .when()
@@ -56,6 +68,18 @@ class ValidationControllerTest extends AbstractTest {
                 .post("/guests/api/validations/validate")
                 .then()
                 .body("valid", equalTo(false));
+    }
+
+    @Test
+    void validateEmptyUrl() {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .body(new Validation("url", null))
+                .post("/guests/api/validations/validate")
+                .then()
+                .body("valid", equalTo(true));
     }
 
     @Test

@@ -60,8 +60,8 @@ public class InvitationController {
     public ResponseEntity<Invitation> invitationByHash(BearerTokenAuthentication authentication, @PathVariable("hash") String hash) {
         Invitation invitation = invitationRepository.findByHashAndStatus(hash, Status.OPEN).orElseThrow(NotFoundException::new);
         Object details = authentication.getDetails();
-        String email = details instanceof User ? ((User)details).getEmail() : (String) authentication.getTokenAttributes().get("email");
-        invitation.setEmailEqualityConflict(!invitation.getEmail().equalsIgnoreCase(email));
+        String email = details instanceof User ? ((User) details).getEmail() : (String) authentication.getTokenAttributes().get("email");
+        invitation.setEmailEqualityConflict(invitation.isEnforceEmailEquality() && !invitation.getEmail().equalsIgnoreCase(email));
         return ResponseEntity.ok(invitation);
     }
 
@@ -86,25 +86,42 @@ public class InvitationController {
         Object details = authentication.getDetails();
         User newUser;
         User user;
-        if (details instanceof User) {
-            user = (User) details;
-            checkEmailEquality(user, invitationFromDB);
+        Institution institution = invitationFromDB.getInstitution();
+        if (details instanceof User detailsFromUser) {
+            user = userRepository.findById(detailsFromUser.getId()).orElseThrow(NotFoundException::new);
         } else {
-            Institution institution = invitationFromDB.getInstitution();
             user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
-            checkEmailEquality(user, invitationFromDB);
-            if (StringUtils.hasText(institution.getAupUrl())) {
-                user.getAups().add(new Aup(user, institution));
-            }
-            scimService.newUserRequest(user);
         }
+        checkEmailEquality(user, invitationFromDB);
+        if (StringUtils.hasText(institution.getAupUrl()) && user.getAups().stream().noneMatch(aup ->
+                aup.getInstitution().getId().equals(institution.getId()) &&
+                        aup.getInstitution().getAupVersion().equals(institution.getAupVersion()))) {
+            user.getAups().add(new Aup(user, institution));
+        }
+        /*
+         * Chicken & egg problem. The user including his / hers roles must be first known in Scim, and then we
+         * need to send the updateRoleRequests for each new Role of this user.
+         */
+        List<Role> newRoles = new ArrayList<>();
         invitationFromDB.getRoles()
                 .forEach(invitationRole -> {
-                    user.addUserRole(new UserRole(invitationRole.getRole(), invitationRole.getEndDate()));
-                    List<User> users = userRepository.findByRoles_role_id(invitationRole.getRole().getId());
-                    scimService.updateRoleRequest(invitationRole.getRole(), users);
+                    Role role = invitationRole.getRole();
+                    if (user.getRoles().stream().noneMatch(userRole -> userRole.getRole().getId().equals(role.getId()))) {
+                        user.addUserRole(new UserRole(role, invitationRole.getEndDate()));
+                        newRoles.add(role);
+                    }
                 });
+        // This will assign the external ID to the userRoles
+        if (user.getId() == null) {
+            scimService.newUserRequest(user);
+        }
         newUser = userRepository.save(user);
+
+        newRoles.forEach(role -> {
+            List<User> users = userRepository.findByRoles_role_id(role.getId());
+            scimService.updateRoleRequest(role, users);
+        });
+
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
