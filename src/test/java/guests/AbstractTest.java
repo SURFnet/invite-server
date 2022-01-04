@@ -70,6 +70,7 @@ public abstract class AbstractTest {
     @BeforeEach
     protected void beforeEach() {
         institutionRepository.deleteAll();
+        userRepository.deleteAll();
         seed();
         RestAssured.port = port;
     }

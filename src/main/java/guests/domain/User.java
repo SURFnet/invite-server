@@ -128,7 +128,7 @@ public class User implements Serializable {
     }
 
     private String toScimString() {
-        return String.format("%s%s%s%s",
+        return String.format("%s%s%s",
                 this.familyName,
                 this.givenName,
                 this.email);
