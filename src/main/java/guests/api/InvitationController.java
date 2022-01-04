@@ -6,10 +6,7 @@ import guests.domain.*;
 import guests.exception.InvitationEmailMatchingException;
 import guests.exception.NotFoundException;
 import guests.mail.MailBox;
-import guests.repository.ApplicationRepository;
-import guests.repository.InvitationRepository;
-import guests.repository.RoleRepository;
-import guests.repository.UserRepository;
+import guests.repository.*;
 import guests.scim.SCIMService;
 import guests.validation.EmailFormatValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +33,8 @@ public class InvitationController {
     private final UserRepository userRepository;
     private final ApplicationRepository applicationRepository;
     private final RoleRepository roleRepository;
+    private final InstitutionRepository institutionRepository;
+
     private final MailBox mailBox;
     private final SCIMService scimService;
 
@@ -46,11 +45,13 @@ public class InvitationController {
                                 UserRepository userRepository,
                                 ApplicationRepository applicationRepository,
                                 RoleRepository roleRepository,
+                                InstitutionRepository institutionRepository,
                                 MailBox mailBox,
                                 SCIMService scimService) {
         this.invitationRepository = invitationRepository;
         this.userRepository = userRepository;
         this.applicationRepository = applicationRepository;
+        this.institutionRepository = institutionRepository;
         this.roleRepository = roleRepository;
         this.mailBox = mailBox;
         this.scimService = scimService;
@@ -79,7 +80,7 @@ public class InvitationController {
     }
 
     @PostMapping
-    public ResponseEntity accept(BearerTokenAuthentication authentication,
+    public ResponseEntity<User> accept(BearerTokenAuthentication authentication,
                                  @RequestBody Invitation invitation) throws JsonProcessingException {
         Invitation invitationFromDB = invitationRepository.findByHashAndStatus(invitation.getHash(), Status.OPEN).orElseThrow(NotFoundException::new);
         invitationFromDB.setStatus(invitation.getStatus());
@@ -128,11 +129,18 @@ public class InvitationController {
     @PutMapping
     public ResponseEntity<Map<String, Integer>> invite(User user, @RequestBody InvitationRequest invitationRequest) {
         Invitation invitationData = invitationRequest.getInvitation();
-        restrictUser(user, invitationData);
+        Institution institution = institutionRepository.findById(invitationRequest.getInstitutionId()).orElseThrow(NotFoundException::new);
+        restrictUser(user, invitationRequest);
         List<String> invites = invitationRequest.getInvites();
         Set<String> emails = emailFormatValidator.validateEmails(invites);
         emails.forEach(email -> {
-            Invitation invitation = new Invitation(invitationData.getIntendedAuthority(), Status.OPEN, HashGenerator.generateHash(), user, email);
+            Invitation invitation = new Invitation(
+                    invitationData.getIntendedAuthority(),
+                    Status.OPEN,
+                    HashGenerator.generateHash(),
+                    user,
+                    institution,
+                    email);
             invitation.setMessage(invitationData.getMessage());
             invitation.setInstitution(invitationData.getInstitution());
             invitation.defaults();
@@ -143,7 +151,7 @@ public class InvitationController {
             //Ensure all the data is loaded for the roles to be rendered in the email
             saved.getRoles().forEach(invitationRole -> {
                 Role transientRole = invitationRole.getRole();
-                Role persistentRole = roleRepository.findById(transientRole.getId()).get();
+                Role persistentRole = roleRepository.findById(transientRole.getId()).orElseThrow(NotFoundException::new);
                 transientRole.setApplication(persistentRole.getApplication());
                 transientRole.setName(persistentRole.getName());
             });
@@ -153,15 +161,15 @@ public class InvitationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
     }
 
-    private void restrictUser(User user, Invitation invitation) throws AuthenticationException {
-        verifyUser(user, invitation.getInstitution().getId());
-        verifyAuthority(user, invitation.getIntendedAuthority());
+    private void restrictUser(User user, InvitationRequest invitationRequest) throws AuthenticationException {
+        verifyUser(user, invitationRequest.getInstitutionId());
+        verifyAuthority(user, invitationRequest.getInstitutionId(), invitationRequest.getInvitation().getIntendedAuthority());
     }
 
     private void checkEmailEquality(User user, Invitation invitation) {
         if (invitation.isEnforceEmailEquality() && !invitation.getEmail().equalsIgnoreCase(user.getEmail())) {
             throw new InvitationEmailMatchingException(
-                    String.format("Invitation email %s does not match user email", invitation.getEmail(), user.getEmail()));
+                    String.format("Invitation email %s does not match user email %s", invitation.getEmail(), user.getEmail()));
         }
     }
 

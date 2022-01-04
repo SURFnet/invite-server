@@ -88,6 +88,6 @@ public class RoleController {
     private void restrictUser(User user, Role role) throws AuthenticationException {
         Application application = applicationRepository.findById(role.getApplication().getId()).orElseThrow(NotFoundException::new);
         verifyUser(user, application.getInstitution().getId());
-        verifyAuthority(user, role.getAuthority());
+        verifyAuthority(user, application.getInstitution().getId(), role.getAuthority());
     }
 }

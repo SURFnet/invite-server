@@ -196,8 +196,9 @@ class InvitationControllerTest extends AbstractTest {
                 true,
                 Collections.singleton(new InvitationRole(role)));
         invitation.setExpiryDate(Instant.now());
-        invitation.setInstitution(user.getInstitution());
-        InvitationRequest invitationRequest = new InvitationRequest(invitation, Arrays.asList("guest@example.com", "admin@example.com"));
+        Institution institution = getInstitution(user);
+        invitation.setInstitution(institution);
+        InvitationRequest invitationRequest = new InvitationRequest(invitation, Arrays.asList("guest@example.com", "admin@example.com"), institution.getId());
 
         given()
                 .when()

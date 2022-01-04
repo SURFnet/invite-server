@@ -70,9 +70,6 @@ public class SecurityConfig {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            String json = IOUtils.toString(new ClassPathResource("securityMatrix.json").getInputStream(), Charset.defaultCharset());
-            Map<String, Map<String, String>> securityMap = objectMapper.readValue(json, new TypeReference<>() {
-            });
             http.cors().configurationSource(new OidcCorsConfigurationSource()).configure(http);
             http
                     .requestMatchers()
@@ -88,7 +85,7 @@ public class SecurityConfig {
                             .antMatchers("/guests/api/public/**", "/guests/api/validations/**")
                             .permitAll())
                     .addFilterAfter(
-                            new UserAuthenticationFilter(institutionRepository, userRepository, new SecurityMatrix(securityMap), superAdmin, scimService),
+                            new UserAuthenticationFilter(institutionRepository, userRepository, superAdmin, scimService),
                             FilterSecurityInterceptor.class)
                     .authorizeRequests(authz -> authz
                             .antMatchers("/guests/api/**").hasAuthority("SCOPE_openid")

@@ -1,6 +1,5 @@
 package guests.api;
 
-import guests.domain.Authority;
 import guests.domain.Institution;
 import guests.domain.ObjectExists;
 import guests.domain.User;
@@ -13,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,21 +44,21 @@ public class InstitutionController {
 
     @PostMapping("entity-id-exists")
     public ResponseEntity<Map<String, Boolean>> entityIdExists(User user, @RequestBody ObjectExists objectExists) {
-        verifyAuthority(user, Authority.SUPER_ADMIN);
+        verifySuperUser(user);
         Optional<Institution> optionalInstitution = institutionRepository.findByEntityIdIgnoreCase(objectExists.getUniqueAttribute());
         return doesExists(objectExists, optionalInstitution);
     }
 
     @PostMapping("schac-home-exists")
     public ResponseEntity<Map<String, Boolean>> schacHomeExists(User user, @RequestBody ObjectExists objectExists) {
-        verifyAuthority(user, Authority.SUPER_ADMIN);
+        verifySuperUser(user);
         Optional<Institution> optionalInstitution = institutionRepository.findByHomeInstitutionIgnoreCase(objectExists.getUniqueAttribute());
         return doesExists(objectExists, optionalInstitution);
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Institution> save(User user, @RequestBody Institution institution) {
-        if (!user.getAuthority().isAllowed(Authority.SUPER_ADMIN)) {
+        if (!user.isSuperAdmin()) {
             Institution institutionFromDb = institutionRepository.findById(institution.getId()).orElseThrow(NotFoundException::new);
             institution.setHomeInstitution(institutionFromDb.getHomeInstitution());
             institution.setEntityId(institutionFromDb.getEntityId());

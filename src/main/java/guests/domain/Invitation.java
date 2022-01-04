@@ -75,13 +75,13 @@ public class Invitation implements Serializable {
         this.defaults();
     }
 
-    public Invitation(Authority intendedAuthority, Status status, String hash, User inviter, String email) {
+    public Invitation(Authority intendedAuthority, Status status, String hash, User inviter, Institution institution, String email) {
         this.intendedAuthority = intendedAuthority;
         this.status = status;
         this.hash = hash;
         this.inviter = inviter;
         this.email = email;
-        this.institution = inviter.getInstitution();
+        this.institution = institution;
         this.defaults();
     }
 

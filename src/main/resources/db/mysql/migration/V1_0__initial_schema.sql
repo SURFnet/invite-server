@@ -43,19 +43,31 @@ CREATE TABLE `applications`
 CREATE TABLE `users`
 (
     `id`                       bigint       NOT NULL AUTO_INCREMENT,
-    `authority`                varchar(255) NOT NULL,
     `eduperson_principal_name` varchar(255) NOT NULL,
     `given_name`               varchar(255) DEFAULT NULL,
     `family_name`              varchar(255) DEFAULT NULL,
     `email`                    varchar(255) DEFAULT NULL,
     `created_at`               datetime     DEFAULT CURRENT_TIMESTAMP,
-    `institution_id`           bigint       NOT NULL,
     `unspecified_id`           varchar(255) NOT NULL,
     `last_activity`            datetime     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE INDEX `users_unique_eppn` (`eduperson_principal_name`),
-    UNIQUE INDEX `users_unique_unspecified_id` (unspecified_id),
-    CONSTRAINT `fk_users_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`id`) ON DELETE CASCADE
+    UNIQUE INDEX `users_unique_unspecified_id` (unspecified_id)
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 1
+  DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `institution_memberships`
+(
+    `id`             bigint       NOT NULL AUTO_INCREMENT,
+    `authority`      varchar(255) NOT NULL,
+    `created_at`     datetime DEFAULT CURRENT_TIMESTAMP,
+    `user_id`        bigint       NOT NULL,
+    `institution_id` bigint       NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `institution_memberships_unique` (`user_id`, `institution_id`),
+    CONSTRAINT `fk_institution_memberships_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_institution_memberships_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = utf8mb4;

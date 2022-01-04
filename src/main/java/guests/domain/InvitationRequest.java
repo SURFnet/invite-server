@@ -16,4 +16,5 @@ public class InvitationRequest implements Serializable {
 
     private Invitation invitation;
     private List<String> invites;
+    private Long institutionId;
 }

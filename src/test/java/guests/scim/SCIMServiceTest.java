@@ -130,7 +130,7 @@ class SCIMServiceTest extends AbstractMailTest {
 
     private User seedUser() {
         User user = user();
-        Application application = this.application(user.getInstitution(), "https://entity");
+        Application application = this.application(getInstitution(user), "https://entity");
         String provisioningUri = "http://localhost:8081";
         application.setProvisioningHookUrl(provisioningUri);
         application.setProvisioningHookUsername("user");

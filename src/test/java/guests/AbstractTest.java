@@ -82,9 +82,9 @@ public abstract class AbstractTest {
         );
         institutionRepository.saveAll(institutions);
 
-        Institution ut = institutions.get(0);
+        Institution utrecht = institutions.get(0);
         List<Application> applications = Arrays.asList(
-                this.application(ut, "CANVAS"),
+                this.application(utrecht, "CANVAS"),
                 this.application(institutions.get(1), "blackboard")
         );
         applicationRepository.saveAll(applications);
@@ -92,19 +92,19 @@ public abstract class AbstractTest {
         Role role = new Role("administrator", applications.get(0));
         role = roleRepository.save(role);
 
-        User mary = user(ut, Authority.INSTITUTION_ADMINISTRATOR, "admin@utrecht.nl", "Mary", "Doe", "admin@utrecht.nl");
+        User mary = user(utrecht, Authority.INSTITUTION_ADMINISTRATOR, "admin@utrecht.nl", "Mary", "Doe", "admin@utrecht.nl");
         mary.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(90))));
-        mary.getAups().add(new Aup(mary, ut));
+        mary.getAups().add(new Aup(mary, utrecht));
 
-        User inviter = user(ut, Authority.INVITER, "inviter@utrecht.nl", "inv", "iter", "inviter@utrecht.nl");
-        User guest = user(ut, Authority.GUEST, "guest@utrecht.nl", "fn", "ln", "guest@utrecht.nl");
+        User inviter = user(utrecht, Authority.INVITER, "inviter@utrecht.nl", "inv", "iter", "inviter@utrecht.nl");
+        User guest = user(utrecht, Authority.GUEST, "guest@utrecht.nl", "fn", "ln", "guest@utrecht.nl");
         List<User> users = Arrays.asList(mary, guest, inviter);
         userRepository.saveAll(users);
 
-        Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_HASH, mary, "guest@test.com");
+        Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_HASH, mary, utrecht, "guest@test.com");
         invitation.addInvitationRole(new InvitationRole(role));
 
-        Invitation invitationEmailEquality = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_EMAIL_EQUALITY_HASH, mary, "equals@test.com");
+        Invitation invitationEmailEquality = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_EMAIL_EQUALITY_HASH, mary, utrecht, "equals@test.com");
         invitationEmailEquality.addInvitationRole(new InvitationRole(role));
         invitationEmailEquality.setEnforceEmailEquality(true);
 
@@ -192,4 +192,9 @@ public abstract class AbstractTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody(body)));
     }
+
+    protected Institution getInstitution(User user) {
+        return user.getMemberships().iterator().next().getInstitution();
+    }
+
 }

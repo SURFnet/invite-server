@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Entity(name = "users")
@@ -23,11 +24,6 @@ public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    @NotNull
-    private Authority authority;
 
     @Column(name = "eduperson_principal_name")
     @NotNull
@@ -52,15 +48,14 @@ public class User implements Serializable {
     @Column(name = "last_activity")
     private Instant lastActivity = Instant.now();
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "institution_id")
-    private Institution institution;
-
     @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Aup> aups = new HashSet<>();
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<UserRole> roles = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<InstitutionMembership> memberships = new HashSet<>();
 
     public User(Institution institution, Authority authority, Map<String, Object> tokenAttributes) {
         this(authority,
@@ -73,14 +68,19 @@ public class User implements Serializable {
     }
 
     public User(Authority authority, String eppn, String unspecifiedId, String givenName, String familyName, String email, Institution institution) {
-        this.authority = authority;
         this.eduPersonPrincipalName = eppn;
         this.unspecifiedId = unspecifiedId;
         this.givenName = givenName;
         this.familyName = familyName;
         this.email = email;
-        this.institution = institution;
+        this.addMembership(new InstitutionMembership(authority, institution));
         this.createdAt = Instant.now();
+    }
+
+    private User(String givenName, String familyName, String email) {
+        this.givenName = givenName;
+        this.familyName = familyName;
+        this.email = email;
     }
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -95,11 +95,18 @@ public class User implements Serializable {
     }
 
     @JsonIgnore
+    public void addMembership(InstitutionMembership membership) {
+        this.memberships.add(membership);
+        membership.setUser(this);
+    }
+
+    @JsonIgnore
     public boolean hasChanged(Map<String, Object> tokenAttributes) {
-        User user = new User(institution, authority, tokenAttributes);
+        User user = new User((String) tokenAttributes.get("given_name"),
+        (String) tokenAttributes.get("family_name"),
+        (String) tokenAttributes.get("email"));
         boolean changed = !this.toScimString().equals(user.toScimString());
         if (changed) {
-            this.eduPersonPrincipalName = user.eduPersonPrincipalName;
             this.familyName = user.familyName;
             this.givenName = user.givenName;
             this.email = user.email;
@@ -107,9 +114,21 @@ public class User implements Serializable {
         return changed;
     }
 
+    @JsonIgnore
+    public Optional<Authority> authorityByInstitution(Long institutionId) {
+        return this.memberships.stream()
+                .filter(membership -> membership.getInstitution().getId().equals(institutionId))
+                .map(membership -> membership.getAuthority())
+                .findFirst();
+    }
+
+    @JsonIgnore
+    public boolean isSuperAdmin() {
+        return this.memberships.stream().anyMatch(membership -> membership.getAuthority().equals(Authority.SUPER_ADMIN));
+    }
+
     private String toScimString() {
         return String.format("%s%s%s%s",
-                this.eduPersonPrincipalName,
                 this.familyName,
                 this.givenName,
                 this.email);

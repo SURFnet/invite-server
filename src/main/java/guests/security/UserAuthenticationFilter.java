@@ -31,18 +31,15 @@ public class UserAuthenticationFilter extends GenericFilterBean {
 
     private final InstitutionRepository institutionRepository;
     private final UserRepository userRepository;
-    private final SecurityMatrix securityMatrix;
     private final SuperAdmin superAdmin;
     private final SCIMService scimService;
 
     public UserAuthenticationFilter(InstitutionRepository institutionRepository,
                                     UserRepository userRepository,
-                                    SecurityMatrix securityMatrix,
                                     SuperAdmin superAdmin,
                                     SCIMService scimService) {
         this.institutionRepository = institutionRepository;
         this.userRepository = userRepository;
-        this.securityMatrix = securityMatrix;
         this.superAdmin = superAdmin;
         this.scimService = scimService;
     }
@@ -65,18 +62,13 @@ public class UserAuthenticationFilter extends GenericFilterBean {
         Optional<User> optionalUser = userRepository.findByEduPersonPrincipalNameIgnoreCase(edupersonPrincipalName);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            boolean allowed = securityMatrix.isAllowed(requestURI, httpMethod, user);
-            if (allowed) {
-                tokenAuthentication.setDetails(user);
-                if (user.hasChanged(tokenAuthentication.getTokenAttributes())) {
-                    scimService.updateUserRequest(user);
-                }
-                user.setLastActivity(Instant.now());
-                userRepository.save(user);
-                filterChain.doFilter(servletRequest, servletResponse);
-            } else {
-                responseForbidden(servletResponse, authentication, requestURI);
+            tokenAuthentication.setDetails(user);
+            if (user.hasChanged(tokenAuthentication.getTokenAttributes())) {
+                scimService.updateUserRequest(user);
             }
+            user.setLastActivity(Instant.now());
+            userRepository.save(user);
+            filterChain.doFilter(servletRequest, servletResponse);
         } else {
             Optional<String> optionalEppn = superAdmin.getUsers().stream().filter(eppn -> eppn.equalsIgnoreCase(edupersonPrincipalName)).findAny();
             if (optionalEppn.isPresent()) {

@@ -16,9 +16,9 @@ class MailBoxTest extends AbstractMailTest {
     private MailBox mailBox;
 
     @Test
-    void sendInvitation() throws Exception {
+    void sendInvitation() {
         User user = super.user();
-        Institution institution = user.getInstitution();
+        Institution institution = getInstitution(user);
         Invitation invitation = new Invitation();
         invitation.setHash("hash");
         invitation.setEmail("guest@example.com");
@@ -36,4 +36,5 @@ class MailBoxTest extends AbstractMailTest {
         assertTrue(htmlContent.contains("http://localhost:3000/invitations?h=hash"));
         assertTrue(htmlContent.contains("Canvas"));
     }
+
 }
