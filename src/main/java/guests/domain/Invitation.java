@@ -59,6 +59,9 @@ public class Invitation implements Serializable {
     @OneToMany(mappedBy = "invitation", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<InvitationRole> roles = new HashSet<>();
 
+    @Transient
+    private boolean emailEqualityConflict = false;
+
     public Invitation(Authority intendedAuthority, String message, String email, boolean enforceEmailEquality, Set<InvitationRole> roles) {
         this.intendedAuthority = intendedAuthority;
         this.message = message;

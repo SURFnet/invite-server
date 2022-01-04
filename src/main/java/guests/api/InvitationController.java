@@ -57,8 +57,11 @@ public class InvitationController {
     }
 
     @GetMapping("/{hash}")
-    public ResponseEntity<Invitation> invitationI(@PathVariable("hash") String hash) throws JsonProcessingException {
+    public ResponseEntity<Invitation> invitationByHash(BearerTokenAuthentication authentication, @PathVariable("hash") String hash) {
         Invitation invitation = invitationRepository.findByHashAndStatus(hash, Status.OPEN).orElseThrow(NotFoundException::new);
+        Object details = authentication.getDetails();
+        String email = details instanceof User ? ((User)details).getEmail() : (String) authentication.getTokenAttributes().get("email");
+        invitation.setEmailEqualityConflict(!invitation.getEmail().equalsIgnoreCase(email));
         return ResponseEntity.ok(invitation);
     }
 
