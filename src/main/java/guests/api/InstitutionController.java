@@ -37,6 +37,11 @@ public class InstitutionController {
         return ResponseEntity.ok(institutionRepository.findAll());
     }
 
+    @GetMapping("/mine")
+    public ResponseEntity<List<Institution>> mine(User user) {
+        return ResponseEntity.ok(institutionRepository.findByInstitutionMemberships_user_id(user.getId()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Institution> getById(User user, @PathVariable("id") Long id) {
         verifyUser(user, id);

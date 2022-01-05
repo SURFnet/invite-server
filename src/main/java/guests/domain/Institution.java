@@ -7,6 +7,8 @@ import org.springframework.util.StringUtils;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity(name = "institutions")
 @NoArgsConstructor
@@ -38,6 +40,11 @@ public class Institution implements Serializable, NameHolder {
 
     @Embedded
     private Auditable auditable = new Auditable();
+
+    @OneToMany(mappedBy = "institution", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Set<InstitutionMembership> institutionMemberships = new HashSet<>();
+
 
     public Institution(String displayName, String entityId, String homeInstitution, String aupUrl, String aupVersion) {
         this.displayName = displayName;

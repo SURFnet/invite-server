@@ -34,6 +34,22 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void mine() {
+        List<Institution> results = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .get("/guests/api/institutions/mine")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", Institution.class);
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void institutionById() {
         Long id = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get().getId();
         Institution institution = given()
