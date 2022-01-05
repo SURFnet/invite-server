@@ -163,6 +163,7 @@ class InvitationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", User.class);
         assertEquals("admin@utrecht.nl", user.getEduPersonPrincipalName());
+        assertEquals(1, user.getRoles().size());
     }
 
     @Test
@@ -184,10 +185,36 @@ class InvitationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", User.class);
         assertEquals("admin@utrecht.nl", user.getEduPersonPrincipalName());
+        assertEquals(1, user.getRoles().size());
     }
 
     @Test
-    void put() throws Exception {
+    void postExistingUserNewMembership() {
+        Map<String, Object> invitation = new HashMap<>();
+        invitation.put("hash", INVITATION_HASH);
+        invitation.put("status", Status.ACCEPTED);
+        User userFromDB = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        userFromDB.setInstitutionMemberships(new HashSet<>());
+        userRepository.save(userFromDB);
+
+        User user = given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .body(invitation)
+                .post("/guests/api/invitations")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", User.class);
+        assertEquals("admin@utrecht.nl", user.getEduPersonPrincipalName());
+        assertEquals(1, user.getInstitutionMemberships().size());
+    }
+
+    @Test
+    void put() {
         Role role = roleRepository.findAll().get(0);
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         Invitation invitation = new Invitation(Authority.GUEST,

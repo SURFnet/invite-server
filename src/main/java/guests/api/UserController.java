@@ -41,10 +41,7 @@ public class UserController {
     @GetMapping("{userId}")
     public ResponseEntity<User> other(User authenticatedUser, @PathVariable("userId") Long userId) {
         User user = userRepository.findById(userId).orElseThrow(NotFoundException::new);
-
-        verifyUser(authenticatedUser, user);
         verifyAuthority(authenticatedUser, user, Authority.INSTITUTION_ADMINISTRATOR);
-
         return ResponseEntity.ok(user);
     }
 
@@ -70,10 +67,7 @@ public class UserController {
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteOther(User authenticatedUser, @PathVariable("userId") Long userId) {
         User subject = userRepository.findById(userId).orElseThrow(NotFoundException::new);
-
-        verifyUser(authenticatedUser, subject);
         verifyAuthority(authenticatedUser, subject, Authority.INSTITUTION_ADMINISTRATOR);
-
         userRepository.delete(subject);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

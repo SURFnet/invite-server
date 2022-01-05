@@ -2,6 +2,7 @@ package guests.api;
 
 import guests.AbstractTest;
 import guests.domain.Application;
+import guests.domain.ApplicationExists;
 import guests.domain.Institution;
 import guests.domain.ObjectExists;
 import io.restassured.http.ContentType;
@@ -20,23 +21,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applications() throws Exception {
-        List<Application> results = given()
-                .when()
-                .accept(ContentType.JSON)
-                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .get("/guests/api/applications")
-                .then()
-                .extract()
-                .body()
-                .jsonPath()
-                .getList(".", Application.class);
-        assertEquals(2, results.size());
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void applicationById() throws Exception {
+    void applicationById() {
         Long id = applicationRepository.findByEntityIdIgnoreCase("blackboard").get().getId();
         Application application = given()
                 .when()
@@ -53,7 +38,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationsInvalidToken() throws Exception {
+    void applicationsInvalidToken() {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -103,7 +88,7 @@ class ApplicationControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteApplication() throws Exception {
+    void deleteApplication() {
         Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
         given()
                 .when()
@@ -118,7 +103,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationsForUser() throws Exception {
+    void applicationsForUser() {
         List<Application> results = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -135,7 +120,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationsFoInstitution() throws Exception {
+    void applicationsFoInstitution() {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Application> results = given()
                 .when()
@@ -154,13 +139,14 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void existingApplicationEntityIdNotExists() throws Exception {
+    void existingApplicationEntityIdNotExists() {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("blackboard").get();
         given()
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .body(new ObjectExists(true, "blackboard"))
+                .body(new ApplicationExists(true, "blackboard", application.getInstitution().getId()))
                 .post("/guests/api/applications/entity-id-exists")
                 .then()
                 .body("exists", equalTo(false));
@@ -168,13 +154,13 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationEntityIdNotExists() throws Exception {
+    void applicationEntityIdNotExists() {
         given()
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .body(new ObjectExists(false, "nope"))
+                .body(new ApplicationExists(false, "nope", 1L))
                 .post("/guests/api/applications/entity-id-exists")
                 .then()
                 .body("exists", equalTo(false));
@@ -182,13 +168,14 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationEntityIdExists() throws Exception {
+    void applicationEntityIdExists() {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("blackboard").get();
         given()
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .body(new ObjectExists(false, "blackboard"))
+                .body(new ApplicationExists(false, "blackboard", application.getInstitution().getId()))
                 .post("/guests/api/applications/entity-id-exists")
                 .then()
                 .body("exists", equalTo(true));

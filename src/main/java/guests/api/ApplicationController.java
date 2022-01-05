@@ -35,47 +35,46 @@ public class ApplicationController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Application>> get() {
-        return ResponseEntity.ok(applicationRepository.findAll());
-    }
-
     @GetMapping("/user")
     public ResponseEntity<List<Application>> getForUser(User authenticatedUser) {
-        Optional<User> userOptional = userRepository.findById(authenticatedUser.getId());
-        User user = userOptional.orElseThrow(NotFoundException::new);
+        User user = userRepository.findById(authenticatedUser.getId()).orElseThrow(NotFoundException::new);
         List<Long> roleIdentifiers = user.getRoles().stream().map(role -> role.getRole().getId()).collect(Collectors.toList());
         return ResponseEntity.ok(unProxy(applicationRepository.findByRoles_IdIn(roleIdentifiers), Application.class));
     }
 
     @GetMapping("/institution/{institutionId}")
-    public ResponseEntity<List<Application>> getForInstitution(@PathVariable("institutionId") Long institutionId) {
+    public ResponseEntity<List<Application>> getForInstitution(User authenticatedUser, @PathVariable("institutionId") Long institutionId) {
+        verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);
         return ResponseEntity.ok(applicationRepository.findByInstitution_id(institutionId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Application> getById(@PathVariable("id") Long id) {
+    public ResponseEntity<Application> getById(User authenticatedUser, @PathVariable("id") Long id) {
         Application application = applicationRepository.findById(id).orElseThrow(NotFoundException::new);
+        verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
         return ResponseEntity.ok(application);
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Application> save(User authenticatedUser, @RequestBody Application application) {
-        verifyUser(authenticatedUser, application.getInstitution().getId());
+        verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
         application.validateProvisioning();
         return ResponseEntity.status(HttpStatus.CREATED).body(applicationRepository.save(application));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
-        applicationRepository.deleteById(id);
+    public ResponseEntity<Void> delete(User authenticatedUser, @PathVariable("id") Long id) {
+        Application application = applicationRepository.findById(id).orElseThrow(NotFoundException::new);
+        verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
+        applicationRepository.delete(application);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping("entity-id-exists")
-    public ResponseEntity<Map<String, Boolean>> entityIdExists(@RequestBody ObjectExists objectExists) {
-        Optional<Application> optionalApplication = applicationRepository.findByEntityIdIgnoreCase(objectExists.getUniqueAttribute());
-        return doesExists(objectExists, optionalApplication);
+    public ResponseEntity<Map<String, Boolean>> entityIdExists(@RequestBody ApplicationExists applicationExists) {
+        Optional<Application> optionalApplication = applicationRepository.findByInstitution_idAndEntityIdIgnoreCase(
+                applicationExists.getInstitutionId(),applicationExists.getUniqueAttribute());
+        return doesExists(applicationExists, optionalApplication);
     }
 
 }

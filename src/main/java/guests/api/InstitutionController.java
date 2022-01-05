@@ -1,5 +1,6 @@
 package guests.api;
 
+import guests.domain.Authority;
 import guests.domain.Institution;
 import guests.domain.ObjectExists;
 import guests.domain.User;
@@ -31,7 +32,8 @@ public class InstitutionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Institution>> get() {
+    public ResponseEntity<List<Institution>> get(User user) {
+        verifySuperUser(user);
         return ResponseEntity.ok(institutionRepository.findAll());
     }
 
@@ -56,8 +58,15 @@ public class InstitutionController {
         return doesExists(objectExists, optionalInstitution);
     }
 
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
+    @PostMapping
     public ResponseEntity<Institution> save(User user, @RequestBody Institution institution) {
+        verifySuperUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(institutionRepository.save(institution));
+    }
+
+    @PutMapping
+    public ResponseEntity<Institution> update(User user, @RequestBody Institution institution) {
+        verifyAuthority(user, institution.getId(), Authority.INSTITUTION_ADMINISTRATOR);
         if (!user.isSuperAdmin()) {
             Institution institutionFromDb = institutionRepository.findById(institution.getId()).orElseThrow(NotFoundException::new);
             institution.setHomeInstitution(institutionFromDb.getHomeInstitution());
@@ -67,7 +76,8 @@ public class InstitutionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> delete(User user, @PathVariable("id") Long id) {
+        verifySuperUser(user);
         institutionRepository.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

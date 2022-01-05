@@ -129,6 +129,20 @@ class UserControllerTest extends AbstractTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void otherNotAllowed() {
+        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("userId", inviter.getId())
+                .get("/guests/api/users/{userId}")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
     void deleteOther() throws Exception {
         User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
         given()

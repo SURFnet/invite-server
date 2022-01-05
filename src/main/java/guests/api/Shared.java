@@ -26,10 +26,31 @@ public class Shared {
         }
     }
 
-    public static void verifyUser(User authenticatedUser, User subject) {
+    public static void verifySuperUser(User user) {
+        if (!user.isSuperAdmin()) {
+            throw new UserRestrictionException("Authority mismatch");
+        }
+    }
+
+    public static void verifyAuthority(User user, Long institutionId, Authority required) {
+        if (!user.isSuperAdmin()) {
+            Authority authority = user.authorityByInstitution(institutionId).orElseThrow(() -> userRestrictedException(user, institutionId));
+            if (!authority.isAllowed(required)) {
+                throw new UserRestrictionException("Authority mismatch");
+            }
+            if (authority.equals(Authority.INVITER) && !required.equals(Authority.GUEST)) {
+                throw new UserRestrictionException("Authority mismatch");
+            }
+        }
+    }
+
+    public static void verifyAuthority(User authenticatedUser, User subject, Authority required) {
         if (!authenticatedUser.isSuperAdmin()) {
-            Set<Long> institutionIdentifiers = authenticatedUser.getInstitutionMemberships().stream().map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
-            if (subject.getInstitutionMemberships().stream().noneMatch(membership -> institutionIdentifiers.contains(membership.getInstitution().getId()))) {
+            Set<Long> institutionIdentifiers = subject.getInstitutionMemberships().stream()
+                    .map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
+            if (authenticatedUser.getInstitutionMemberships().stream()
+                    .noneMatch(membership -> institutionIdentifiers.contains(membership.getInstitution().getId())
+                            && membership.getAuthority().isAllowed(required))) {
                 throw userRestrictedException(authenticatedUser, institutionIdentifiers.iterator().next());
             }
         }
@@ -40,31 +61,5 @@ public class Shared {
                 authenticatedUser.getEduPersonPrincipalName(), institutionId));
     }
 
-    public static void verifySuperUser(User user) {
-        if (!user.isSuperAdmin()) {
-            throw new UserRestrictionException("Authority mismatch");
-        }
-    }
 
-    public static void verifyAuthority(User user, Long institutionId, Authority required) {
-        Authority authority = user.authorityByInstitution(institutionId).orElseThrow(() -> userRestrictedException(user, institutionId));
-        if (!authority.equals(Authority.SUPER_ADMIN) && !authority.isAllowed(required)) {
-            throw new UserRestrictionException("Authority mismatch");
-        }
-        if (authority.equals(Authority.INVITER) && !required.equals(Authority.GUEST)) {
-            throw new UserRestrictionException("Authority mismatch");
-        }
-    }
-
-
-    public static void verifyAuthority(User authenticatedUser, User subject, Authority required) {
-        if (!authenticatedUser.isSuperAdmin()) {
-            Set<Long> institutionIdentifiers = authenticatedUser.getInstitutionMemberships().stream().map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
-            if (subject.getInstitutionMemberships().stream()
-                    .noneMatch(membership -> institutionIdentifiers.contains(membership.getInstitution().getId())
-                            && membership.getAuthority().isAllowed(required))) {
-                throw userRestrictedException(authenticatedUser, institutionIdentifiers.iterator().next());
-            }
-        }
-    }
 }

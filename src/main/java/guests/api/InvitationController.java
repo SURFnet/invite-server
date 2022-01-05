@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 import static guests.api.Shared.verifyAuthority;
-import static guests.api.Shared.verifyUser;
 
 @RestController
 @RequestMapping(value = "/guests/api/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -68,20 +66,20 @@ public class InvitationController {
 
     @GetMapping("/institution/{institutionId}")
     public ResponseEntity<List<Invitation>> getByInstitution(@PathVariable("institutionId") Long institutionId, User authenticatedUser) {
-        verifyUser(authenticatedUser, institutionId);
+        verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);
         return ResponseEntity.ok(invitationRepository.findByInstitution_id(institutionId));
     }
 
     @GetMapping("/application/{applicationId}")
     public ResponseEntity<List<Invitation>> getByApplication(@PathVariable("applicationId") Long applicationId, User authenticatedUser) {
         Application application = applicationRepository.findById(applicationId).orElseThrow(NotFoundException::new);
-        verifyUser(authenticatedUser, application.getInstitution().getId());
+        verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INVITER);
         return ResponseEntity.ok(invitationRepository.findByRoles_role_application_id(applicationId));
     }
 
     @PostMapping
     public ResponseEntity<User> accept(BearerTokenAuthentication authentication,
-                                 @RequestBody Invitation invitation) throws JsonProcessingException {
+                                       @RequestBody Invitation invitation) throws JsonProcessingException {
         Invitation invitationFromDB = invitationRepository.findByHashAndStatus(invitation.getHash(), Status.OPEN).orElseThrow(NotFoundException::new);
         invitationFromDB.setStatus(invitation.getStatus());
         Object details = authentication.getDetails();
@@ -90,6 +88,13 @@ public class InvitationController {
         Institution institution = invitationFromDB.getInstitution();
         if (details instanceof User detailsFromUser) {
             user = userRepository.findById(detailsFromUser.getId()).orElseThrow(NotFoundException::new);
+            Optional<InstitutionMembership> membershipOptional = user.getInstitutionMemberships().stream()
+                    .filter(ms -> ms.getInstitution().getId().equals(institution.getId()))
+                    .findFirst();
+            if (membershipOptional.isEmpty()) {
+                user.addMembership(new InstitutionMembership(invitationFromDB.getIntendedAuthority(), institution));
+            }
+
         } else {
             user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
         }
@@ -130,7 +135,7 @@ public class InvitationController {
     public ResponseEntity<Map<String, Integer>> invite(User user, @RequestBody InvitationRequest invitationRequest) {
         Invitation invitationData = invitationRequest.getInvitation();
         Institution institution = institutionRepository.findById(invitationRequest.getInstitutionId()).orElseThrow(NotFoundException::new);
-        restrictUser(user, invitationRequest);
+        verifyAuthority(user, institution.getId(), invitationData.getIntendedAuthority());
         List<String> invites = invitationRequest.getInvites();
         Set<String> emails = emailFormatValidator.validateEmails(invites);
         emails.forEach(email -> {
@@ -159,11 +164,6 @@ public class InvitationController {
         });
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
-    }
-
-    private void restrictUser(User user, InvitationRequest invitationRequest) throws AuthenticationException {
-        verifyUser(user, invitationRequest.getInstitutionId());
-        verifyAuthority(user, invitationRequest.getInstitutionId(), invitationRequest.getInvitation().getIntendedAuthority());
     }
 
     private void checkEmailEquality(User user, Invitation invitation) {

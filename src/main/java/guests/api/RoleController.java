@@ -52,8 +52,9 @@ public class RoleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Role> getById(@PathVariable("id") Long id) {
+    public ResponseEntity<Role> getById(User user, @PathVariable("id") Long id) {
         Role role = roleRepository.findById(id).orElseThrow(NotFoundException::new);
+        verifyAuthority(user, role.getApplication().getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
         return ResponseEntity.ok(role);
     }
 
@@ -87,7 +88,6 @@ public class RoleController {
 
     private void restrictUser(User user, Role role) throws AuthenticationException {
         Application application = applicationRepository.findById(role.getApplication().getId()).orElseThrow(NotFoundException::new);
-        verifyUser(user, application.getInstitution().getId());
-        verifyAuthority(user, application.getInstitution().getId(), role.getAuthority());
+        verifyAuthority(user, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
     }
 }

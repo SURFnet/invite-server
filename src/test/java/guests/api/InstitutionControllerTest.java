@@ -1,7 +1,6 @@
 package guests.api;
 
 import guests.AbstractTest;
-import guests.domain.Application;
 import guests.domain.Institution;
 import guests.domain.ObjectExists;
 import io.restassured.http.ContentType;
@@ -19,7 +18,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void institutions() throws Exception {
+    void institutions() {
         List<Institution> results = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -35,7 +34,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void institutionById() throws Exception {
+    void institutionById() {
         Long id = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get().getId();
         Institution institution = given()
                 .when()
@@ -53,7 +52,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void existingInstitutionEntityIdNotExists() throws Exception {
+    void existingInstitutionEntityIdNotExists() {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -67,7 +66,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void institutionEntityIdNotExists() throws Exception {
+    void institutionEntityIdNotExists() {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -81,7 +80,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void institutionEntityIdExists() throws Exception {
+    void institutionEntityIdExists() {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -95,7 +94,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void existingInstitutionSchacHomeNotExists() throws Exception {
+    void existingInstitutionSchacHomeNotExists() {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -109,7 +108,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void institutionSchacHomeNotExists() throws Exception {
+    void institutionSchacHomeNotExists() {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -123,7 +122,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void institutionSchacHomeExists() throws Exception {
+    void institutionSchacHomeExists() {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -133,6 +132,21 @@ class InstitutionControllerTest extends AbstractTest {
                 .post("/guests/api/institutions/schac-home-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(true));
+    }
+
+    @Test
+    void save() {
+        Institution institution = new Institution("displayName", "entityId", "home.nl", "https://aup", "V1");
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(institution)
+                .put("/guests/api/institutions")
+                .then()
+                .statusCode(201);
+        assertEquals(true, institutionRepository.findByHomeInstitutionIgnoreCase("home.nl").isPresent());
     }
 
     @Test
@@ -176,7 +190,7 @@ class InstitutionControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteInstitution() throws Exception {
+    void deleteInstitution() {
         Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
         given()
                 .when()
@@ -190,7 +204,7 @@ class InstitutionControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteInstitutionNotAllowed() throws Exception {
+    void deleteInstitutionNotAllowed() {
         given()
                 .when()
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
@@ -201,7 +215,7 @@ class InstitutionControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteApplicationUnknownUser() throws Exception {
+    void deleteApplicationUnknownUser() {
         given()
                 .when()
                 .auth().oauth2(opaqueAccessToken("nope@surf.nl", "introspect.json"))
