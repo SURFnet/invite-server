@@ -1,13 +1,15 @@
 logging:
   level:
-    org.springframework: WARN
-    org.springframework.security: WARN
+    org.springframework: INFO
+    org.springframework.web: TRACE
     com.zaxxer.hikari: ERROR
 
 spring:
+  mvc:
+    log-request-details: true
   security:
     user:
-      user: disabled
+      name: disabled
       password: disabled
   jpa:
     properties:
