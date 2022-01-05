@@ -18,7 +18,4 @@ public enum Authority {
         return this.name().replaceAll("_", " ").toLowerCase();
     }
 
-    public int getRights() {
-        return rights;
-    }
 }

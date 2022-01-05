@@ -38,9 +38,4 @@ public class InstitutionMembership implements Serializable {
         this.institution = institution;
     }
 
-    public InstitutionMembership(Authority authority, Institution institution, User user) {
-        this.authority = authority;
-        this.institution = institution;
-        this.user = user;
-    }
 }
