@@ -17,11 +17,12 @@ public class OidcCorsConfigurationSource implements CorsConfigurationSource {
 
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedOriginPatterns(allAllowed);
-        corsConfiguration.setAllowedHeaders(allAllowed);
         corsConfiguration.setAllowedMethods(allAllowed);
         corsConfiguration.setAllowedHeaders(allAllowed);
         corsConfiguration.setMaxAge(1800L);
         corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setExposedHeaders(allAllowed);
+
         return corsConfiguration;
     }
 }
