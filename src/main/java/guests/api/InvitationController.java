@@ -5,6 +5,7 @@ import guests.config.HashGenerator;
 import guests.domain.*;
 import guests.exception.InvitationEmailMatchingException;
 import guests.exception.NotFoundException;
+import guests.exception.UserRestrictionException;
 import guests.mail.MailBox;
 import guests.repository.*;
 import guests.scim.SCIMService;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+import static guests.api.Shared.userRestrictedException;
 import static guests.api.Shared.verifyAuthority;
 
 @RestController
@@ -135,7 +137,14 @@ public class InvitationController {
     public ResponseEntity<Map<String, Integer>> invite(User user, @RequestBody InvitationRequest invitationRequest) {
         Invitation invitationData = invitationRequest.getInvitation();
         Institution institution = institutionRepository.findById(invitationRequest.getInstitutionId()).orElseThrow(NotFoundException::new);
+
         verifyAuthority(user, institution.getId(), invitationData.getIntendedAuthority());
+        Authority authority = user.authorityByInstitution(institution.getId()).orElseThrow(() -> userRestrictedException(user, institution.getId()));
+        // Inviter can only invite GUESTS
+        if (authority.equals(Authority.INVITER) && !invitationData.getIntendedAuthority().equals(Authority.GUEST)) {
+            throw new UserRestrictionException("Authority mismatch");
+        }
+
         List<String> invites = invitationRequest.getInvites();
         Set<String> emails = emailFormatValidator.validateEmails(invites);
         emails.forEach(email -> {

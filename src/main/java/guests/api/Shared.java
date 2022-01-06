@@ -38,9 +38,6 @@ public class Shared {
             if (!authority.isAllowed(required)) {
                 throw new UserRestrictionException("Authority mismatch");
             }
-            if (authority.equals(Authority.INVITER) && !required.equals(Authority.GUEST)) {
-                throw new UserRestrictionException("Authority mismatch");
-            }
         }
     }
 
@@ -56,7 +53,7 @@ public class Shared {
         }
     }
 
-    private static UserRestrictionException userRestrictedException(User authenticatedUser, Long institutionId) {
+    public static UserRestrictionException userRestrictedException(User authenticatedUser, Long institutionId) {
         return new UserRestrictionException(String.format("User %s is not allowed to act for institution %s",
                 authenticatedUser.getEduPersonPrincipalName(), institutionId));
     }

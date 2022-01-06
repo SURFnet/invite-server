@@ -20,10 +20,6 @@ class SharedTest {
         user.addMembership(new InstitutionMembership(Authority.GUEST, institution));
         assertThrows(UserRestrictionException.class, () -> shared.verifyAuthority(user, institution.getId(), Authority.INVITER));
 
-        user.getInstitutionMemberships().clear();
-        user.addMembership(new InstitutionMembership(Authority.INVITER, institution));
-        assertThrows(UserRestrictionException.class, () -> shared.verifyAuthority(user, institution.getId(), Authority.INVITER));
-
         shared.verifyAuthority(user, institution.getId(), Authority.GUEST);
     }
 }
