@@ -69,9 +69,7 @@ public class Invitation implements Serializable {
         this.status = Status.OPEN;
         this.roles = roles;
         this.email = email;
-        if (!CollectionUtils.isEmpty(roles)) {
-            roles.forEach(role -> role.setInvitation(this));
-        }
+        roles.forEach(role -> role.setInvitation(this));
         this.defaults();
     }
 

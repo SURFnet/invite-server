@@ -272,6 +272,31 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
+    void putNotAllowedAuthority() {
+        Role role = roleRepository.findAll().get(0);
+        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        Invitation invitation = new Invitation(Authority.INVITER,
+                "Please accept",
+                "guest@example.com",
+                true,
+                Collections.singleton(new InvitationRole(role)));
+        invitation.setExpiryDate(Instant.now());
+        Institution institution = getInstitution(user);
+        invitation.setInstitution(institution);
+        InvitationRequest invitationRequest = new InvitationRequest(invitation, Arrays.asList("guest@example.com"), institution.getId());
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .body(invitationRequest)
+                .put("/guests/api/invitations")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
     void delete() {
         Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
         given()
