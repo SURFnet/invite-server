@@ -78,12 +78,12 @@ public class RoleController {
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(User user, @PathVariable("id") Long id) {
+    public ResponseEntity<Map<String, Integer>> delete(User user, @PathVariable("id") Long id) {
         Role role = roleRepository.findById(id).get();
         this.restrictUser(user, role);
         roleRepository.delete(role);
         scimService.deleteRolesRequest(role);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return createdResponse();
     }
 
     private void restrictUser(User user, Role role) throws AuthenticationException {

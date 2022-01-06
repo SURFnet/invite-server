@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,25 +67,36 @@ public class InstitutionController {
     @PostMapping
     public ResponseEntity<Institution> save(User user, @RequestBody Institution institution) {
         verifySuperUser(user);
+        institution.invariantAupVersion(true);
         return ResponseEntity.status(HttpStatus.CREATED).body(institutionRepository.save(institution));
     }
 
     @PutMapping
     public ResponseEntity<Institution> update(User user, @RequestBody Institution institution) {
         verifyAuthority(user, institution.getId(), Authority.INSTITUTION_ADMINISTRATOR);
+        Institution institutionFromDb = institutionRepository.findById(institution.getId()).orElseThrow(NotFoundException::new);
         if (!user.isSuperAdmin()) {
-            Institution institutionFromDb = institutionRepository.findById(institution.getId()).orElseThrow(NotFoundException::new);
             institution.setHomeInstitution(institutionFromDb.getHomeInstitution());
             institution.setEntityId(institutionFromDb.getEntityId());
         }
+        institution.invariantAupVersion(false);
         return ResponseEntity.status(HttpStatus.CREATED).body(institutionRepository.save(institution));
     }
 
+    @PutMapping("increment-aup/{id}")
+    public ResponseEntity<Map<String, Integer>> incrementAup(User authenticatedUser, @PathVariable("id") Long id) {
+        Institution institution = institutionRepository.findById(id).orElseThrow(NotFoundException::new);
+        verifyAuthority(authenticatedUser, id, Authority.INSTITUTION_ADMINISTRATOR);
+        institution.incrementAup();
+        institutionRepository.save(institution);
+        return createdResponse();
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(User user, @PathVariable("id") Long id) {
+    public ResponseEntity<Map<String, Integer>> delete(User user, @PathVariable("id") Long id) {
         verifySuperUser(user);
         institutionRepository.deleteById(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return createdResponse();
     }
 
 

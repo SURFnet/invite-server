@@ -2,10 +2,8 @@ package guests.api;
 
 import guests.domain.*;
 import guests.exception.NotFoundException;
-import guests.exception.UserRestrictionException;
 import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,11 +60,11 @@ public class ApplicationController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(User authenticatedUser, @PathVariable("id") Long id) {
+    public ResponseEntity<Map<String, Integer>> delete(User authenticatedUser, @PathVariable("id") Long id) {
         Application application = applicationRepository.findById(id).orElseThrow(NotFoundException::new);
         verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
         applicationRepository.delete(application);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return createdResponse();
     }
 
     @PostMapping("entity-id-exists")

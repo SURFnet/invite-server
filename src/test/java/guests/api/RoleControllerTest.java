@@ -140,7 +140,7 @@ class RoleControllerTest extends AbstractTest {
                 .pathParam("id", role.getId())
                 .delete("/guests/api/roles/{id}")
                 .then()
-                .statusCode(204);
+                .statusCode(201);
         Optional<Role> optionalRole = roleRepository.findById(role.getId());
         assertEquals(false, optionalRole.isPresent());
     }

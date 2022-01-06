@@ -96,7 +96,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .pathParam("id", application.getId())
                 .delete("/guests/api/applications/{id}")
                 .then()
-                .statusCode(204);
+                .statusCode(201);
         Optional<Application> optionalApplication = applicationRepository.findByEntityIdIgnoreCase("canvas");
         assertEquals(false, optionalApplication.isPresent());
     }

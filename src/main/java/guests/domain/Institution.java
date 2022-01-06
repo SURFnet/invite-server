@@ -66,4 +66,17 @@ public class Institution implements Serializable, NameHolder {
         this.homeInstitution = compatibleUrnName(this.homeInstitution);
     }
 
+
+    @JsonIgnore
+    public void invariantAupVersion(boolean isNew) {
+        this.aupVersion = StringUtils.hasText(this.aupUrl) ? (isNew ? "1" : this.aupVersion) : null;
+    }
+
+    @JsonIgnore
+    public void incrementAup() {
+        if (StringUtils.hasText(this.aupUrl)) {
+            int newVersion = Integer.parseInt(this.aupVersion) + 1;
+            this.aupVersion = String.format("%s", newVersion);
+        }
+    }
 }

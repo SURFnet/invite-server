@@ -90,7 +90,7 @@ class UserControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .delete("/guests/api/users")
                 .then()
-                .statusCode(204);
+                .statusCode(201);
         assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("j.doe@example.com").isPresent());
     }
 
@@ -152,7 +152,7 @@ class UserControllerTest extends AbstractTest {
                 .pathParam("userId", inviter.getId())
                 .delete("/guests/api/users/{userId}")
                 .then()
-                .statusCode(204);
+                .statusCode(201);
         assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").isPresent());
     }
 

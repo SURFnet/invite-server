@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class InstitutionControllerTest extends AbstractTest {
 
@@ -152,17 +153,34 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     void save() {
-        Institution institution = new Institution("displayName", "entityId", "home.nl", "https://aup", "V1");
+        Institution institution = new Institution("displayName", "entityId", "home.nl", "https://aup", "xxx");
         given()
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(institution)
-                .put("/guests/api/institutions")
+                .post("/guests/api/institutions")
                 .then()
                 .statusCode(201);
-        assertEquals(true, institutionRepository.findByHomeInstitutionIgnoreCase("home.nl").isPresent());
+        institution = institutionRepository.findByHomeInstitutionIgnoreCase("home.nl").get();
+        assertEquals("1", institution.getAupVersion());
+    }
+
+    @Test
+    void saveWithoutAupURL() {
+        Institution institution = new Institution("displayName", "entityId", "home.nl", null, "xxx");
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .body(institution)
+                .post("/guests/api/institutions")
+                .then()
+                .statusCode(201);
+        institution = institutionRepository.findByHomeInstitutionIgnoreCase("home.nl").get();
+        assertNull(institution.getAupVersion());
     }
 
     @Test
@@ -182,6 +200,22 @@ class InstitutionControllerTest extends AbstractTest {
                 .statusCode(201);
         institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
         assertEquals("Changed", institution.getDisplayName());
+    }
+
+    @Test
+    void incrementAup() throws Exception {
+        Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("id", institution.getId())
+                .put("/guests/api/institutions/increment-aup/{id}")
+                .then()
+                .statusCode(201);
+        institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
+        assertEquals("2", institution.getAupVersion());
     }
 
     @Test
@@ -214,7 +248,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .pathParam("id", institution.getId())
                 .delete("/guests/api/institutions/{id}")
                 .then()
-                .statusCode(204);
+                .statusCode(201);
         Optional<Institution> optionalInstitution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl");
         assertEquals(false, optionalInstitution.isPresent());
     }
