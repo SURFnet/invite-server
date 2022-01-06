@@ -3,6 +3,7 @@ package guests.api;
 import guests.domain.*;
 import guests.exception.UserRestrictionException;
 import org.hibernate.Hibernate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -58,5 +59,8 @@ public class Shared {
                 authenticatedUser.getEduPersonPrincipalName(), institutionId));
     }
 
+    public static ResponseEntity<Map<String, Integer>> createdResponse() {
+        return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
+    }
 
 }

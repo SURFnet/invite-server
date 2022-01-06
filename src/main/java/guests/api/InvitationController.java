@@ -21,8 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-import static guests.api.Shared.userRestrictedException;
-import static guests.api.Shared.verifyAuthority;
+import static guests.api.Shared.*;
 
 @RestController
 @RequestMapping(value = "/guests/api/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -183,23 +182,24 @@ public class InvitationController {
     }
 
     @PutMapping("/resend")
-    public ResponseEntity<Void> resend(User authenticatedUser, @RequestBody Invitation invitation) {
-        Invitation invitationFromDB = invitationRepository.findById(invitation.getId()).orElseThrow(NotFoundException::new);
+    public ResponseEntity<Map<String, Integer>> resend(User authenticatedUser, @RequestBody Map<String, Object> invitation) {
+        Number number = (Number) invitation.get("id");
+        Invitation invitationFromDB = invitationRepository.findById(number.longValue()).orElseThrow(NotFoundException::new);
         verifyAuthority(authenticatedUser, invitationFromDB.getInstitution().getId(), Authority.INVITER);
 
-        invitationFromDB.setMessage(invitation.getMessage());
+        invitationFromDB.setMessage((String) invitation.get("message"));
         invitationRepository.save(invitationFromDB);
 
         mailBox.sendInviteMail(authenticatedUser, invitationFromDB);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return createdResponse();
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> deleteInvitation(User authenticatedUser, @PathVariable("id") Long id) {
+    public ResponseEntity<Map<String, Integer>> deleteInvitation(User authenticatedUser, @PathVariable("id") Long id) {
         Invitation invitation = invitationRepository.findById(id).orElseThrow(NotFoundException::new);
         verifyAuthority(authenticatedUser, invitation.getInstitution().getId(), Authority.INVITER);
         invitationRepository.delete(invitation);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return createdResponse();
     }
 
     private void checkEmailEquality(User user, Invitation invitation) {

@@ -306,7 +306,7 @@ class InvitationControllerTest extends AbstractTest {
                 .pathParam("id", id)
                 .delete("/guests/api/invitations/{id}")
                 .then()
-                .statusCode(204);
+                .statusCode(201);
         assertFalse(invitationRepository.findById(id).isPresent());
     }
 
