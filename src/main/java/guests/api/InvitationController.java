@@ -66,6 +66,13 @@ public class InvitationController {
         return ResponseEntity.ok(invitation);
     }
 
+    @GetMapping("/id/{id}")
+    public ResponseEntity<Invitation> invitationById(User authenticatedUser, @PathVariable("id") Long id) {
+        Invitation invitation = invitationRepository.findById(id).orElseThrow(NotFoundException::new);
+        verifyAuthority(authenticatedUser, invitation.getInstitution().getId(), Authority.INVITER);
+        return ResponseEntity.ok(invitation);
+    }
+
     @GetMapping("/institution/{institutionId}")
     public ResponseEntity<List<Invitation>> getByInstitution(@PathVariable("institutionId") Long institutionId, User authenticatedUser) {
         verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);

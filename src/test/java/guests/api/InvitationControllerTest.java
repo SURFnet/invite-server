@@ -48,6 +48,37 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
+    void getById() {
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        Invitation invitation = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("id", id)
+                .get("/guests/api/invitations/id/{id}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getObject(".", Invitation.class);
+        assertEquals(Status.OPEN, invitation.getStatus());
+        assertEquals("administrator", invitation.getRoles().iterator().next().getRole().getName());
+    }
+
+    @Test
+    void getByIdNotAllowed() {
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
+                .pathParam("id", id)
+                .get("/guests/api/invitations/id/{id}")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void allByInstitution() throws Exception {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
