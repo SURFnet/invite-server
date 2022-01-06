@@ -182,6 +182,26 @@ public class InvitationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
     }
 
+    @PutMapping("/resend")
+    public ResponseEntity<Void> resend(User authenticatedUser, @RequestBody Invitation invitation) {
+        Invitation invitationFromDB = invitationRepository.findById(invitation.getId()).orElseThrow(NotFoundException::new);
+        verifyAuthority(authenticatedUser, invitationFromDB.getInstitution().getId(), Authority.INVITER);
+
+        invitationFromDB.setMessage(invitation.getMessage());
+        invitationRepository.save(invitationFromDB);
+
+        mailBox.sendInviteMail(authenticatedUser, invitationFromDB);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteInvitation(User authenticatedUser, @PathVariable("id") Long id) {
+        Invitation invitation = invitationRepository.findById(id).orElseThrow(NotFoundException::new);
+        verifyAuthority(authenticatedUser, invitation.getInstitution().getId(), Authority.INVITER);
+        invitationRepository.delete(invitation);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     private void checkEmailEquality(User user, Invitation invitation) {
         if (invitation.isEnforceEmailEquality() && !invitation.getEmail().equalsIgnoreCase(user.getEmail())) {
             throw new InvitationEmailMatchingException(

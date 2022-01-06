@@ -11,6 +11,7 @@ import java.util.*;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class InvitationControllerTest extends AbstractTest {
 
@@ -269,4 +270,19 @@ class InvitationControllerTest extends AbstractTest {
                 .statusCode(201);
         assertEquals(4, invitationRepository.count());
     }
+
+    @Test
+    void delete() {
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("id", id)
+                .delete("/guests/api/invitations/{id}")
+                .then()
+                .statusCode(204);
+        assertFalse(invitationRepository.findById(id).isPresent());
+    }
+
 }
