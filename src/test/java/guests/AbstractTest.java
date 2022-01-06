@@ -104,6 +104,7 @@ public abstract class AbstractTest {
 
         Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_HASH, mary, utrecht, "guest@test.com");
         invitation.addInvitationRole(new InvitationRole(role));
+        invitation.setMessage("Please join...");
 
         Invitation invitationEmailEquality = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_EMAIL_EQUALITY_HASH, mary, utrecht, "equals@test.com");
         invitationEmailEquality.addInvitationRole(new InvitationRole(role));
