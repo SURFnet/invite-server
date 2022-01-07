@@ -34,7 +34,7 @@ class UserTest {
         assertTrue(user.hasAgreedWithAup(institution));
 
         institution.setAupUrl("https://aup");
-        institution.setAupVersion("1");
+        institution.setAupVersion(1);
         assertFalse(user.hasAgreedWithAup(institution));
 
         user.addAup(new Aup(institution));
@@ -46,7 +46,7 @@ class UserTest {
         Institution other = new Institution();
         other.setId(2L);
         other.setAupUrl("https://aup");
-        other.setAupVersion("1");
+        other.setAupVersion(1);
         assertFalse(user.hasAgreedWithAup(other));
 
 

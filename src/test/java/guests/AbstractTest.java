@@ -153,7 +153,7 @@ public abstract class AbstractTest {
                 "https://" + baseLowerCase,
                 baseLowerCase + ".nl",
                 "https://" + baseLowerCase + ".nl/aup",
-                "1");
+                1);
     }
 
     protected void stubForDeleteUser() {

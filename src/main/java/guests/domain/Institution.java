@@ -38,7 +38,7 @@ public class Institution implements Serializable, NameHolder {
     private String aupUrl;
 
     @Column(name = "aup_version")
-    private String aupVersion;
+    private Integer aupVersion;
 
     @Embedded
     private Auditable auditable = new Auditable();
@@ -48,7 +48,7 @@ public class Institution implements Serializable, NameHolder {
     private Set<InstitutionMembership> institutionMemberships = new HashSet<>();
 
 
-    public Institution(String displayName, String entityId, String homeInstitution, String aupUrl, String aupVersion) {
+    public Institution(String displayName, String entityId, String homeInstitution, String aupUrl, Integer aupVersion) {
         this.displayName = displayName;
         this.entityId = entityId;
         this.homeInstitution = homeInstitution;
@@ -71,14 +71,13 @@ public class Institution implements Serializable, NameHolder {
 
     @JsonIgnore
     public void invariantAupVersion() {
-        this.aupVersion = StringUtils.hasText(this.aupUrl) ? (!StringUtils.hasText(this.aupVersion) ? "1" : this.aupVersion) : null;
+        this.aupVersion = StringUtils.hasText(this.aupUrl) ? (this.aupVersion == null ? 1 : this.aupVersion) : null;
     }
 
     @JsonIgnore
     public void incrementAup() {
         if (StringUtils.hasText(this.aupUrl)) {
-            int newVersion = Integer.parseInt(this.aupVersion) + 1;
-            this.aupVersion = String.format("%s", newVersion);
+            this.aupVersion = this.aupVersion == null ? 1 : this.aupVersion + 1;
         }
     }
 }

@@ -153,7 +153,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     void save() {
-        Institution institution = new Institution("displayName", "entityId", "home.nl", "https://aup", "xxx");
+        Institution institution = new Institution("displayName", "entityId", "home.nl", "https://aup", null);
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -164,12 +164,12 @@ class InstitutionControllerTest extends AbstractTest {
                 .then()
                 .statusCode(201);
         institution = institutionRepository.findByHomeInstitutionIgnoreCase("home.nl").get();
-        assertEquals("1", institution.getAupVersion());
+        assertEquals(1, institution.getAupVersion());
     }
 
     @Test
     void saveWithoutAupURL() {
-        Institution institution = new Institution("displayName", "entityId", "home.nl", null, "xxx");
+        Institution institution = new Institution("displayName", "entityId", "home.nl", null, 5);
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -215,7 +215,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .then()
                 .statusCode(201);
         institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
-        assertEquals("2", institution.getAupVersion());
+        assertEquals(2, institution.getAupVersion());
     }
 
     @Test

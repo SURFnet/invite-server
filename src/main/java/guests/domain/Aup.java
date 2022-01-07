@@ -35,7 +35,7 @@ public class Aup implements Serializable {
     private Instant agreedAt;
 
     @Column
-    private String version;
+    private Integer version;
 
     @Column
     private String url;

@@ -16,7 +16,7 @@ class InstitutionTest {
         institution.setAupUrl("https://aup");
         institution.invariantAupVersion();
         institution.incrementAup();
-        assertEquals("2", institution.getAupVersion());
+        assertEquals(2, institution.getAupVersion());
     }
 
     @Test
@@ -27,6 +27,6 @@ class InstitutionTest {
 
         institution.setAupUrl("https://aup");
         institution.invariantAupVersion();
-        assertEquals("1", institution.getAupVersion());
+        assertEquals(1, institution.getAupVersion());
     }
 }
