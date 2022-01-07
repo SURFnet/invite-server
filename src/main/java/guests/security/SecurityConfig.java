@@ -52,18 +52,15 @@ public class SecurityConfig {
         private final InstitutionRepository institutionRepository;
 
         private final UserRepository userRepository;
-        private final ObjectMapper objectMapper;
         private final SuperAdmin superAdmin;
         private final SCIMService scimService;
 
         public JWTSecurityConfig(InstitutionRepository institutionRepository,
                                  UserRepository userRepository,
-                                 ObjectMapper objectMapper,
                                  SuperAdmin superAdmin,
                                  SCIMService scimService) {
             this.institutionRepository = institutionRepository;
             this.userRepository = userRepository;
-            this.objectMapper = objectMapper;
             this.superAdmin = superAdmin;
             this.scimService = scimService;
         }

@@ -23,10 +23,6 @@ spring:
     password:
   flyway:
     locations: classpath:db/{vendor}/migration
-  session:
-    store-type: jdbc
-    jdbc:
-      initialize-schema: never
   mail:
     host: localhost
     port: 3025
