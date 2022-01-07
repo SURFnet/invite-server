@@ -25,7 +25,7 @@ class InvitationMailControllerTest extends AbstractMailTest {
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
-                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitation)
                 .put("/guests/api/invitations/resend")
                 .then()

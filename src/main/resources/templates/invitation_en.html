@@ -25,7 +25,7 @@
     <div class="middle" style="padding: 20px 0 40px 60px;max-width: 600px;">
         <p>Hi,</p>
         <p>You have been invited by <a href="mailto:{{user.email}}">{{user.givenName}} {{user.familyName}}</a> to become
-            a {{role}} in the inviters website.</p>
+            a <strong>{{role}}</strong> at the institution <strong>{{invitation.institution.displayName}}</strong>.</p>
         {{#invitation.anyRoles}}
         <p>You will be granted access to the following applications in {{invitation.institution.displayName}}:</p>
         <ul>

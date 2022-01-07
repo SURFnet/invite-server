@@ -10,8 +10,7 @@ import java.time.Instant;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 class InvitationControllerTest extends AbstractTest {
 
@@ -297,7 +296,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void delete() {
+    void deleteNotAllowed() {
         Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
         given()
                 .when()
@@ -306,8 +305,21 @@ class InvitationControllerTest extends AbstractTest {
                 .pathParam("id", id)
                 .delete("/guests/api/invitations/{id}")
                 .then()
+                .statusCode(403);
+        assertTrue(invitationRepository.findById(id).isPresent());
+    }
+
+    @Test
+    void delete() {
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .pathParam("id", id)
+                .delete("/guests/api/invitations/{id}")
+                .then()
                 .statusCode(201);
         assertFalse(invitationRepository.findById(id).isPresent());
     }
-
 }

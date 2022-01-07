@@ -34,6 +34,7 @@ class MailBoxTest extends AbstractMailTest {
         String htmlContent = parser.getHtmlContent();
         assertTrue(htmlContent.contains("http://localhost:3000/invitations?h=hash"));
         assertTrue(htmlContent.contains("Canvas"));
+        assertTrue(htmlContent.contains(invitation.getInstitution().getDisplayName()));
     }
 
 }

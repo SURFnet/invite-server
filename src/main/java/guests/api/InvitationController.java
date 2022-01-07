@@ -146,7 +146,7 @@ public class InvitationController {
             Authority authority = user.authorityByInstitution(institution.getId()).orElseThrow(() -> userRestrictedException(user, institution.getId()));
             // Inviter can only invite GUESTS
             if (authority.equals(Authority.INVITER) && !invitationData.getIntendedAuthority().equals(Authority.GUEST)) {
-                throw new UserRestrictionException("Authority mismatch");
+                throw userRestrictedException(user, institution.getId());
             }
         }
 
@@ -165,6 +165,7 @@ public class InvitationController {
             invitation.defaults();
             invitation.setEnforceEmailEquality(invitationData.isEnforceEmailEquality());
             invitation.setExpiryDate(invitationData.getExpiryDate());
+            invitation.setInstitution(institution);
             invitationData.getRoles().forEach(invitation::addInvitationRole);
             Invitation saved = invitationRepository.save(invitation);
             //Ensure all the data is loaded for the roles to be rendered in the email
@@ -174,6 +175,7 @@ public class InvitationController {
                 transientRole.setApplication(persistentRole.getApplication());
                 transientRole.setName(persistentRole.getName());
             });
+
             mailBox.sendInviteMail(user, saved);
         });
 
@@ -184,7 +186,10 @@ public class InvitationController {
     public ResponseEntity<Map<String, Integer>> resend(User authenticatedUser, @RequestBody Map<String, Object> invitation) {
         Number number = (Number) invitation.get("id");
         Invitation invitationFromDB = invitationRepository.findById(number.longValue()).orElseThrow(NotFoundException::new);
-        verifyAuthority(authenticatedUser, invitationFromDB.getInstitution().getId(), Authority.INVITER);
+        Long institutionId = invitationFromDB.getInstitution().getId();
+
+        verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);
+        verifyInviterAuthority(authenticatedUser, invitationFromDB, institutionId);
 
         invitationFromDB.setMessage((String) invitation.get("message"));
         invitationRepository.save(invitationFromDB);
@@ -196,9 +201,22 @@ public class InvitationController {
     @DeleteMapping("{id}")
     public ResponseEntity<Map<String, Integer>> deleteInvitation(User authenticatedUser, @PathVariable("id") Long id) {
         Invitation invitation = invitationRepository.findById(id).orElseThrow(NotFoundException::new);
-        verifyAuthority(authenticatedUser, invitation.getInstitution().getId(), Authority.INVITER);
+        Long institutionId = invitation.getInstitution().getId();
+
+        verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);
+        verifyInviterAuthority(authenticatedUser, invitation, institutionId);
+
         invitationRepository.delete(invitation);
         return createdResponse();
+    }
+
+    private void verifyInviterAuthority(User authenticatedUser, Invitation invitation, Long institutionId) {
+        if (!authenticatedUser.isSuperAdmin()) {
+            Authority authority = authenticatedUser.authorityByInstitution(institutionId).orElseThrow(NotFoundException::new);
+            if (authority.equals(Authority.INVITER) && !invitation.getIntendedAuthority().equals(Authority.GUEST)) {
+                throw userRestrictedException(authenticatedUser, institutionId);
+            }
+        }
     }
 
     private void checkEmailEquality(User user, Invitation invitation) {

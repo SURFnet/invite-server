@@ -39,7 +39,7 @@ public class Shared {
         if (!user.isSuperAdmin()) {
             Authority authority = user.authorityByInstitution(institutionId).orElseThrow(() -> userRestrictedException(user, institutionId));
             if (!authority.isAllowed(required)) {
-                throw new UserRestrictionException("Authority mismatch");
+                throw userRestrictedException(user, institutionId);
             }
         }
     }
