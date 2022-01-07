@@ -4,7 +4,6 @@ import guests.AbstractTest;
 import guests.domain.Application;
 import guests.domain.ApplicationExists;
 import guests.domain.Institution;
-import guests.domain.ObjectExists;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 

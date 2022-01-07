@@ -1,21 +1,25 @@
 package guests.api;
 
-import guests.domain.*;
+import guests.domain.Aup;
+import guests.domain.Institution;
+import guests.domain.User;
 import guests.exception.NotFoundException;
 import guests.repository.InstitutionRepository;
 import guests.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static guests.api.Shared.*;
+import static guests.api.Shared.createdResponse;
+import static guests.api.Shared.verifyUser;
 
 @RestController
 @RequestMapping(value = "/guests/api/aups", produces = MediaType.APPLICATION_JSON_VALUE)

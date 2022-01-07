@@ -3,7 +3,9 @@ package guests.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import guests.exception.InvalidProvisioningException;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.LazyInitializationException;
 import org.springframework.util.StringUtils;
 

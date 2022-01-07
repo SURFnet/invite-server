@@ -1,6 +1,5 @@
 package guests.config;
 
-import guests.domain.Application;
 import guests.domain.Institution;
 import lombok.Getter;
 import lombok.Setter;

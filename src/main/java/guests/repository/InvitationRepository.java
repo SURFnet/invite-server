@@ -1,6 +1,7 @@
 package guests.repository;
 
-import guests.domain.*;
+import guests.domain.Invitation;
+import guests.domain.Status;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

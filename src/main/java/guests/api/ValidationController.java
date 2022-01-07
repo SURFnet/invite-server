@@ -1,25 +1,22 @@
 package guests.api;
 
-import guests.domain.Institution;
-import guests.domain.ObjectExists;
 import guests.domain.Validation;
-import guests.exception.NotFoundException;
-import guests.repository.InstitutionRepository;
 import guests.validation.EmailFormatValidator;
 import guests.validation.FormatValidator;
 import guests.validation.URLFormatValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static guests.api.Shared.doesExists;
 import static java.util.stream.Collectors.toMap;
 
 @RestController

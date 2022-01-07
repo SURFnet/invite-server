@@ -1,7 +1,10 @@
 package guests.api;
 
 import guests.AbstractTest;
-import guests.domain.*;
+import guests.domain.Application;
+import guests.domain.Institution;
+import guests.domain.Role;
+import guests.domain.RoleExists;
 import io.restassured.http.ContentType;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;

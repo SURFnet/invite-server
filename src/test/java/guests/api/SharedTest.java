@@ -7,7 +7,7 @@ import guests.domain.User;
 import guests.exception.UserRestrictionException;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SharedTest {
 

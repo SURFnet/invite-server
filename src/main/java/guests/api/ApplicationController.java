@@ -1,6 +1,9 @@
 package guests.api;
 
-import guests.domain.*;
+import guests.domain.Application;
+import guests.domain.ApplicationExists;
+import guests.domain.Authority;
+import guests.domain.User;
 import guests.exception.NotFoundException;
 import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
@@ -70,7 +73,7 @@ public class ApplicationController {
     @PostMapping("entity-id-exists")
     public ResponseEntity<Map<String, Boolean>> entityIdExists(@RequestBody ApplicationExists applicationExists) {
         Optional<Application> optionalApplication = applicationRepository.findByInstitution_idAndEntityIdIgnoreCase(
-                applicationExists.getInstitutionId(),applicationExists.getUniqueAttribute());
+                applicationExists.getInstitutionId(), applicationExists.getUniqueAttribute());
         return doesExists(applicationExists, optionalApplication);
     }
 

@@ -1,18 +1,16 @@
 package guests.api;
 
 import guests.AbstractMailTest;
-import guests.AbstractTest;
-import guests.domain.*;
+import guests.domain.Status;
 import io.restassured.http.ContentType;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 
-import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InvitationMailControllerTest extends AbstractMailTest {
 

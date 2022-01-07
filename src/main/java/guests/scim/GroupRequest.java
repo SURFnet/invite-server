@@ -1,8 +1,5 @@
 package guests.scim;
 
-import guests.domain.Role;
-import guests.domain.User;
-import guests.domain.UserRole;
 import lombok.Getter;
 
 import java.io.Serializable;

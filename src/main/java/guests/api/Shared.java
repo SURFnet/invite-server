@@ -1,6 +1,8 @@
 package guests.api;
 
-import guests.domain.*;
+import guests.domain.Authority;
+import guests.domain.ObjectExists;
+import guests.domain.User;
 import guests.exception.UserRestrictionException;
 import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
