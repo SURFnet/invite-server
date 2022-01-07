@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -101,10 +102,16 @@ public class User implements Serializable {
     }
 
     @JsonIgnore
+    public void addAup(Aup aup) {
+        this.aups.add(aup);
+        aup.setUser(this);
+    }
+
+    @JsonIgnore
     public boolean hasChanged(Map<String, Object> tokenAttributes) {
         User user = new User((String) tokenAttributes.get("given_name"),
-        (String) tokenAttributes.get("family_name"),
-        (String) tokenAttributes.get("email"));
+                (String) tokenAttributes.get("family_name"),
+                (String) tokenAttributes.get("email"));
         boolean changed = !this.toScimString().equals(user.toScimString());
         if (changed) {
             this.familyName = user.familyName;
@@ -125,6 +132,14 @@ public class User implements Serializable {
     @JsonIgnore
     public boolean isSuperAdmin() {
         return this.institutionMemberships.stream().anyMatch(membership -> membership.getAuthority().equals(Authority.SUPER_ADMIN));
+    }
+
+    @JsonIgnore
+    public boolean hasAgreedWithAup(Institution institution) {
+        return !StringUtils.hasText(institution.getAupUrl()) || this.aups.stream().anyMatch(aup ->
+                aup.getInstitution().getId().equals(institution.getId()) &&
+                        aup.getVersion().equals(institution.getAupVersion()));
+
     }
 
     private String toScimString() {

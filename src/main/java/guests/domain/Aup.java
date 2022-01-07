@@ -3,6 +3,7 @@ package guests.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.hibernate.LazyInitializationException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -38,11 +39,20 @@ public class Aup implements Serializable {
     @Column
     private String url;
 
-    public Aup(User user, Institution institution) {
-        this.user = user;
+    public Aup(Institution institution) {
         this.institution = institution;
         this.agreedAt = Instant.now();
         this.version = institution.getAupVersion();
         this.url = institution.getAupUrl();
     }
+
+    @JsonProperty(value = "institutionId", access = JsonProperty.Access.READ_ONLY)
+    public Long getInstitutionId() {
+        try {
+            return this.getInstitution().getId();
+        } catch (LazyInitializationException | NullPointerException e) {
+            return null;
+        }
+    }
+
 }

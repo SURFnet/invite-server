@@ -107,10 +107,8 @@ public class InvitationController {
             user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
         }
         checkEmailEquality(user, invitationFromDB);
-        if (StringUtils.hasText(institution.getAupUrl()) && user.getAups().stream().noneMatch(aup ->
-                aup.getInstitution().getId().equals(institution.getId()) &&
-                        aup.getInstitution().getAupVersion().equals(institution.getAupVersion()))) {
-            user.getAups().add(new Aup(user, institution));
+        if (!user.hasAgreedWithAup(institution)) {
+            user.addAup(new Aup(institution));
         }
         /*
          * Chicken & egg problem. The user including his / hers roles must be first known in Scim, and then we

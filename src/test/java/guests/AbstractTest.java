@@ -95,7 +95,7 @@ public abstract class AbstractTest {
 
         User mary = user(utrecht, Authority.INSTITUTION_ADMINISTRATOR, "admin@utrecht.nl", "Mary", "Doe", "admin@utrecht.nl");
         mary.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(90))));
-        mary.getAups().add(new Aup(mary, utrecht));
+        mary.addAup(new Aup(utrecht));
 
         User inviter = user(utrecht, Authority.INVITER, "inviter@utrecht.nl", "inv", "iter", "inviter@utrecht.nl");
         User guest = user(utrecht, Authority.GUEST, "guest@utrecht.nl", "fn", "ln", "guest@utrecht.nl");
