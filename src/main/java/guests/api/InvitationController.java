@@ -142,10 +142,12 @@ public class InvitationController {
         Institution institution = institutionRepository.findById(invitationRequest.getInstitutionId()).orElseThrow(NotFoundException::new);
 
         verifyAuthority(user, institution.getId(), invitationData.getIntendedAuthority());
-        Authority authority = user.authorityByInstitution(institution.getId()).orElseThrow(() -> userRestrictedException(user, institution.getId()));
-        // Inviter can only invite GUESTS
-        if (authority.equals(Authority.INVITER) && !invitationData.getIntendedAuthority().equals(Authority.GUEST)) {
-            throw new UserRestrictionException("Authority mismatch");
+        if (!user.isSuperAdmin()) {
+            Authority authority = user.authorityByInstitution(institution.getId()).orElseThrow(() -> userRestrictedException(user, institution.getId()));
+            // Inviter can only invite GUESTS
+            if (authority.equals(Authority.INVITER) && !invitationData.getIntendedAuthority().equals(Authority.GUEST)) {
+                throw new UserRestrictionException("Authority mismatch");
+            }
         }
 
         List<String> invites = invitationRequest.getInvites();
