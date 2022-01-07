@@ -132,7 +132,7 @@ public class InvitationController {
             List<User> users = userRepository.findByRoles_role_id(role.getId());
             scimService.updateRoleRequest(role, users);
         });
-
+        invitationRepository.delete(invitation);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
