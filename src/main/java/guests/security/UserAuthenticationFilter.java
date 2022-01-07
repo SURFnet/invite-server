@@ -3,6 +3,7 @@ package guests.security;
 import guests.config.SuperAdmin;
 import guests.domain.Authority;
 import guests.domain.Institution;
+import guests.domain.InstitutionMembership;
 import guests.domain.User;
 import guests.repository.InstitutionRepository;
 import guests.repository.UserRepository;
@@ -72,7 +73,8 @@ public class UserAuthenticationFilter extends GenericFilterBean {
         } else {
             Optional<String> optionalEppn = superAdmin.getUsers().stream().filter(eppn -> eppn.equalsIgnoreCase(edupersonPrincipalName)).findAny();
             if (optionalEppn.isPresent()) {
-                User user = new User(this.getOrProvisionInstitution(), Authority.SUPER_ADMIN, tokenAuthentication.getTokenAttributes());
+                Institution institution = this.getOrProvisionInstitution();
+                User user = new User(institution, Authority.SUPER_ADMIN, tokenAuthentication.getTokenAttributes());
                 userRepository.save(user);
                 tokenAuthentication.setDetails(user);
                 filterChain.doFilter(servletRequest, servletResponse);

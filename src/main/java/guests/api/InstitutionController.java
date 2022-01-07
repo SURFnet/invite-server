@@ -66,7 +66,7 @@ public class InstitutionController {
     @PostMapping
     public ResponseEntity<Institution> save(User user, @RequestBody Institution institution) {
         verifySuperUser(user);
-        institution.invariantAupVersion(true);
+        institution.invariantAupVersion();
         return ResponseEntity.status(HttpStatus.CREATED).body(institutionRepository.save(institution));
     }
 
@@ -78,7 +78,7 @@ public class InstitutionController {
             institution.setHomeInstitution(institutionFromDb.getHomeInstitution());
             institution.setEntityId(institutionFromDb.getEntityId());
         }
-        institution.invariantAupVersion(false);
+        institution.invariantAupVersion();
         return ResponseEntity.status(HttpStatus.CREATED).body(institutionRepository.save(institution));
     }
 

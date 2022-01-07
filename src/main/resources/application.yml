@@ -48,7 +48,7 @@ super-admin:
     - "j.doe@example.com"
   institution:
     entity_id: "http://mock-idp"
-    home_institution: "http://mock-sp"
+    home_institution: "mujina.nl"
     displayName: "Mujina"
 
 voot:

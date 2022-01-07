@@ -14,8 +14,19 @@ class InstitutionTest {
         assertNull(institution.getAupVersion());
 
         institution.setAupUrl("https://aup");
-        institution.invariantAupVersion(true);
+        institution.invariantAupVersion();
         institution.incrementAup();
         assertEquals("2", institution.getAupVersion());
+    }
+
+    @Test
+    void invariantAupVersion() {
+        Institution institution = new Institution();
+        institution.invariantAupVersion();
+        assertNull(institution.getAupUrl());
+
+        institution.setAupUrl("https://aup");
+        institution.invariantAupVersion();
+        assertEquals("1", institution.getAupVersion());
     }
 }

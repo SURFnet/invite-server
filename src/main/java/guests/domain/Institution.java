@@ -43,7 +43,7 @@ public class Institution implements Serializable, NameHolder {
     @Embedded
     private Auditable auditable = new Auditable();
 
-    @OneToMany(mappedBy = "institution", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "institution", orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private Set<InstitutionMembership> institutionMemberships = new HashSet<>();
 
@@ -70,8 +70,8 @@ public class Institution implements Serializable, NameHolder {
 
 
     @JsonIgnore
-    public void invariantAupVersion(boolean isNew) {
-        this.aupVersion = StringUtils.hasText(this.aupUrl) ? (isNew ? "1" : this.aupVersion) : null;
+    public void invariantAupVersion() {
+        this.aupVersion = StringUtils.hasText(this.aupUrl) ? (!StringUtils.hasText(this.aupVersion) ? "1" : this.aupVersion) : null;
     }
 
     @JsonIgnore
