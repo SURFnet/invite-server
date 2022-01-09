@@ -9,6 +9,7 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,7 +35,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByInstitution() throws Exception {
+    void allByInstitution() {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<User> users = given()
                 .when()
@@ -48,6 +49,27 @@ class UserControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", User.class);
         assertEquals(3, users.size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void emailsByInstitution() {
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
+        List<Map> res = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/users/emails/{institutionId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", Map.class);
+        assertEquals(1, res.size());
+        assertEquals(3, res.get(0).size());
+        assertEquals("guest@utrecht.nl", res.get(0).get("email"));
+        assertEquals("fn", res.get(0).get("given_name"));
     }
 
     @Test

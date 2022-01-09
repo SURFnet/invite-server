@@ -50,6 +50,12 @@ public class UserController {
         return ResponseEntity.ok(userRepository.findByInstitutionMemberships_Institution_id(institutionId));
     }
 
+    @GetMapping("/emails/{institutionId}")
+    public ResponseEntity<List<Map<String, String>>> emailsByInstitution(User user, @PathVariable("institutionId") Long institutionId) {
+        verifyUser(user, institutionId);
+        return ResponseEntity.ok(userRepository.findEmailAndNameByInstitution_id(institutionId));
+    }
+
     @GetMapping("/application/{applicationId}")
     public ResponseEntity<List<User>> getByApplication(User user, @PathVariable("applicationId") Long applicationId) {
         Application application = applicationRepository.findById(applicationId).orElseThrow(NotFoundException::new);
