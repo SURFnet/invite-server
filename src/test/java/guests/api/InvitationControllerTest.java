@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
@@ -248,15 +249,19 @@ class InvitationControllerTest extends AbstractTest {
     void put() {
         Role role = roleRepository.findAll().get(0);
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        Instant after90days = Instant.now().plus(90, ChronoUnit.DAYS);
         Invitation invitation = new Invitation(Authority.GUEST,
                 "Please accept",
                 "guest@example.com",
                 true,
-                Collections.singleton(new InvitationRole(role)));
+                Collections.singleton(new InvitationRole(role, after90days)));
         invitation.setExpiryDate(Instant.now());
         Institution institution = getInstitution(user);
         invitation.setInstitution(institution);
-        InvitationRequest invitationRequest = new InvitationRequest(invitation, Arrays.asList("guest@example.com", "admin@example.com"), institution.getId());
+        InvitationRequest invitationRequest = new InvitationRequest(
+                invitation,
+                Arrays.asList("guest@example.com", "admin@example.com"),
+                institution.getId());
 
         given()
                 .when()
@@ -267,7 +272,17 @@ class InvitationControllerTest extends AbstractTest {
                 .put("/guests/api/invitations")
                 .then()
                 .statusCode(201);
-        assertEquals(4, invitationRepository.count());
+
+        List<Invitation> invitationList = invitationRepository.findAll();
+        assertEquals(4, invitationList.size());
+
+        InvitationRole invitationRole = invitationList.stream()
+                .filter(inv -> inv.getEmail().equals("admin@example.com"))
+                .findFirst()
+                .get().getRoles()
+                .iterator().next();
+        assertEquals(after90days.toString().substring(0, 10),
+                invitationRole.getEndDate().toString().substring(0, 10));
     }
 
     @Test

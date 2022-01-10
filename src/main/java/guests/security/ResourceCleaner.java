@@ -1,8 +1,11 @@
 package guests.security;
 
 
+import guests.domain.Role;
 import guests.domain.User;
+import guests.domain.UserRole;
 import guests.repository.UserRepository;
+import guests.repository.UserRoleRepository;
 import guests.scim.SCIMService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.Period;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -26,13 +31,16 @@ public class ResourceCleaner {
     private final boolean cronJobResponsible;
     private final int lastActivityDurationDays;
     private final SCIMService scimService;
+    private final UserRoleRepository userRoleRepository;
 
     @Autowired
     public ResourceCleaner(UserRepository userRepository,
+                           UserRoleRepository userRoleRepository,
                            SCIMService scimService,
                            @Value("${cron.last-activity-duration-days}") int lastActivityDurationDays,
                            @Value("${cron.node-cron-job-responsible}") boolean cronJobResponsible) {
         this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
         this.lastActivityDurationDays = lastActivityDurationDays;
         this.cronJobResponsible = cronJobResponsible;
         this.scimService = scimService;
@@ -44,13 +52,51 @@ public class ResourceCleaner {
         if (!cronJobResponsible) {
             return;
         }
+        cleanUsers();
+        cleanUserRoles();
+    }
+
+    private void cleanUsers() {
         Instant past = Instant.now().minus(Period.ofDays(lastActivityDurationDays));
         List<User> users = userRepository.findByLastActivityBefore(past);
         users.forEach(scimService::deleteUserRequest);
         userRepository.deleteAll(users);
+
         LOG.info(String.format("Deleted %s users with no activity in the last %s days: %s ",
                 users.size(),
                 lastActivityDurationDays,
                 users.stream().map(User::getEduPersonPrincipalName).collect(Collectors.toList())));
+
+        users.forEach(user -> {
+            this.updateScimGroups(user.getRoles());
+        });
     }
+
+    private void cleanUserRoles() {
+        List<UserRole> userRoles = userRoleRepository.findByEndDateBefore(Instant.now());
+
+        LOG.info(String.format("Deleted %s userRoles with an endDate in the past: %s",
+                userRoles.size(),
+                userRoles.stream()
+                        .map(userRole -> String.format("%s - %s", userRole.getUser().getEduPersonPrincipalName(), userRole.getRole().getName()))
+                        .collect(Collectors.toList())));
+        userRoles.forEach(userRole -> {
+            User user = userRole.getUser();
+            Set<UserRole> newRoles = user.getRoles().stream().filter(ur -> !ur.getId().equals(userRole.getId())).collect(Collectors.toSet());
+            user.getRoles().clear();
+            user.getRoles().addAll(newRoles);
+            userRepository.save(user);
+        });
+
+        updateScimGroups(userRoles);
+    }
+
+    private void updateScimGroups(Collection<UserRole> userRoles) {
+        userRoles.forEach(userRole -> {
+            Role role = userRole.getRole();
+            List<User> usersWithRole = userRepository.findByRoles_role_id(role.getId());
+            scimService.updateRoleRequest(role, usersWithRole);
+        });
+    }
+
 }

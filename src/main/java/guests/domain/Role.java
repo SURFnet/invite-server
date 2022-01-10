@@ -41,6 +41,9 @@ public class Role implements Serializable, NameHolder, ServiceProviderIdentifier
     @Column(name = "instant_available")
     private boolean instantAvailable;
 
+    @Column(name = "default_expiry_days")
+    private Integer defaultExpiryDays;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

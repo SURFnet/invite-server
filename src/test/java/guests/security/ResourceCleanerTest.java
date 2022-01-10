@@ -16,28 +16,42 @@ class ResourceCleanerTest extends AbstractTest {
     private ResourceCleaner subject;
 
     @Test
-    void clean() {
-        long before = userRepository.count();
+    void cleanUsers() {
+        long beforeUsers = userRepository.count();
         markUser();
         stubForDeleteUser();
-
+        stubForUpdateGroup();
         subject.clean();
-        assertEquals(before, userRepository.count() + 1);
+        assertEquals(beforeUsers, userRepository.count() + 1);
+    }
 
+    @Test
+    void cleanUserRoles() {
+        long beforeUserRoles = userRoleRepository.count();
+        markUserRole();
+        stubForUpdateGroup();
         subject.clean();
-        assertEquals(before, userRepository.count() + 1);
+        assertEquals(beforeUserRoles, userRoleRepository.count() + 1);
     }
 
     @Test
     void notCronJobResponsible() {
-        ResourceCleaner resourceCleaner = new ResourceCleaner(null, null, 1, false);
+        ResourceCleaner resourceCleaner = new ResourceCleaner(null, null, null, 1, false);
         resourceCleaner.clean();
     }
 
     private void markUser() {
-        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").get();
         Instant past = Instant.now().minus(Period.ofDays(1050));
         user.setLastActivity(past);
+        user.getRoles().forEach(userRole -> userRole.setEndDate(past));
+        userRepository.save(user);
+    }
+
+    private void markUserRole() {
+        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        Instant past = Instant.now().minus(Period.ofDays(1050));
+        user.getRoles().forEach(userRole -> userRole.setEndDate(past));
         userRepository.save(user);
     }
 

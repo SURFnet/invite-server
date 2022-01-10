@@ -1,0 +1,1 @@
+ALTER TABLE `roles` ADD `default_expiry_days` int DEFAULT NULL;

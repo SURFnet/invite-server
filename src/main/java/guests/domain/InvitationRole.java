@@ -37,4 +37,8 @@ public class InvitationRole implements Serializable {
         this.role = role;
     }
 
+    public InvitationRole(Role role, Instant endDate) {
+        this.role = role;
+        this.endDate = endDate;
+    }
 }

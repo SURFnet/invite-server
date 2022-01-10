@@ -53,6 +53,9 @@ public abstract class AbstractTest {
     protected UserRepository userRepository;
 
     @Autowired
+    protected UserRoleRepository userRoleRepository;
+
+    @Autowired
     protected InvitationRepository invitationRepository;
 
     @Autowired
