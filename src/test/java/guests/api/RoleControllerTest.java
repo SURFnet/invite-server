@@ -149,6 +149,18 @@ class RoleControllerTest extends AbstractTest {
     }
 
     @Test
+    void deleteRoleNotAllowed() {
+        Role role = roleRepository.findAll().get(0);
+        given()
+                .when()
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("id", role.getId())
+                .delete("/guests/api/roles/{id}")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void existingRoleNotExists() throws Exception {
         Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();

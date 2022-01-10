@@ -37,6 +37,19 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void applicationByIdNotAllowed() {
+        Long id = applicationRepository.findByEntityIdIgnoreCase("blackboard").get().getId();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .get("/guests/api/applications/{id}", id)
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void applicationsInvalidToken() {
         given()
                 .when()
@@ -98,6 +111,31 @@ class ApplicationControllerTest extends AbstractTest {
                 .statusCode(201);
         Optional<Application> optionalApplication = applicationRepository.findByEntityIdIgnoreCase("canvas");
         assertEquals(false, optionalApplication.isPresent());
+    }
+
+    @Test
+    void deleteApplicationNotAllowed() {
+        //Institution admin of other institution
+        Application application = applicationRepository.findByEntityIdIgnoreCase("blackboard").get();
+        given()
+                .when()
+                .auth().oauth2(opaqueAccessToken("mary@utrecht.nl", "introspect.json"))
+                .pathParam("id", application.getId())
+                .delete("/guests/api/applications/{id}")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    void deleteApplicationNotAllowedByInviter() {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
+        given()
+                .when()
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("id", application.getId())
+                .delete("/guests/api/applications/{id}")
+                .then()
+                .statusCode(403);
     }
 
     @Test
