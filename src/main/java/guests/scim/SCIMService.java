@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import guests.domain.*;
 import guests.exception.NotFoundException;
 import guests.mail.MailBox;
+import guests.repository.SCIMFailureRepository;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -16,6 +19,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -26,10 +30,16 @@ import java.util.stream.Collectors;
 @Service
 public class SCIMService {
 
+    private static final Log LOG = LogFactory.getLog(SCIMService.class);
+
     private final ParameterizedTypeReference<Map<String, Object>> mapParameterizedTypeReference = new ParameterizedTypeReference<>() {
     };
 
+    private final ParameterizedTypeReference<Void> voidParameterizedTypeReference = new ParameterizedTypeReference<>() {
+    };
+
     private final RestTemplate restTemplate = new RestTemplate();
+    private final SCIMFailureRepository scimFailureRepository;
     private final ObjectMapper objectMapper;
     private final MailBox mailBox;
     private final String groupUrnPrefix;
@@ -37,7 +47,8 @@ public class SCIMService {
     private final String groupAPI = "groups";
 
     @Autowired
-    public SCIMService(ObjectMapper objectMapper, MailBox mailBox, @Value("${voot.group_urn_domain}") String groupUrnDomain) {
+    public SCIMService(SCIMFailureRepository scimFailureRepository, ObjectMapper objectMapper, MailBox mailBox, @Value("${voot.group_urn_domain}") String groupUrnDomain) {
+        this.scimFailureRepository = scimFailureRepository;
         this.objectMapper = objectMapper;
         this.mailBox = mailBox;
         this.groupUrnPrefix = String.format("urn:collab:group:%s", groupUrnDomain);
@@ -86,7 +97,7 @@ public class SCIMService {
     public void updateRoleRequest(Role role, List<User> users) {
         if (role.getApplication().provisioningEnabled()) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            List<Member> members = users.stream().map(user -> new Member(this.serviceProviderId(user, role))).collect(Collectors.toList());
+            List<Member> members = users.stream().map(user -> new Member(this.serviceProviderId(user, role, externalId))).collect(Collectors.toList());
             String groupRequest = prettyJson(new GroupRequest(externalId, role.getDisplayName(), members));
             this.updateRequest(role.getApplication(), groupRequest, groupAPI, role);
         }
@@ -107,9 +118,11 @@ public class SCIMService {
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.empty());
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.POST, uri);
-            Map<String, Object> results = restTemplate.exchange(requestEntity, mapParameterizedTypeReference).getBody();
-            String id = (String) results.get("id");
-            serviceProviderIdentifier.setServiceProviderId(id);
+            Optional<Map<String, Object>> results = doExchange(requestEntity, mapParameterizedTypeReference, application);
+            results.ifPresent(map -> {
+                String id = (String) map.get("id");
+                serviceProviderIdentifier.setServiceProviderId(id);
+            });
         }
     }
 
@@ -120,7 +133,7 @@ public class SCIMService {
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.PATCH, uri);
-            restTemplate.exchange(requestEntity, mapParameterizedTypeReference);
+            doExchange(requestEntity, mapParameterizedTypeReference, application);
         }
     }
 
@@ -133,16 +146,32 @@ public class SCIMService {
             HttpHeaders headers = new HttpHeaders();
             headers.setBasicAuth(application.getProvisioningHookUsername(), application.getProvisioningHookPassword());
             RequestEntity<Void> requestEntity = new RequestEntity<>(headers, HttpMethod.DELETE, uri);
-            restTemplate.exchange(requestEntity, Void.class);
+            doExchange(requestEntity, voidParameterizedTypeReference, application);
         }
     }
 
+    private <T, S> Optional<T> doExchange(RequestEntity<S> requestEntity,
+                                          ParameterizedTypeReference<T> typeReference,
+                                          Application application) {
+        try {
+            return Optional.ofNullable(restTemplate.exchange(requestEntity, typeReference).getBody());
+        } catch (RestClientException e) {
+            LOG.error("Exception in SCIM exchange", e);
+            S body = requestEntity.getBody();
+            String message = body instanceof String ? (String) body : null;
+            SCIMFailure scimFailure = new SCIMFailure(message, requestEntity.getMethod().toString(), requestEntity.getUrl().toString(), application);
+            scimFailureRepository.save(scimFailure);
+            return Optional.empty();
+        }
+    }
 
-    private String serviceProviderId(User user, Role role) {
+    private String serviceProviderId(User user, Role role, String externalId) {
         UserRole userRole = user.getRoles().stream()
                 .filter(r -> r.getRole().getId().equals(role.getId()))
                 .findFirst().orElseThrow(NotFoundException::new);
-        return userRole.getServiceProviderId();
+        String serviceProviderId = userRole.getServiceProviderId();
+        //When email provisioning is used, we don't have an serviceProviderId
+        return StringUtils.hasText(serviceProviderId) ? serviceProviderId : externalId;
     }
 
     private boolean hasEmailHook(Application application) {

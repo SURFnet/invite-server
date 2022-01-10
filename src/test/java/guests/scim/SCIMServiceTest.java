@@ -2,10 +2,7 @@ package guests.scim;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.AbstractMailTest;
-import guests.domain.Application;
-import guests.domain.Role;
-import guests.domain.User;
-import guests.domain.UserRole;
+import guests.domain.*;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Instant;
 import java.time.Period;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class SCIMServiceTest extends AbstractMailTest {
 
@@ -118,13 +115,92 @@ class SCIMServiceTest extends AbstractMailTest {
         scimService.deleteRolesRequest(new Role("name", new Application()));
     }
 
+    @Test
+    void newUserRequestFailure() {
+        User user = seedUser();
+
+        scimService.newUserRequest(user);
+        assertSCIMFailure("http://localhost:8081/scim/v1/users");
+    }
+
+    @Test
+    void deleteUserRequestFailure() {
+        User user = seedUser();
+        String serviceProviderId = UUID.randomUUID().toString();
+        UserRole userRole = user.getRoles().iterator().next();
+        userRole.setServiceProviderId(serviceProviderId);
+
+        scimService.deleteUserRequest(user);
+        assertSCIMFailure("http://localhost:8081/scim/v1/users/" + serviceProviderId);
+    }
+
+    @Test
+    void updateUserRequestFailure() {
+        User user = seedUser();
+        String serviceProviderId = UUID.randomUUID().toString();
+        UserRole userRole = user.getRoles().iterator().next();
+        userRole.setServiceProviderId(serviceProviderId);
+
+        scimService.updateUserRequest(user);
+        assertSCIMFailure("http://localhost:8081/scim/v1/users/" + serviceProviderId);
+    }
+
+    @Test
+    void createRoleRequestFailure() {
+        User user = seedUser();
+        Role role = user.getRoles().iterator().next().getRole();
+
+        scimService.newRoleRequest(role);
+        assertSCIMFailure("http://localhost:8081/scim/v1/groups");
+    }
+
+    @Test
+    void updateRoleRequestFailure() {
+        User user = seedUser();
+        String serviceProviderId = UUID.randomUUID().toString();
+        UserRole userRole = user.getRoles().iterator().next();
+        userRole.setServiceProviderId(serviceProviderId);
+
+        Role role = userRole.getRole();
+        role.setServiceProviderId(serviceProviderId);
+        role.setId(1L);
+
+        scimService.updateRoleRequest(role, Collections.singletonList(user));
+        assertSCIMFailure("http://localhost:8081/scim/v1/groups/" + serviceProviderId);
+    }
+
+    @Test
+    void deleteRoleRequestFailure() {
+        User user = seedUser();
+        String serviceProviderId = UUID.randomUUID().toString();
+        Role role = user.getRoles().iterator().next().getRole();
+        role.setId(1L);
+        role.setServiceProviderId(serviceProviderId);
+
+        scimService.deleteRolesRequest(role);
+        assertSCIMFailure("http://localhost:8081/scim/v1/groups/" + serviceProviderId);
+    }
+
+    private void assertSCIMFailure(String uri) {
+        List<SCIMFailure> failures = scimFailureRepository.findAll();
+        assertEquals(1, failures.size());
+
+        SCIMFailure scimFailure = failures.get(0);
+        assertEquals(uri, scimFailure.getUri());
+        assertNotNull(scimFailure.getCreatedAt());
+    }
+
     private User seedUser() {
         User user = user();
-        Application application = this.application(getInstitution(user), "https://entity");
+        Institution institution = getInstitution(user);
+        institutionRepository.save(institution);
+
+        Application application = this.application(institution, "https://entity");
         String provisioningUri = "http://localhost:8081";
         application.setProvisioningHookUrl(provisioningUri);
         application.setProvisioningHookUsername("user");
-        application.setId(1L);
+        application = applicationRepository.save(application);
+
         Role role = new Role("administrator", application);
         user.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(365))));
         return user;

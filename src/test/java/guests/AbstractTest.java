@@ -20,7 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.persistence.EntityManager;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.Period;
@@ -62,7 +61,7 @@ public abstract class AbstractTest {
     protected RoleRepository roleRepository;
 
     @Autowired
-    protected EntityManager entityManager;
+    protected SCIMFailureRepository scimFailureRepository;
 
     @RegisterExtension
     WireMockExtension mockServer = new WireMockExtension(8081);
@@ -146,6 +145,9 @@ public abstract class AbstractTest {
     protected User user() {
         Institution institution = new Institution();
         institution.setDisplayName("University");
+        UUID uuid = UUID.randomUUID();
+        institution.setEntityId("https://entity/" + uuid);
+        institution.setHomeInstitution("university_" + uuid);
         return user(institution, Authority.SUPER_ADMIN, "eppn@example.com", "John", "Doe", "jdoe@example.com");
     }
 

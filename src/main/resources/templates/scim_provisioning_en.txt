@@ -1,2 +1,1 @@
     {{userRequest}}
-    {{> footer_en.txt}}
