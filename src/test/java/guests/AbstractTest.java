@@ -91,10 +91,13 @@ public abstract class AbstractTest {
         applicationRepository.saveAll(applications);
 
         Role role = new Role("administrator", applications.get(0));
+        role.setServiceProviderId(UUID.randomUUID().toString());
         role = roleRepository.save(role);
 
         User mary = user(utrecht, Authority.INSTITUTION_ADMINISTRATOR, "admin@utrecht.nl", "Mary", "Doe", "admin@utrecht.nl");
-        mary.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(90))));
+        UserRole userRole = new UserRole(role, Instant.now().plus(Period.ofDays(90)));
+        userRole.setServiceProviderId(UUID.randomUUID().toString());
+        mary.addUserRole(userRole);
         mary.addAup(new Aup(utrecht));
 
         User inviter = user(utrecht, Authority.INVITER, "inviter@utrecht.nl", "inv", "iter", "inviter@utrecht.nl");

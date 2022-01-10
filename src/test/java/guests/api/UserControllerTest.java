@@ -74,7 +74,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByApplication() throws Exception {
+    void allByApplication() {
         Application application = applicationRepository.findByEntityIdIgnoreCase("CANVAS").get();
         List<User> users = given()
                 .when()
@@ -92,7 +92,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByInstitutionNotAllowed() throws Exception {
+    void allByInstitutionNotAllowed() {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://uva").get();
         given()
                 .when()
@@ -105,20 +105,22 @@ class UserControllerTest extends AbstractTest {
     }
 
     @Test
-    void delete() throws Exception {
+    void delete() {
+        super.stubForDeleteUser();
+        super.stubForUpdateGroup();
         given()
                 .when()
                 .accept(ContentType.JSON)
-                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .delete("/guests/api/users")
                 .then()
                 .statusCode(201);
-        assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("j.doe@example.com").isPresent());
+        assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").isPresent());
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void getWithRoles() throws Exception {
+    void getWithRoles() {
         User user = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -165,8 +167,10 @@ class UserControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteOther() throws Exception {
-        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
+    void deleteOther() {
+        super.stubForDeleteUser();
+        super.stubForUpdateGroup();
+        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -175,7 +179,7 @@ class UserControllerTest extends AbstractTest {
                 .delete("/guests/api/users/{userId}")
                 .then()
                 .statusCode(201);
-        assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").isPresent());
+        assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").isPresent());
     }
 
 

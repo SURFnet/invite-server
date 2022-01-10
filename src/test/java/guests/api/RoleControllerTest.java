@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class RoleControllerTest extends AbstractTest {
 
     @Test
-    void rolesByInstitution() throws Exception {
+    void rolesByInstitution() {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Map> results = given()
                 .when()
@@ -36,7 +36,7 @@ class RoleControllerTest extends AbstractTest {
     }
 
     @Test
-    void rolesByApplication() throws Exception {
+    void rolesByApplication() {
         Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
         List<Role> results = given()
                 .when()
@@ -209,5 +209,20 @@ class RoleControllerTest extends AbstractTest {
                 .get("/guests/api/roles/{id}")
                 .then()
                 .body("name", IsEqual.equalTo(role.getName()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getRoleNotAllowed() {
+        Role role = roleRepository.findAll().get(0);
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
+                .pathParam("id", role.getId())
+                .get("/guests/api/roles/{id}")
+                .then()
+                .statusCode(403);
     }
 }
