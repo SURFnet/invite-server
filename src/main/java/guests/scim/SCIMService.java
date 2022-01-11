@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -106,7 +107,14 @@ public class SCIMService {
     public void updateRoleRequest(Role role, List<User> users) {
         if (role.getApplication().provisioningEnabled()) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            List<Member> members = users.stream().map(user -> new Member(this.serviceProviderId(user, role, externalId))).collect(Collectors.toList());
+            boolean hasHookUrl = StringUtils.hasText(role.getApplication().getProvisioningHookUrl());
+            List<Member> members = users.stream()
+                    .map(user -> this.serviceProviderId(user, role, externalId))
+                    .filter(member -> !hasHookUrl || member.isFromExternalServiceProvider())
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(members)) {
+                return;
+            }
             String groupRequest = prettyJson(new GroupRequest(externalId, role.getDisplayName(), members));
             this.updateRequest(role.getApplication(), groupRequest, groupAPI, role);
         }
@@ -192,9 +200,8 @@ public class SCIMService {
         } catch (RestClientException e) {
             LOG.error("Exception in SCIM exchange", e);
             S body = requestEntity.getBody();
-            String message = body instanceof String ? (String) body : null;
             SCIMFailure scimFailure = new SCIMFailure(
-                    message,
+                    (String) body,
                     api,
                     requestEntity.getMethod().toString(),
                     requestEntity.getUrl().toString(),
@@ -205,13 +212,14 @@ public class SCIMService {
         }
     }
 
-    private String serviceProviderId(User user, Role role, String externalId) {
+    private Member serviceProviderId(User user, Role role, String externalId) {
         UserRole userRole = user.getRoles().stream()
                 .filter(r -> r.getRole().getId().equals(role.getId()))
                 .findFirst().orElseThrow(NotFoundException::new);
         String serviceProviderId = userRole.getServiceProviderId();
         //When email provisioning is used, we don't have an serviceProviderId
-        return StringUtils.hasText(serviceProviderId) ? serviceProviderId : externalId;
+        boolean fromExternalServiceProvider = StringUtils.hasText(serviceProviderId);
+        return new Member(fromExternalServiceProvider ? serviceProviderId : externalId, fromExternalServiceProvider);
     }
 
     private boolean hasEmailHook(Application application) {

@@ -170,37 +170,54 @@ public abstract class AbstractTest {
                         .withStatus(201)));
     }
 
-    protected void stubForDeleteGroup() {
+    protected void stubForDeleteRole() {
         stubFor(delete(urlPathMatching("/scim/v1/groups/(.*)"))
                 .willReturn(aResponse()
                         .withStatus(201)));
     }
 
     @SneakyThrows
-    protected void stubForCreateGroup() {
-        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", UUID.randomUUID().toString()));
+    protected String stubForCreateRole() {
+        String value = UUID.randomUUID().toString();
+        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
         stubFor(post(urlPathMatching(String.format("/scim/v1/groups")))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(body)));
+        return value;
     }
 
     @SneakyThrows
-    protected void stubForCreateUser() {
-        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", UUID.randomUUID().toString()));
+    protected String stubForCreateUser() {
+        String value = UUID.randomUUID().toString();
+        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
         stubFor(post(urlPathMatching(String.format("/scim/v1/users")))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(body)));
+        return value;
     }
 
     @SneakyThrows
-    protected void stubForUpdateGroup() {
-        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", UUID.randomUUID().toString()));
+    protected String stubForUpdateRole() {
+        String value = UUID.randomUUID().toString();
+        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
         stubFor(patch(urlPathMatching(String.format("/scim/v1/groups/(.*)")))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(body)));
+        return value;
+    }
+
+    @SneakyThrows
+    protected String stubForUpdateUser() {
+        String value = UUID.randomUUID().toString();
+        String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
+        stubFor(patch(urlPathMatching(String.format("/scim/v1/users/(.*)")))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(body)));
+        return value;
     }
 
     protected Institution getInstitution(User user) {

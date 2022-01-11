@@ -20,7 +20,7 @@ class ResourceCleanerTest extends AbstractTest {
         long beforeUsers = userRepository.count();
         markUser();
         stubForDeleteUser();
-        stubForUpdateGroup();
+        stubForUpdateRole();
         subject.clean();
         assertEquals(beforeUsers, userRepository.count() + 1);
     }
@@ -29,7 +29,7 @@ class ResourceCleanerTest extends AbstractTest {
     void cleanUserRoles() {
         long beforeUserRoles = userRoleRepository.count();
         markUserRole();
-        stubForUpdateGroup();
+        stubForUpdateRole();
         subject.clean();
         assertEquals(beforeUserRoles, userRoleRepository.count() + 1);
     }

@@ -106,7 +106,7 @@ class UserControllerTest extends AbstractTest {
     @Test
     void delete() {
         super.stubForDeleteUser();
-        super.stubForUpdateGroup();
+        super.stubForUpdateRole();
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -211,7 +211,7 @@ class UserControllerTest extends AbstractTest {
     @Test
     void deleteOther() {
         super.stubForDeleteUser();
-        super.stubForUpdateGroup();
+        super.stubForUpdateRole();
         User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
         given()
                 .when()

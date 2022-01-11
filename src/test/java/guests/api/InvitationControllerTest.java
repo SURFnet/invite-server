@@ -3,7 +3,6 @@ package guests.api;
 import guests.AbstractTest;
 import guests.domain.*;
 import io.restassured.http.ContentType;
-import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -137,7 +136,7 @@ class InvitationControllerTest extends AbstractTest {
         invitation.put("status", Status.ACCEPTED);
 
         this.stubForCreateUser();
-        this.stubForUpdateGroup();
+        this.stubForUpdateRole();
 
         User user = given()
                 .when()
@@ -181,7 +180,7 @@ class InvitationControllerTest extends AbstractTest {
         userFromDB.setRoles(new HashSet<>());
         userRepository.save(userFromDB);
 
-        this.stubForUpdateGroup();
+        this.stubForUpdateRole();
 
         User user = given()
                 .when()

@@ -1,6 +1,5 @@
 package guests.scim;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.AbstractMailTest;
 import guests.domain.*;
 import org.apache.commons.mail.util.MimeMessageParser;
@@ -11,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SCIMServiceTest extends AbstractMailTest {
@@ -20,15 +18,13 @@ class SCIMServiceTest extends AbstractMailTest {
     private SCIMService scimService;
 
     @Test
-    void newUserRequest() throws JsonProcessingException {
-        String serviceProviderId = UUID.randomUUID().toString();
-        stubFor(post(urlPathMatching("/scim/v1/users")).willReturn(aResponse()
-                .withHeader("Content-Type", "application/json")
-                .withBody(objectMapper.writeValueAsString(Collections.singletonMap("id", serviceProviderId)))));
+    void newUserRequest() {
+        String serviceProviderId = stubForCreateUser();
         User user = seedUser();
         scimService.newUserRequest(user);
 
         assertEquals(serviceProviderId, user.getRoles().iterator().next().getServiceProviderId());
+        assertNoSCIMFailures();
     }
 
     @Test
@@ -43,17 +39,14 @@ class SCIMServiceTest extends AbstractMailTest {
     }
 
     @Test
-    void updateUserRequest() throws JsonProcessingException {
+    void updateUserRequest() {
         User user = seedUser();
-        String serviceProviderId = UUID.randomUUID().toString();
+        String serviceProviderId = stubForUpdateUser();
         UserRole userRole = user.getRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
-        stubFor(patch(urlPathMatching(String.format("/scim/v1/users/%s", serviceProviderId)))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(objectMapper.writeValueAsString(Collections.singletonMap("id", serviceProviderId)))));
 
         scimService.updateUserRequest(user);
+        assertNoSCIMFailures();
     }
 
     @Test
@@ -81,6 +74,7 @@ class SCIMServiceTest extends AbstractMailTest {
         stubForDeleteUser();
 
         scimService.deleteUserRequest(user);
+        assertNoSCIMFailures();
     }
 
     @Test
@@ -101,16 +95,46 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void newRoleRequestNoProvisioning() {
         scimService.newRoleRequest(new Role("name", new Application()));
+        assertNoSCIMFailures();
+    }
+
+
+    @Test
+    void updateRoleRequestWithNoServiceProviderId() {
+        User user = seedUser();
+        UserRole userRole = user.getRoles().iterator().next();
+        Role role = userRole.getRole();
+        role.setId(1L);
+
+        scimService.updateRoleRequest(role, Collections.singletonList(user));
+        assertNoSCIMFailures();
+
+    }
+
+    @Test
+    void updateRoleRequest() {
+        User user = seedUser();
+        UserRole userRole = user.getRoles().iterator().next();
+        String serviceProviderId = stubForUpdateRole();
+        userRole.setServiceProviderId(serviceProviderId);
+        Role role = userRole.getRole();
+        role.setId(1L);
+
+        scimService.updateRoleRequest(role, Collections.singletonList(user));
+        assertNoSCIMFailures();
+
     }
 
     @Test
     void updateRoleRequestNoProvisioning() {
         scimService.updateRoleRequest(new Role("name", new Application()), Collections.emptyList());
+        assertNoSCIMFailures();
     }
 
     @Test
     void deleteRolesRequestNoProvisioning() {
         scimService.deleteRolesRequest(new Role("name", new Application()));
+        assertNoSCIMFailures();
     }
 
     @Test
@@ -177,6 +201,10 @@ class SCIMServiceTest extends AbstractMailTest {
 
         scimService.deleteRolesRequest(role);
         assertSCIMFailure("http://localhost:8081/scim/v1/groups/" + serviceProviderId);
+    }
+
+    private void assertNoSCIMFailures() {
+        assertEquals(0, scimFailureRepository.count());
     }
 
     private void assertSCIMFailure(String uri) {

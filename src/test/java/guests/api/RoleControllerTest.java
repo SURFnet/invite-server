@@ -60,7 +60,7 @@ class RoleControllerTest extends AbstractTest {
         Map<String, Object> roleMap = convertObjectToMap(role);
         roleMap.put("application", Collections.singletonMap("id", application.getId()));
 
-        this.stubForCreateGroup();
+        this.stubForCreateRole();
 
         Role newRole = given()
                 .when()
@@ -135,7 +135,7 @@ class RoleControllerTest extends AbstractTest {
     void deleteRole() {
         Role role = roleRepository.findAll().get(0);
 
-        this.stubForDeleteGroup();
+        this.stubForDeleteRole();
 
         given()
                 .when()
