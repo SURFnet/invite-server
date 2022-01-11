@@ -207,4 +207,21 @@ public abstract class AbstractTest {
         return user.getInstitutionMemberships().iterator().next().getInstitution();
     }
 
+    protected User seedUser() {
+        User user = user();
+        Institution institution = getInstitution(user);
+        institutionRepository.save(institution);
+
+        Application application = this.application(institution, "https://entity");
+        String provisioningUri = "http://localhost:8081";
+        application.setProvisioningHookUrl(provisioningUri);
+        application.setProvisioningHookUsername("user");
+        application = applicationRepository.save(application);
+
+        Role role = new Role("administrator", application);
+        user.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(365))));
+        return user;
+    }
+
+
 }

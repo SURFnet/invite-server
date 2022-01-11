@@ -1,8 +1,11 @@
 package guests.scim;
 
+import guests.domain.ServiceProviderIdentifier;
 import guests.domain.User;
 import guests.domain.UserRole;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -27,8 +30,8 @@ public class UserRequest implements Serializable {
         this.emails = Collections.singletonList(new Email(user.getEmail()));
     }
 
-    public UserRequest(User user, UserRole userRole) {
+    public UserRequest(User user, ServiceProviderIdentifier serviceProviderIdentifier) {
         this(user);
-        this.id = userRole.getServiceProviderId();
+        this.id = serviceProviderIdentifier.getServiceProviderId();
     }
 }

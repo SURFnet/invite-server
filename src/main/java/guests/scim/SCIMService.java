@@ -1,10 +1,13 @@
 package guests.scim;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guests.domain.*;
 import guests.exception.NotFoundException;
 import guests.mail.MailBox;
 import guests.repository.SCIMFailureRepository;
+import guests.repository.UserRepository;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import org.apache.commons.logging.Log;
@@ -35,11 +38,12 @@ public class SCIMService {
     private final ParameterizedTypeReference<Map<String, Object>> mapParameterizedTypeReference = new ParameterizedTypeReference<>() {
     };
 
-    private final ParameterizedTypeReference<Void> voidParameterizedTypeReference = new ParameterizedTypeReference<>() {
+    private final ParameterizedTypeReference<String> stringParameterizedTypeReference = new ParameterizedTypeReference<>() {
     };
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final SCIMFailureRepository scimFailureRepository;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final MailBox mailBox;
     private final String groupUrnPrefix;
@@ -47,8 +51,13 @@ public class SCIMService {
     private final String groupAPI = "groups";
 
     @Autowired
-    public SCIMService(SCIMFailureRepository scimFailureRepository, ObjectMapper objectMapper, MailBox mailBox, @Value("${voot.group_urn_domain}") String groupUrnDomain) {
+    public SCIMService(SCIMFailureRepository scimFailureRepository,
+                       UserRepository userRepository,
+                       ObjectMapper objectMapper,
+                       MailBox mailBox,
+                       @Value("${voot.group_urn_domain}") String groupUrnDomain) {
         this.scimFailureRepository = scimFailureRepository;
+        this.userRepository = userRepository;
         this.objectMapper = objectMapper;
         this.mailBox = mailBox;
         this.groupUrnPrefix = String.format("urn:collab:group:%s", groupUrnDomain);
@@ -111,6 +120,29 @@ public class SCIMService {
         }
     }
 
+    public void resendScimFailure(SCIMFailure scimFailure) throws JsonProcessingException {
+        Map<String, Object> request = StringUtils.hasText(scimFailure.getMessage()) ? objectMapper.readValue(scimFailure.getMessage(), new TypeReference<>() {
+        }) : Collections.emptyMap();
+
+        if (userAPI.equals(scimFailure.getApi())) {
+            switch (HttpMethod.valueOf(scimFailure.getHttpMethod())) {
+                case POST -> {
+                    String externalId = (String) request.get("externalId");
+                    User user = userRepository.findByEduPersonPrincipalNameIgnoreCase(externalId).orElseThrow(NotFoundException::new);
+                    this.newUserRequest(user);
+                }
+                case DELETE -> {
+                    this.deleteRequest(scimFailure.getApplication(), scimFailure.getMessage(), userAPI, new ServiceProviderIdentifierReference(scimFailure.getServiceProviderId()));
+                }
+                case PATCH -> {
+                    String externalId = (String) request.get("externalId");
+                    User user = userRepository.findByEduPersonPrincipalNameIgnoreCase(externalId).orElseThrow(NotFoundException::new);
+                    this.updateUserRequest(user);
+                }
+            }
+        }
+    }
+
     @SneakyThrows
     private void newRequest(Application application, String request, String apiType, ServiceProviderIdentifier serviceProviderIdentifier) {
         if (hasEmailHook(application)) {
@@ -118,7 +150,7 @@ public class SCIMService {
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.empty());
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.POST, uri);
-            Optional<Map<String, Object>> results = doExchange(requestEntity, mapParameterizedTypeReference, application);
+            Optional<Map<String, Object>> results = doExchange(requestEntity, apiType, serviceProviderIdentifier, mapParameterizedTypeReference, application);
             results.ifPresent(map -> {
                 String id = (String) map.get("id");
                 serviceProviderIdentifier.setServiceProviderId(id);
@@ -133,7 +165,7 @@ public class SCIMService {
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.PATCH, uri);
-            doExchange(requestEntity, mapParameterizedTypeReference, application);
+            doExchange(requestEntity, apiType, serviceProviderIdentifier, mapParameterizedTypeReference, application);
         }
     }
 
@@ -145,12 +177,14 @@ public class SCIMService {
             URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
             HttpHeaders headers = new HttpHeaders();
             headers.setBasicAuth(application.getProvisioningHookUsername(), application.getProvisioningHookPassword());
-            RequestEntity<Void> requestEntity = new RequestEntity<>(headers, HttpMethod.DELETE, uri);
-            doExchange(requestEntity, voidParameterizedTypeReference, application);
+            RequestEntity<String> requestEntity = new RequestEntity<>(request, headers, HttpMethod.DELETE, uri);
+            doExchange(requestEntity, apiType, serviceProviderIdentifier, stringParameterizedTypeReference, application);
         }
     }
 
     private <T, S> Optional<T> doExchange(RequestEntity<S> requestEntity,
+                                          String api,
+                                          ServiceProviderIdentifier serviceProviderIdentifier,
                                           ParameterizedTypeReference<T> typeReference,
                                           Application application) {
         try {
@@ -159,7 +193,13 @@ public class SCIMService {
             LOG.error("Exception in SCIM exchange", e);
             S body = requestEntity.getBody();
             String message = body instanceof String ? (String) body : null;
-            SCIMFailure scimFailure = new SCIMFailure(message, requestEntity.getMethod().toString(), requestEntity.getUrl().toString(), application);
+            SCIMFailure scimFailure = new SCIMFailure(
+                    message,
+                    api,
+                    requestEntity.getMethod().toString(),
+                    requestEntity.getUrl().toString(),
+                    serviceProviderIdentifier.getServiceProviderId(),
+                    application);
             scimFailureRepository.save(scimFailure);
             return Optional.empty();
         }

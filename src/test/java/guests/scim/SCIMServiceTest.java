@@ -7,8 +7,6 @@ import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Instant;
-import java.time.Period;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -188,22 +186,6 @@ class SCIMServiceTest extends AbstractMailTest {
         SCIMFailure scimFailure = failures.get(0);
         assertEquals(uri, scimFailure.getUri());
         assertNotNull(scimFailure.getCreatedAt());
-    }
-
-    private User seedUser() {
-        User user = user();
-        Institution institution = getInstitution(user);
-        institutionRepository.save(institution);
-
-        Application application = this.application(institution, "https://entity");
-        String provisioningUri = "http://localhost:8081";
-        application.setProvisioningHookUrl(provisioningUri);
-        application.setProvisioningHookUsername("user");
-        application = applicationRepository.save(application);
-
-        Role role = new Role("administrator", application);
-        user.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(365))));
-        return user;
     }
 
     private User seedUserWithEmailProvisioning() {
