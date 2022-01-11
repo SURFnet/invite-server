@@ -66,6 +66,15 @@ public class Role implements Serializable, NameHolder, ServiceProviderIdentifier
         }
     }
 
+    @JsonProperty(value = "applicationLandingPage", access = JsonProperty.Access.READ_ONLY)
+    public String getApplicationLandingPage() {
+        try {
+            return this.getApplication().getLandingPage();
+        } catch (LazyInitializationException e) {
+            return null;
+        }
+    }
+
     @JsonProperty(value = "institutionId", access = JsonProperty.Access.READ_ONLY)
     public Long getInstitutionId() {
         try {

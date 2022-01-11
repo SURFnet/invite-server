@@ -152,7 +152,7 @@ public abstract class AbstractTest {
     }
 
     protected Application application(Institution institution, String entityId) {
-        return new Application(institution, entityId, "http://localhost:8081","https://landing.nl", "inviter", "secret");
+        return new Application(institution, entityId, "https://landing.nl", "http://localhost:8081", "inviter", "secret");
     }
 
     protected Institution institution(String base) {
