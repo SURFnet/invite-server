@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserControllerTest extends AbstractTest {
 
@@ -155,13 +154,56 @@ class UserControllerTest extends AbstractTest {
     @Test
     @SuppressWarnings("unchecked")
     void otherNotAllowed() {
-        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("userId", admin.getId())
+                .get("/guests/api/users/{userId}")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void otherAllowedByInviter() {
+        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").get();
         given()
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("userId", inviter.getId())
                 .get("/guests/api/users/{userId}")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteOtherAllowedByInviter() {
+        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").get();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("userId", inviter.getId())
+                .delete("/guests/api/users/{userId}")
+                .then()
+                .statusCode(201);
+        assertTrue(userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").isEmpty());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteOtherNotAllowed() {
+        User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("userId", admin.getId())
+                .delete("/guests/api/users/{userId}")
                 .then()
                 .statusCode(403);
     }
@@ -170,16 +212,16 @@ class UserControllerTest extends AbstractTest {
     void deleteOther() {
         super.stubForDeleteUser();
         super.stubForUpdateGroup();
-        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
         given()
                 .when()
                 .accept(ContentType.JSON)
-                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("userId", inviter.getId())
                 .delete("/guests/api/users/{userId}")
                 .then()
                 .statusCode(201);
-        assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").isPresent());
+        assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").isPresent());
     }
 
 

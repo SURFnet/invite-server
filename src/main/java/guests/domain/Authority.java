@@ -1,5 +1,7 @@
 package guests.domain;
 
+import java.util.Set;
+
 public enum Authority {
 
     SUPER_ADMIN(3), INSTITUTION_ADMINISTRATOR(2), INVITER(1), GUEST(0);
@@ -12,6 +14,10 @@ public enum Authority {
 
     public boolean isAllowed(Authority requiredAuthority) {
         return rights >= requiredAuthority.rights;
+    }
+
+    public boolean isAllowedForAll(Set<Authority> requiredAuthorities) {
+        return requiredAuthorities.stream().allMatch(requiredAuthority -> rights >= requiredAuthority.rights);
     }
 
     public String friendlyName() {

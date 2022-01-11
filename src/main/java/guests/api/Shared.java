@@ -56,6 +56,20 @@ public class Shared {
         }
     }
 
+    public static void verifyAuthorityForSubject(User authenticatedUser, User subject) {
+        if (!authenticatedUser.isSuperAdmin()) {
+            Set<Long> institutionIdentifiers = subject.getInstitutionMemberships().stream()
+                    .map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
+            Set<Authority> subjectAuthorities = subject.getInstitutionMemberships().stream()
+                    .map(membership -> membership.getAuthority()).collect(Collectors.toSet());
+            if (authenticatedUser.getInstitutionMemberships().stream()
+                    .noneMatch(membership -> institutionIdentifiers.contains(membership.getInstitution().getId())
+                            && membership.getAuthority().isAllowedForAll(subjectAuthorities))) {
+                throw userRestrictedException(authenticatedUser, institutionIdentifiers.iterator().next());
+            }
+        }
+    }
+
     public static UserRestrictionException userRestrictedException(User authenticatedUser, Long institutionId) {
         return new UserRestrictionException(String.format("User %s is not allowed to act for institution %s",
                 authenticatedUser.getEduPersonPrincipalName(), institutionId));

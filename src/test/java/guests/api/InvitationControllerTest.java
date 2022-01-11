@@ -3,6 +3,7 @@ package guests.api;
 import guests.AbstractTest;
 import guests.domain.*;
 import io.restassured.http.ContentType;
+import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -337,4 +338,64 @@ class InvitationControllerTest extends AbstractTest {
                 .statusCode(201);
         assertFalse(invitationRepository.findById(id).isPresent());
     }
+
+    @Test
+    void resendNotAllowed() {
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        Map<String, Object> invitation = new HashMap<>();
+        invitation.put("id", id);
+        invitation.put("message", "Please...");
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .body(invitation)
+                .put("/guests/api/invitations/resend")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    void resendAllowedInvitationIsForGuest() {
+        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        invitation.setIntendedAuthority(Authority.GUEST);
+        invitationRepository.save(invitation);
+
+        Long id = invitation.getId();
+        Map<String, Object> invitationMap = new HashMap<>();
+        invitationMap.put("id", id);
+        invitationMap.put("message", "Please...");
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .body(invitationMap)
+                .put("/guests/api/invitations/resend")
+                .then()
+                .statusCode(201);
+    }
+
+    @Test
+    void deleteAllowedByInviterGuestInvitation() {
+        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        invitation.setIntendedAuthority(Authority.GUEST);
+        invitationRepository.save(invitation);
+
+        Long id = invitation.getId();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("id", id)
+                .delete("/guests/api/invitations/{id}")
+                .then()
+                .statusCode(201);
+        assertFalse(invitationRepository.findById(id).isPresent());
+    }
+
+
 }

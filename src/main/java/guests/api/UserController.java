@@ -42,9 +42,9 @@ public class UserController {
 
     @GetMapping("{userId}")
     public ResponseEntity<User> other(User authenticatedUser, @PathVariable("userId") Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(NotFoundException::new);
-        verifyAuthority(authenticatedUser, user, Authority.INSTITUTION_ADMINISTRATOR);
-        return ResponseEntity.ok(user);
+        User other = userRepository.findById(userId).orElseThrow(NotFoundException::new);
+        verifyAuthorityForSubject(authenticatedUser, other);
+        return ResponseEntity.ok(other);
     }
 
     @GetMapping("/institution/{institutionId}")
@@ -75,7 +75,7 @@ public class UserController {
     @DeleteMapping("/{userId}")
     public ResponseEntity<Map<String, Integer>> deleteOther(User authenticatedUser, @PathVariable("userId") Long userId) {
         User subject = userRepository.findById(userId).orElseThrow(NotFoundException::new);
-        verifyAuthority(authenticatedUser, subject, Authority.INSTITUTION_ADMINISTRATOR);
+        verifyAuthorityForSubject(authenticatedUser, subject);
         doDeleteUserAndUpdateScim(subject);
         return createdResponse();
     }
