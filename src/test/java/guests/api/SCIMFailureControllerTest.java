@@ -36,6 +36,23 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
+    void failureCount() {
+        Institution institution = seedSCIMFailure().getApplication().getInstitution();
+        Map results = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/scim/institution/{institutionId}/count")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getMap(".");
+        assertEquals(results.get("count"), 1);
+    }
+
+    @Test
     void failureById() {
         SCIMFailure scimFailure = seedSCIMFailure();
         Institution institution = scimFailure.getApplication().getInstitution();

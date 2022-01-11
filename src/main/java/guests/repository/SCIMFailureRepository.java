@@ -11,4 +11,5 @@ public interface SCIMFailureRepository extends JpaRepository<SCIMFailure, Long> 
 
     List<SCIMFailure> findByApplication_institution_id(Long institutionId);
 
+    long countByApplication_institution_id(Long institutionId);
 }

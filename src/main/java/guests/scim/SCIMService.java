@@ -239,7 +239,11 @@ public class SCIMService {
         return user.getRoles().stream()
                 .map(userRole -> userRole.getRole().getApplication())
                 .filter(Application::provisioningEnabled)
-                .collect(Collectors.toMap(Application::getId, app -> app)).values();
+                .collect(Collectors.toMap(
+                        Application::getId,
+                        app -> app,
+                        (a1, a2) -> a1))
+                .values();
     }
 
     private UserRole userRoles(User user, Application application) {

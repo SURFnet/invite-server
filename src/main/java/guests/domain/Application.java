@@ -38,6 +38,7 @@ public class Application implements Serializable, NameHolder {
     private String entityId;
 
     @Column(name = "landing_page")
+    @NotNull
     private String landingPage;
 
     @Column(name = "provisioning_hook_url")
@@ -65,11 +66,13 @@ public class Application implements Serializable, NameHolder {
 
     public Application(Institution institution,
                        String entityId,
+                       String landingPage,
                        String provisioningHookUrl,
                        String provisioningHookUsername,
                        String provisioningHookPassword) {
         this.institution = institution;
         this.entityId = entityId;
+        this.landingPage = landingPage;
         this.name = entityId;
         this.provisioningHookUrl = provisioningHookUrl;
         this.provisioningHookUsername = provisioningHookUsername;

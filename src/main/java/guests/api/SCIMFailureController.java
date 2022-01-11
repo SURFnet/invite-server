@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,13 @@ public class SCIMFailureController {
         verifyAuthority(authenticatedUser, institutionId, Authority.INSTITUTION_ADMINISTRATOR);
         List<SCIMFailure> scimFailures = this.scimFailureRepository.findByApplication_institution_id(institutionId);
         return ResponseEntity.ok(scimFailures);
+    }
+
+    @GetMapping("/institution/{institutionId}/count")
+    public ResponseEntity<Map<String, Long>> failuresCounts(User authenticatedUser, @PathVariable("institutionId") Long institutionId) {
+        verifyAuthority(authenticatedUser, institutionId, Authority.INSTITUTION_ADMINISTRATOR);
+        long count = this.scimFailureRepository.countByApplication_institution_id(institutionId);
+        return ResponseEntity.ok(Collections.singletonMap("count", count));
     }
 
     @GetMapping("/id/{id}/{institutionId}")
