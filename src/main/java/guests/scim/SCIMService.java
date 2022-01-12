@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import guests.domain.*;
 import guests.exception.NotFoundException;
 import guests.mail.MailBox;
+import guests.repository.RoleRepository;
 import guests.repository.SCIMFailureRepository;
 import guests.repository.UserRepository;
 import lombok.SneakyThrows;
@@ -26,6 +27,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +35,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class SCIMService {
+
+    public final static String USER_API = "users";
+    public final static String GROUP_API = "groups";
 
     private static final Log LOG = LogFactory.getLog(SCIMService.class);
 
@@ -45,20 +50,21 @@ public class SCIMService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final SCIMFailureRepository scimFailureRepository;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final ObjectMapper objectMapper;
     private final MailBox mailBox;
     private final String groupUrnPrefix;
-    private final String userAPI = "users";
-    private final String groupAPI = "groups";
 
     @Autowired
     public SCIMService(SCIMFailureRepository scimFailureRepository,
                        UserRepository userRepository,
+                       RoleRepository roleRepository,
                        ObjectMapper objectMapper,
                        MailBox mailBox,
                        @Value("${voot.group_urn_domain}") String groupUrnDomain) {
         this.scimFailureRepository = scimFailureRepository;
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.objectMapper = objectMapper;
         this.mailBox = mailBox;
         this.groupUrnPrefix = String.format("urn:collab:group:%s", groupUrnDomain);
@@ -74,7 +80,7 @@ public class SCIMService {
         String userRequest = prettyJson(new UserRequest(user));
         getApplicationsFromUserRoles(user).forEach(application -> {
             UserRole userRole = userRoles(user, application);
-            this.newRequest(application, userRequest, userAPI, userRole);
+            this.newRequest(application, userRequest, USER_API, userRole);
         });
     }
 
@@ -83,7 +89,7 @@ public class SCIMService {
         getApplicationsFromUserRoles(user).forEach(application -> {
             UserRole userRole = userRoles(user, application);
             String userRequest = prettyJson(new UserRequest(user, userRole));
-            this.updateRequest(application, userRequest, userAPI, userRole);
+            this.updateRequest(application, userRequest, USER_API, userRole);
         });
     }
 
@@ -92,15 +98,15 @@ public class SCIMService {
         getApplicationsFromUserRoles(user).forEach(application -> {
             UserRole userRole = userRoles(user, application);
             String userRequest = prettyJson(new UserRequest(user, userRole));
-            this.deleteRequest(application, userRequest, userAPI, userRole);
+            this.deleteRequest(application, userRequest, USER_API, userRole);
         });
     }
 
     public void newRoleRequest(Role role) {
         if (role.getApplication().provisioningEnabled()) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            String groupRequest = prettyJson(new GroupRequest(externalId, role.getDisplayName(), Collections.emptyList()));
-            this.newRequest(role.getApplication(), groupRequest, groupAPI, role);
+            String groupRequest = prettyJson(new GroupRequest(externalId, role.getName(), Collections.emptyList()));
+            this.newRequest(role.getApplication(), groupRequest, GROUP_API, role);
         }
     }
 
@@ -115,39 +121,80 @@ public class SCIMService {
             if (CollectionUtils.isEmpty(members)) {
                 return;
             }
-            String groupRequest = prettyJson(new GroupRequest(externalId, role.getDisplayName(), members));
-            this.updateRequest(role.getApplication(), groupRequest, groupAPI, role);
+            String groupRequest = prettyJson(new GroupRequest(externalId, role.getName(), members));
+            this.updateRequest(role.getApplication(), groupRequest, GROUP_API, role);
         }
     }
 
     public void deleteRolesRequest(Role role) {
         if (role.getApplication().provisioningEnabled()) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            String groupRequest = prettyJson(new GroupRequest(externalId, role.getDisplayName(), Collections.emptyList()));
-            this.deleteRequest(role.getApplication(), groupRequest, groupAPI, role);
+            String groupRequest = prettyJson(new GroupRequest(externalId, role.getName(), Collections.emptyList()));
+            this.deleteRequest(role.getApplication(), groupRequest, GROUP_API, role);
         }
     }
 
-    public void resendScimFailure(SCIMFailure scimFailure) throws JsonProcessingException {
+    public Optional<Serializable> resendScimFailure(SCIMFailure scimFailure) throws JsonProcessingException {
         Map<String, Object> request = StringUtils.hasText(scimFailure.getMessage()) ? objectMapper.readValue(scimFailure.getMessage(), new TypeReference<>() {
         }) : Collections.emptyMap();
 
-        if (userAPI.equals(scimFailure.getApi())) {
+        if (USER_API.equals(scimFailure.getApi())) {
             switch (HttpMethod.valueOf(scimFailure.getHttpMethod())) {
                 case POST -> {
                     String externalId = (String) request.get("externalId");
                     User user = userRepository.findByEduPersonPrincipalNameIgnoreCase(externalId).orElseThrow(NotFoundException::new);
                     this.newUserRequest(user);
-                }
-                case DELETE -> {
-                    this.deleteRequest(scimFailure.getApplication(), scimFailure.getMessage(), userAPI, new ServiceProviderIdentifierReference(scimFailure.getServiceProviderId()));
+                    return Optional.of(user);
                 }
                 case PATCH -> {
                     String externalId = (String) request.get("externalId");
                     User user = userRepository.findByEduPersonPrincipalNameIgnoreCase(externalId).orElseThrow(NotFoundException::new);
                     this.updateUserRequest(user);
+                    return Optional.of(user);
                 }
+                case DELETE -> {
+                    this.deleteRequest(
+                            scimFailure.getApplication(),
+                            scimFailure.getMessage(),
+                            USER_API,
+                            new ServiceProviderIdentifierReference(scimFailure.getServiceProviderId()));
+                    return Optional.empty();
+                }
+                default -> throw new IllegalArgumentException(String.format("Unknown HTTPmethod %s", scimFailure.getHttpMethod()));
             }
+        } else if (GROUP_API.equals(scimFailure.getApi())) {
+            switch (HttpMethod.valueOf(scimFailure.getHttpMethod())) {
+                case POST -> {
+                    String roleUrn = (String) request.get("externalId");
+                    ExternalID externalID = GroupURN.parseUrnRole(roleUrn);
+                    Role role = roleRepository.findByApplication_institution_homeInstitutionIgnoreCaseAndApplication_nameIgnoreCaseAndNameIgnoreCase(
+                            externalID.institutionHomeLowerCase(),
+                            externalID.applicationNameLowerCase(),
+                            externalID.roleNameLowerCase()
+                    ).orElseThrow(NotFoundException::new);
+                    this.newRoleRequest(role);
+                    return Optional.of(role);
+                }
+                case PATCH -> {
+                    Role role = roleRepository.findByServiceProviderId(scimFailure.getServiceProviderId())
+                            .orElseThrow(NotFoundException::new);
+                    List<User> users = userRepository.findByRoles_role_id(role.getId());
+                    this.updateRoleRequest(role, users);
+                    return Optional.of(role);
+                }
+                case DELETE -> {
+                    this.deleteRequest(
+                            scimFailure.getApplication(),
+                            scimFailure.getMessage(),
+                            GROUP_API,
+                            new ServiceProviderIdentifierReference(scimFailure.getServiceProviderId()));
+                    return Optional.empty();
+                }
+                default -> throw new IllegalArgumentException(String.format("Unknown HTTPmethod %s", scimFailure.getHttpMethod()));
+            }
+
+        } else {
+            throw new IllegalArgumentException(String.format("Unknown API %s", scimFailure.getApi()));
         }
     }
 
@@ -199,17 +246,22 @@ public class SCIMService {
             return Optional.ofNullable(restTemplate.exchange(requestEntity, typeReference).getBody());
         } catch (RestClientException e) {
             LOG.error("Exception in SCIM exchange", e);
-            S body = requestEntity.getBody();
-            SCIMFailure scimFailure = new SCIMFailure(
-                    (String) body,
-                    api,
-                    requestEntity.getMethod().toString(),
-                    requestEntity.getUrl().toString(),
-                    serviceProviderIdentifier.getServiceProviderId(),
-                    application);
-            scimFailureRepository.save(scimFailure);
-            mailBox.sendScimFailureMail(scimFailure);
-            return Optional.empty();
+            if (ThreadLocalSCIMFailureStrategy.ignoreFailures()) {
+                throw e;
+            } else {
+                S body = requestEntity.getBody();
+                SCIMFailure scimFailure = new SCIMFailure(
+                        (String) body,
+                        api,
+                        requestEntity.getMethod().toString(),
+                        requestEntity.getUrl().toString(),
+                        serviceProviderIdentifier.getServiceProviderId(),
+                        application);
+                scimFailureRepository.save(scimFailure);
+                mailBox.sendScimFailureMail(scimFailure);
+                return Optional.empty();
+            }
+
         }
     }
 

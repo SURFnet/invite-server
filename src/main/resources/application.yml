@@ -76,3 +76,7 @@ management:
   info:
     git:
       mode: full
+
+server:
+  error:
+    include-message: always

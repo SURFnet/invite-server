@@ -1,20 +1,27 @@
 package guests.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.domain.Authority;
+import guests.domain.Role;
 import guests.domain.SCIMFailure;
 import guests.domain.User;
 import guests.exception.NotFoundException;
+import guests.repository.RoleRepository;
 import guests.repository.SCIMFailureRepository;
+import guests.repository.UserRepository;
 import guests.scim.SCIMService;
+import guests.scim.ThreadLocalSCIMFailureStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static guests.api.Shared.*;
 
@@ -23,11 +30,18 @@ import static guests.api.Shared.*;
 @Transactional
 public class SCIMFailureController {
 
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final SCIMFailureRepository scimFailureRepository;
     private final SCIMService scimService;
 
     @Autowired
-    public SCIMFailureController(SCIMFailureRepository scimFailureRepository, SCIMService scimService) {
+    public SCIMFailureController(UserRepository userRepository,
+                                 RoleRepository roleRepository,
+                                 SCIMFailureRepository scimFailureRepository,
+                                 SCIMService scimService) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.scimFailureRepository = scimFailureRepository;
         this.scimService = scimService;
     }
@@ -50,18 +64,32 @@ public class SCIMFailureController {
     public ResponseEntity<SCIMFailure> failureById(User authenticatedUser,
                                                    @PathVariable("id") Long id,
                                                    @PathVariable("institutionId") Long institutionId) {
-        verifyAuthority(authenticatedUser, institutionId, Authority.INSTITUTION_ADMINISTRATOR);
-        SCIMFailure scimFailure = this.scimFailureRepository.findById(id).orElseThrow(NotFoundException::new);
+        SCIMFailure scimFailure = getScimFailure(authenticatedUser, id, institutionId);
         return ResponseEntity.ok(scimFailure);
     }
 
     @PutMapping("/id/{id}/{institutionId}")
     public ResponseEntity<Map<String, Integer>> resend(User authenticatedUser,
                                                        @PathVariable("id") Long id,
-                                                       @PathVariable("institutionId") Long institutionId) {
-        SCIMFailure scimFailure = getScimFailure(authenticatedUser, id, institutionId);
-        this.scimFailureRepository.delete(scimFailure);
-        return createdResponse();
+                                                       @PathVariable("institutionId") Long institutionId) throws JsonProcessingException {
+        try {
+            ThreadLocalSCIMFailureStrategy.startIgnoringFailures();
+            SCIMFailure scimFailure = getScimFailure(authenticatedUser, id, institutionId);
+            Optional<Serializable> serializableOptional = scimService.resendScimFailure(scimFailure);
+            serializableOptional.ifPresent(serializable -> {
+                if (serializable instanceof User user) {
+                    userRepository.save(user);
+                } else if (serializable instanceof Role role) {
+                    roleRepository.save(role);
+                }
+            });
+            //If there are no exceptions then we delete the failure
+            this.scimFailureRepository.delete(scimFailure);
+            return createdResponse();
+        } finally {
+            ThreadLocalSCIMFailureStrategy.stopIgnoringFailures();
+        }
+
     }
 
     @DeleteMapping("/id/{id}/{institutionId}")
@@ -76,7 +104,7 @@ public class SCIMFailureController {
     private SCIMFailure getScimFailure(User authenticatedUser, @PathVariable("id") Long id, @PathVariable("institutionId") Long institutionId) {
         verifyAuthority(authenticatedUser, institutionId, Authority.INSTITUTION_ADMINISTRATOR);
         SCIMFailure scimFailure = this.scimFailureRepository.findById(id).orElseThrow(NotFoundException::new);
-        if (!scimFailure.getApplication().getInstitution().getId().equals(institutionId)) {
+        if (!authenticatedUser.isSuperAdmin() && !scimFailure.getApplication().getInstitution().getId().equals(institutionId)) {
             throw userRestrictedException(authenticatedUser, institutionId);
         }
         return scimFailure;

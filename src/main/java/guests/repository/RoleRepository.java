@@ -16,4 +16,9 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
     Optional<Role> findByApplication_idAndNameIgnoreCase(Long applicationId, String name);
 
+    Optional<Role> findByApplication_institution_homeInstitutionIgnoreCaseAndApplication_nameIgnoreCaseAndNameIgnoreCase(
+            String institutionHomeLowerCase, String applicationNameLowerCase, String roleNameLowerCase);
+
+    Optional<Role> findByServiceProviderId(String serviceProviderId);
+
 }
