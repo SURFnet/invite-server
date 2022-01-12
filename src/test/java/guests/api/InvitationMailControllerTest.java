@@ -6,6 +6,7 @@ import io.restassured.http.ContentType;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ class InvitationMailControllerTest extends AbstractMailTest {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("id", id);
         invitation.put("message", "Please...");
+        invitation.put("expiryDate", Instant.now());
 
         given()
                 .when()
