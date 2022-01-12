@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -137,20 +138,13 @@ public class SCIMService {
     public Optional<Serializable> resendScimFailure(SCIMFailure scimFailure) throws JsonProcessingException {
         Map<String, Object> request = StringUtils.hasText(scimFailure.getMessage()) ? objectMapper.readValue(scimFailure.getMessage(), new TypeReference<>() {
         }) : Collections.emptyMap();
-
         if (USER_API.equals(scimFailure.getApi())) {
             switch (HttpMethod.valueOf(scimFailure.getHttpMethod())) {
                 case POST -> {
-                    String externalId = (String) request.get("externalId");
-                    User user = userRepository.findByEduPersonPrincipalNameIgnoreCase(externalId).orElseThrow(NotFoundException::new);
-                    this.newUserRequest(user);
-                    return Optional.of(user);
+                    return changeUserRequest(request, this::newUserRequest);
                 }
                 case PATCH -> {
-                    String externalId = (String) request.get("externalId");
-                    User user = userRepository.findByEduPersonPrincipalNameIgnoreCase(externalId).orElseThrow(NotFoundException::new);
-                    this.updateUserRequest(user);
-                    return Optional.of(user);
+                    return changeUserRequest(request, this::updateUserRequest);
                 }
                 case DELETE -> {
                     this.deleteRequest(
@@ -196,6 +190,13 @@ public class SCIMService {
         } else {
             throw new IllegalArgumentException(String.format("Unknown API %s", scimFailure.getApi()));
         }
+    }
+
+    private Optional<Serializable> changeUserRequest(Map<String, Object> request, Consumer<User> userConsumer) {
+        String externalId = (String) request.get("externalId");
+        User user = userRepository.findByEduPersonPrincipalNameIgnoreCase(externalId).orElseThrow(NotFoundException::new);
+        userConsumer.accept(user);
+        return Optional.of(user);
     }
 
     @SneakyThrows
