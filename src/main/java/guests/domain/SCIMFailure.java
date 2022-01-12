@@ -4,6 +4,7 @@ package guests.domain;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class SCIMFailure implements Serializable {
 
     @Id
@@ -49,6 +51,7 @@ public class SCIMFailure implements Serializable {
         this.api = api;
         this.httpMethod = httpMethod;
         this.uri = uri;
+        this.serviceProviderId = serviceProviderId;
         this.application = application;
         this.createdAt = Instant.now();
     }

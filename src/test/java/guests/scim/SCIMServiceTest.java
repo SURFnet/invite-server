@@ -201,6 +201,12 @@ class SCIMServiceTest extends AbstractMailTest {
 
         scimService.deleteRolesRequest(role);
         assertSCIMFailure("http://localhost:8081/scim/v1/groups/" + serviceProviderId);
+
+        MimeMessageParser parser = mailMessage();
+        String htmlContent = parser.getHtmlContent();
+
+        assertTrue(htmlContent.contains(serviceProviderId));
+
     }
 
     private void assertNoSCIMFailures() {

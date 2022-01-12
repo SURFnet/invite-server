@@ -208,6 +208,7 @@ public class SCIMService {
                     serviceProviderIdentifier.getServiceProviderId(),
                     application);
             scimFailureRepository.save(scimFailure);
+            mailBox.sendScimFailureMail(scimFailure);
             return Optional.empty();
         }
     }

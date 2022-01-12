@@ -3,6 +3,7 @@ package guests.mail;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import guests.domain.Invitation;
+import guests.domain.SCIMFailure;
 import guests.domain.User;
 import lombok.SneakyThrows;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -21,13 +22,17 @@ public class MailBox {
     private final String baseUrl;
     private final String emailFrom;
     private final String languageCode = "en";
+    private final String scimFailureEmail;
+    private final String environment;
 
     private final MustacheFactory mustacheFactory = new DefaultMustacheFactory("templates");
 
-    public MailBox(JavaMailSender mailSender, String emailFrom, String baseUrl) {
+    public MailBox(JavaMailSender mailSender, String emailFrom, String baseUrl, String scimFailureEmail, String environment) {
         this.mailSender = mailSender;
         this.emailFrom = emailFrom;
         this.baseUrl = baseUrl;
+        this.scimFailureEmail = scimFailureEmail;
+        this.environment = environment;
     }
 
     public void sendInviteMail(User user, Invitation invitation) {
@@ -53,6 +58,15 @@ public class MailBox {
                 title,
                 variables,
                 email);
+    }
+
+    public void sendScimFailureMail(SCIMFailure scimFailure) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("scimFailure", scimFailure);
+        sendMail(String.format("scim_failure_%s.html", languageCode),
+                String.format("SCIM failure in environment %s", environment),
+                variables,
+                scimFailureEmail);
     }
 
     @SneakyThrows

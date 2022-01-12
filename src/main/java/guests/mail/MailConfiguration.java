@@ -20,20 +20,26 @@ public class MailConfiguration {
     @Value("${email.base-url}")
     private String baseUrl;
 
+    @Value("${email.scim-failure}")
+    private String scimFailureEmail;
+
+    @Value("${email.environment}")
+    private String environment;
+
     @Autowired
     private JavaMailSender mailSender;
 
     @Bean
     @Profile({"!dev"})
     public MailBox mailSenderProd() {
-        return new MailBox(mailSender, emailFrom, baseUrl);
+        return new MailBox(mailSender, emailFrom, baseUrl, scimFailureEmail, environment);
     }
 
     @Bean
     @Profile({"dev"})
     @Primary
     public MailBox mailSenderDev() {
-        return new MockMailBox(mailSender, emailFrom, baseUrl);
+        return new MockMailBox(mailSender, emailFrom, baseUrl, scimFailureEmail, environment);
     }
 
 

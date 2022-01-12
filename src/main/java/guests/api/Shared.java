@@ -44,18 +44,6 @@ public class Shared {
         }
     }
 
-    public static void verifyAuthority(User authenticatedUser, User subject, Authority required) {
-        if (!authenticatedUser.isSuperAdmin()) {
-            Set<Long> institutionIdentifiers = subject.getInstitutionMemberships().stream()
-                    .map(membership -> membership.getInstitution().getId()).collect(Collectors.toSet());
-            if (authenticatedUser.getInstitutionMemberships().stream()
-                    .noneMatch(membership -> institutionIdentifiers.contains(membership.getInstitution().getId())
-                            && membership.getAuthority().isAllowed(required))) {
-                throw userRestrictedException(authenticatedUser, institutionIdentifiers.iterator().next());
-            }
-        }
-    }
-
     public static void verifyAuthorityForSubject(User authenticatedUser, User subject) {
         if (!authenticatedUser.isSuperAdmin()) {
             Set<Long> institutionIdentifiers = subject.getInstitutionMemberships().stream()

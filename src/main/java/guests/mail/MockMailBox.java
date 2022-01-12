@@ -11,8 +11,8 @@ import java.io.IOException;
 
 public class MockMailBox extends MailBox {
 
-    public MockMailBox(JavaMailSender mailSender, String emailFrom, String baseUrl) {
-        super(mailSender, emailFrom, baseUrl);
+    public MockMailBox(JavaMailSender mailSender, String emailFrom, String baseUrl, String scimFailureEmail, String environment) {
+        super(mailSender, emailFrom, baseUrl, scimFailureEmail, environment);
     }
 
     @Override

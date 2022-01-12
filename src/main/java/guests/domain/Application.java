@@ -110,4 +110,12 @@ public class Application implements Serializable, NameHolder {
         return StringUtils.hasText(provisioningHookUrl) || StringUtils.hasText(provisioningHookEmail);
     }
 
+    @Override
+    public String toString() {
+        return "Application{" +
+                "name='" + name + '\'' +
+                ", entityId='" + entityId + '\'' +
+                ", institutionName='" + getInstitutionName() + '\'' +
+                '}';
+    }
 }
