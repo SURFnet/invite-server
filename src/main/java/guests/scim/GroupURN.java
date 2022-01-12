@@ -15,8 +15,9 @@ public class GroupURN {
     }
 
     public static ExternalID parseUrnRole(String urnRole) {
-        String[] parts = urnRole.split(":");
-        return new ExternalID(parts[1], parts[2], parts[3]);
+        String[] parts = urnRole.toLowerCase().split(":");
+        int length = parts.length;
+        return new ExternalID(parts[length - 3], parts[length - 2], parts[length - 1]);
     }
 
 }

@@ -168,9 +168,9 @@ public class SCIMService {
                     String roleUrn = (String) request.get("externalId");
                     ExternalID externalID = GroupURN.parseUrnRole(roleUrn);
                     Role role = roleRepository.findByApplication_institution_homeInstitutionIgnoreCaseAndApplication_nameIgnoreCaseAndNameIgnoreCase(
-                            externalID.institutionHomeLowerCase(),
-                            externalID.applicationNameLowerCase(),
-                            externalID.roleNameLowerCase()
+                            externalID.institutionHome(),
+                            externalID.applicationName(),
+                            externalID.roleName()
                     ).orElseThrow(NotFoundException::new);
                     this.newRoleRequest(role);
                     return Optional.of(role);

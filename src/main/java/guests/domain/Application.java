@@ -118,4 +118,5 @@ public class Application implements Serializable, NameHolder {
                 ", institutionName='" + getInstitutionName() + '\'' +
                 '}';
     }
+
 }

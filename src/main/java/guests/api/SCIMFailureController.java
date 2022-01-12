@@ -72,6 +72,7 @@ public class SCIMFailureController {
     public ResponseEntity<Map<String, Integer>> resend(User authenticatedUser,
                                                        @PathVariable("id") Long id,
                                                        @PathVariable("institutionId") Long institutionId) throws JsonProcessingException {
+        verifySuperUser(authenticatedUser);
         try {
             ThreadLocalSCIMFailureStrategy.startIgnoringFailures();
             SCIMFailure scimFailure = getScimFailure(authenticatedUser, id, institutionId);

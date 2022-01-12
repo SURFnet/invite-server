@@ -52,6 +52,7 @@ public class Role implements Serializable, NameHolder, ServiceProviderIdentifier
     @Embedded
     private Auditable auditable = new Auditable();
 
+
     public Role(String name, Application application) {
         this.name = name;
         this.application = application;
