@@ -363,19 +363,26 @@ class InvitationControllerTest extends AbstractTest {
         invitationRepository.save(invitation);
 
         Long id = invitation.getId();
-        Map<String, Object> invitationMap = new HashMap<>();
-        invitationMap.put("id", id);
-        invitationMap.put("message", "Please...");
+        InvitationUpdate invitationUpdate = new InvitationUpdate();
+        invitationUpdate.setId(id);
+        invitationUpdate.setMessage("Please...");
+        invitationUpdate.setExpiryDate(Instant.now().plus(14, ChronoUnit.DAYS));
 
         given()
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
-                .body(invitationMap)
+                .body(invitationUpdate)
                 .put("/guests/api/invitations/resend")
                 .then()
                 .statusCode(201);
+
+        invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+
+        assertEquals(invitationUpdate.getMessage(), invitation.getMessage());
+        assertEquals(invitationUpdate.getExpiryDate().toString().substring(0, 10),
+                invitation.getExpiryDate().toString().substring(0, 10));
     }
 
     @Test

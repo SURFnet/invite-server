@@ -183,15 +183,16 @@ public class InvitationController {
     }
 
     @PutMapping("/resend")
-    public ResponseEntity<Map<String, Integer>> resend(User authenticatedUser, @RequestBody Map<String, Object> invitation) {
-        Number number = (Number) invitation.get("id");
-        Invitation invitationFromDB = invitationRepository.findById(number.longValue()).orElseThrow(NotFoundException::new);
+    public ResponseEntity<Map<String, Integer>> resend(User authenticatedUser, @RequestBody InvitationUpdate invitation) {
+
+        Invitation invitationFromDB = invitationRepository.findById(invitation.getId()).orElseThrow(NotFoundException::new);
         Long institutionId = invitationFromDB.getInstitution().getId();
 
         verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);
         verifyInviterAuthority(authenticatedUser, invitationFromDB, institutionId);
 
-        invitationFromDB.setMessage((String) invitation.get("message"));
+        invitationFromDB.setMessage(invitation.getMessage());
+        invitationFromDB.setExpiryDate(invitation.getExpiryDate());
         invitationRepository.save(invitationFromDB);
 
         mailBox.sendInviteMail(authenticatedUser, invitationFromDB);
