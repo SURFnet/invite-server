@@ -1,8 +1,8 @@
 package guests;
 
 import com.icegreen.greenmail.junit5.GreenMailExtension;
+import com.icegreen.greenmail.store.FolderException;
 import com.icegreen.greenmail.util.ServerSetupTest;
-import lombok.SneakyThrows;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,9 +21,8 @@ class AbstractMailTest extends AbstractTest {
     @RegisterExtension
     static GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP);
 
-    @SneakyThrows
     @BeforeEach
-    protected void beforeEach() {
+    protected void beforeEach() throws FolderException {
         super.beforeEach();
         greenMail.start();
         greenMail.purgeEmailFromAllMailboxes();
@@ -34,8 +33,7 @@ class AbstractMailTest extends AbstractTest {
         greenMail.stop();
     }
 
-    @SneakyThrows
-    protected MimeMessageParser mailMessage() {
+    protected MimeMessageParser mailMessage() throws Exception {
         await().until(() -> greenMail.getReceivedMessages().length != 0);
         MimeMessage mimeMessage = greenMail.getReceivedMessages()[0];
         MimeMessageParser parser = new MimeMessageParser(mimeMessage);

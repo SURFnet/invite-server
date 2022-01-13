@@ -8,6 +8,7 @@ import guests.domain.User;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void get() {
+    void get() throws IOException {
         User user = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -34,7 +35,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByInstitution() {
+    void allByInstitution() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<User> users = given()
                 .when()
@@ -52,7 +53,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void emailsByInstitution() {
+    void emailsByInstitution() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Map> res = given()
                 .when()
@@ -73,7 +74,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByApplication() {
+    void allByApplication() throws IOException {
         Application application = applicationRepository.findByEntityIdIgnoreCase("CANVAS").get();
         List<User> users = given()
                 .when()
@@ -91,7 +92,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByInstitutionNotAllowed() {
+    void allByInstitutionNotAllowed() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://uva").get();
         given()
                 .when()
@@ -104,7 +105,7 @@ class UserControllerTest extends AbstractTest {
     }
 
     @Test
-    void delete() {
+    void delete() throws IOException {
         super.stubForDeleteUser();
         super.stubForUpdateRole();
         given()
@@ -119,7 +120,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getWithRoles() {
+    void getWithRoles() throws IOException {
         User user = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -135,7 +136,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void other() {
+    void other() throws IOException {
         User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
         User user = given()
                 .when()
@@ -153,7 +154,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void otherNotAllowed() {
+    void otherNotAllowed() throws IOException {
         User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         given()
                 .when()
@@ -167,7 +168,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void otherAllowedByInviter() {
+    void otherAllowedByInviter() throws IOException {
         User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").get();
         given()
                 .when()
@@ -181,7 +182,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void deleteOtherAllowedByInviter() {
+    void deleteOtherAllowedByInviter() throws IOException {
         User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").get();
         given()
                 .when()
@@ -196,7 +197,7 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void deleteOtherNotAllowed() {
+    void deleteOtherNotAllowed() throws IOException {
         User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         given()
                 .when()
@@ -209,7 +210,7 @@ class UserControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteOther() {
+    void deleteOther() throws IOException {
         super.stubForDeleteUser();
         super.stubForUpdateRole();
         User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();

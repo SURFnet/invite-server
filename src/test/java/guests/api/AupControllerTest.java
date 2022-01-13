@@ -6,6 +6,7 @@ import guests.exception.NotFoundException;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.Collections;
 
 import static io.restassured.RestAssured.given;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AupControllerTest extends AbstractTest {
 
     @Test
-    void agreeAup() {
+    void agreeAup() throws IOException {
         User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").orElseThrow(NotFoundException::new);
         assertEquals(0, inviter.getAups().size());
 
@@ -33,7 +34,7 @@ class AupControllerTest extends AbstractTest {
     }
 
     @Test
-    void agreeAupAlreadyPresent() {
+    void agreeAupAlreadyPresent() throws IOException {
         User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").orElseThrow(NotFoundException::new);
         assertEquals(1, admin.getAups().size());
 

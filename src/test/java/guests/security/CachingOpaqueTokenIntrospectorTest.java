@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionException;
 
+import java.io.IOException;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 class CachingOpaqueTokenIntrospectorTest extends AbstractTest {
@@ -13,7 +15,7 @@ class CachingOpaqueTokenIntrospectorTest extends AbstractTest {
             new CachingOpaqueTokenIntrospector("http://localhost:8081/introspect", "rp", "secret");
 
     @Test
-    void introspect() {
+    void introspect() throws IOException {
         String token = super.opaqueAccessToken("admin@utrecht.nl", "introspect.json");
         subject.introspect(token);
         stubFor(post(urlPathMatching("/introspect")).willReturn(aResponse()

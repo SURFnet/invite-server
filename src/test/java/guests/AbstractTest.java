@@ -2,6 +2,7 @@ package guests;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.icegreen.greenmail.store.FolderException;
 import guests.config.HashGenerator;
 import guests.domain.*;
 import guests.repository.*;
@@ -20,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.Period;
@@ -70,7 +72,7 @@ public abstract class AbstractTest {
     protected int port;
 
     @BeforeEach
-    protected void beforeEach() {
+    protected void beforeEach() throws FolderException {
         institutionRepository.deleteAll();
         userRepository.deleteAll();
         seed();
@@ -124,8 +126,7 @@ public abstract class AbstractTest {
         return new User(authority, eppn, eppn, givenName, familyNmae, email, institution);
     }
 
-    @SneakyThrows
-    protected String opaqueAccessToken(String eppn, String responseJsonFileName, String... scopes) {
+    protected String opaqueAccessToken(String eppn, String responseJsonFileName, String... scopes) throws IOException {
         List<String> scopeList = new ArrayList<>(Arrays.asList(scopes));
         scopeList.add("openid");
 
@@ -176,8 +177,7 @@ public abstract class AbstractTest {
                         .withStatus(201)));
     }
 
-    @SneakyThrows
-    protected String stubForCreateRole() {
+    protected String stubForCreateRole() throws JsonProcessingException {
         String value = UUID.randomUUID().toString();
         String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
         stubFor(post(urlPathMatching(String.format("/scim/v1/groups")))
@@ -187,8 +187,7 @@ public abstract class AbstractTest {
         return value;
     }
 
-    @SneakyThrows
-    protected String stubForCreateUser() {
+    protected String stubForCreateUser() throws JsonProcessingException {
         String value = UUID.randomUUID().toString();
         String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
         stubFor(post(urlPathMatching(String.format("/scim/v1/users")))
@@ -198,8 +197,7 @@ public abstract class AbstractTest {
         return value;
     }
 
-    @SneakyThrows
-    protected String stubForUpdateRole() {
+    protected String stubForUpdateRole() throws JsonProcessingException {
         String value = UUID.randomUUID().toString();
         String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
         stubFor(patch(urlPathMatching(String.format("/scim/v1/groups/(.*)")))

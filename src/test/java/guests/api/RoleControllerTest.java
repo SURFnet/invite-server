@@ -9,6 +9,7 @@ import io.restassured.http.ContentType;
 import org.hamcrest.core.IsEqual;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
@@ -18,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class RoleControllerTest extends AbstractTest {
 
     @Test
-    void rolesByInstitution() {
+    void rolesByInstitution() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Map> results = given()
                 .when()
@@ -36,7 +37,7 @@ class RoleControllerTest extends AbstractTest {
     }
 
     @Test
-    void rolesByApplication() {
+    void rolesByApplication() throws IOException {
         Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
         List<Role> results = given()
                 .when()
@@ -132,7 +133,7 @@ class RoleControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteRole() {
+    void deleteRole() throws IOException {
         Role role = roleRepository.findAll().get(0);
 
         this.stubForDeleteRole();
@@ -149,7 +150,7 @@ class RoleControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteRoleNotAllowed() {
+    void deleteRoleNotAllowed() throws IOException {
         Role role = roleRepository.findAll().get(0);
         given()
                 .when()
@@ -210,7 +211,7 @@ class RoleControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getRole() {
+    void getRole() throws IOException {
         Role role = roleRepository.findAll().get(0);
         given()
                 .when()
@@ -225,7 +226,7 @@ class RoleControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getRoleNotAllowed() {
+    void getRoleNotAllowed() throws IOException {
         Role role = roleRepository.findAll().get(0);
         given()
                 .when()

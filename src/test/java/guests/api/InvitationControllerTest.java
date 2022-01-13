@@ -1,11 +1,13 @@
 package guests.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.AbstractTest;
 import guests.domain.*;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -16,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class InvitationControllerTest extends AbstractTest {
 
     @Test
-    void get() {
+    void get() throws IOException {
         Invitation invitation = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -33,7 +35,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void getExistingUser() {
+    void getExistingUser() throws IOException {
         Map<String, Object> invitation = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -49,7 +51,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void getById() {
+    void getById() throws IOException {
         Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
         Invitation invitation = given()
                 .when()
@@ -67,7 +69,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void getByIdNotAllowed() {
+    void getByIdNotAllowed() throws IOException {
         Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
         given()
                 .when()
@@ -81,7 +83,7 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByInstitution() {
+    void allByInstitution() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Invitation> invitations = given()
                 .when()
@@ -117,7 +119,7 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void allByInstitutionNotAllowed() {
+    void allByInstitutionNotAllowed() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://uva").get();
         given()
                 .when()
@@ -130,7 +132,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void post() {
+    void post() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("hash", INVITATION_HASH);
         invitation.put("status", Status.ACCEPTED);
@@ -154,7 +156,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void postEmailInequality() {
+    void postEmailInequality() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("hash", INVITATION_EMAIL_EQUALITY_HASH);
         invitation.put("status", Status.ACCEPTED);
@@ -171,7 +173,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void postExistingUser() {
+    void postExistingUser() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("hash", INVITATION_HASH);
         invitation.put("status", Status.ACCEPTED);
@@ -199,7 +201,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void postExistingUserNoDuplicateRoles() {
+    void postExistingUserNoDuplicateRoles() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("hash", INVITATION_HASH);
         invitation.put("status", Status.ACCEPTED);
@@ -221,7 +223,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void postExistingUserNewMembership() {
+    void postExistingUserNewMembership() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("hash", INVITATION_HASH);
         invitation.put("status", Status.ACCEPTED);
@@ -246,7 +248,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void put() {
+    void put() throws IOException {
         Role role = roleRepository.findAll().get(0);
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         Instant after90days = Instant.now().plus(90, ChronoUnit.DAYS);
@@ -286,7 +288,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void putNotAllowedAuthority() {
+    void putNotAllowedAuthority() throws IOException {
         Role role = roleRepository.findAll().get(0);
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         Invitation invitation = new Invitation(Authority.INVITER,
@@ -311,7 +313,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteNotAllowed() {
+    void deleteNotAllowed() throws IOException {
         Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
         given()
                 .when()
@@ -325,7 +327,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void delete() {
+    void delete() throws IOException {
         Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
         given()
                 .when()
@@ -339,7 +341,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendNotAllowed() {
+    void resendNotAllowed() throws IOException {
         Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("id", id);
@@ -357,7 +359,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendAllowedInvitationIsForGuest() {
+    void resendAllowedInvitationIsForGuest() throws IOException {
         Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
         invitation.setIntendedAuthority(Authority.GUEST);
         invitationRepository.save(invitation);
@@ -386,7 +388,7 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteAllowedByInviterGuestInvitation() {
+    void deleteAllowedByInviterGuestInvitation() throws IOException {
         Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
         invitation.setIntendedAuthority(Authority.GUEST);
         invitationRepository.save(invitation);

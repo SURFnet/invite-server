@@ -11,6 +11,7 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SCIMFailureControllerTest extends AbstractTest {
 
     @Test
-    void failures() {
+    void failures() throws IOException {
         Institution institution = seedSCIMFailure().getApplication().getInstitution();
         List<Map> results = given()
                 .when()
@@ -42,7 +43,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void failureCount() {
+    void failureCount() throws IOException {
         Institution institution = seedSCIMFailure().getApplication().getInstitution();
         Map results = given()
                 .when()
@@ -59,7 +60,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void failureById() {
+    void failureById() throws IOException {
         SCIMFailure scimFailure = seedSCIMFailure();
         Institution institution = scimFailure.getApplication().getInstitution();
         Map results = given()
@@ -78,7 +79,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void failureByIdNotAllowed() {
+    void failureByIdNotAllowed() throws IOException {
         SCIMFailure scimFailure = seedSCIMFailure();
         Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
         given()
@@ -93,7 +94,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void failureByIdSuperAdminAllowed() {
+    void failureByIdSuperAdminAllowed() throws IOException {
         SCIMFailure scimFailure = seedSCIMFailure();
         Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
         given()
@@ -108,7 +109,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteFailure() {
+    void deleteFailure() throws IOException {
         SCIMFailure scimFailure = seedSCIMFailure();
         Institution institution = scimFailure.getApplication().getInstitution();
         given()
@@ -124,7 +125,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureCreateUser() throws JsonProcessingException {
+    void resendSCIMFailureCreateUser() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         UserRole userRole = user.getRoles().iterator().next();
 
@@ -151,7 +152,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureUpdateUser() throws JsonProcessingException {
+    void resendSCIMFailureUpdateUser() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         UserRole userRole = user.getRoles().iterator().next();
         SCIMFailure scimFailure = new SCIMFailure(
@@ -170,7 +171,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureDeleteUser() throws JsonProcessingException {
+    void resendSCIMFailureDeleteUser() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         UserRole userRole = user.getRoles().iterator().next();
         SCIMFailure scimFailure = new SCIMFailure(
@@ -189,7 +190,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureCreateUserEndpointDown() throws JsonProcessingException {
+    void resendSCIMFailureCreateUserEndpointDown() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         UserRole userRole = user.getRoles().iterator().next();
 
@@ -218,7 +219,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureCreateRole() throws JsonProcessingException {
+    void resendSCIMFailureCreateRole() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         Role role = user.getRoles().iterator().next().getRole();
         assertNotNull(role.getServiceProviderId());
@@ -246,7 +247,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureUpdateRole() throws JsonProcessingException {
+    void resendSCIMFailureUpdateRole() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         UserRole userRole = user.getRoles().iterator().next();
         Role role = userRole.getRole();
@@ -272,7 +273,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureDeleteRole() throws JsonProcessingException {
+    void resendSCIMFailureDeleteRole() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         UserRole userRole = user.getRoles().iterator().next();
         Role role = userRole.getRole();
@@ -295,7 +296,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureUnknownUserHttpMethod() {
+    void resendSCIMFailureUnknownUserHttpMethod() throws IOException {
         SCIMFailure scimFailure = new SCIMFailure(
                 null,
                 USER_API,
@@ -309,7 +310,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureUnknownGroupHttpMethod() {
+    void resendSCIMFailureUnknownGroupHttpMethod() throws IOException {
         SCIMFailure scimFailure = new SCIMFailure(
                 null,
                 GROUP_API,
@@ -323,7 +324,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     }
 
     @Test
-    void resendSCIMFailureUnknownApi() {
+    void resendSCIMFailureUnknownApi() throws IOException {
         SCIMFailure scimFailure = new SCIMFailure(
                 null,
                 "nope",
@@ -343,7 +344,7 @@ class SCIMFailureControllerTest extends AbstractTest {
         return scimFailureRepository.save(scimFailure);
     }
 
-    private void doResendSCIMFailure(SCIMFailure scimFailure, String eppn, boolean success) {
+    private void doResendSCIMFailure(SCIMFailure scimFailure, String eppn, boolean success) throws IOException {
         Institution institution = scimFailure.getApplication().getInstitution();
         given()
                 .when()

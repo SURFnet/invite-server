@@ -1,5 +1,6 @@
 package guests.security;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.AbstractTest;
 import guests.domain.User;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,7 @@ class ResourceCleanerTest extends AbstractTest {
     private ResourceCleaner subject;
 
     @Test
-    void cleanUsers() {
+    void cleanUsers() throws JsonProcessingException {
         long beforeUsers = userRepository.count();
         markUser();
         stubForDeleteUser();
@@ -26,7 +27,7 @@ class ResourceCleanerTest extends AbstractTest {
     }
 
     @Test
-    void cleanUserRoles() {
+    void cleanUserRoles() throws JsonProcessingException {
         long beforeUserRoles = userRoleRepository.count();
         markUserRole();
         stubForUpdateRole();

@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class InvitationMailControllerTest extends AbstractMailTest {
 
     @Test
-    void resend() {
+    void resend() throws Exception {
         Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("id", id);

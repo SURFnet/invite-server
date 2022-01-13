@@ -15,7 +15,7 @@ class MailBoxTest extends AbstractMailTest {
     private MailBox mailBox;
 
     @Test
-    void sendInvitation() {
+    void sendInvitation() throws Exception {
         User user = super.user();
         Institution institution = getInstitution(user);
         Invitation invitation = new Invitation();

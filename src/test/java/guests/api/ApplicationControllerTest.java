@@ -5,8 +5,10 @@ import guests.domain.Application;
 import guests.domain.ApplicationExists;
 import guests.domain.Institution;
 import io.restassured.http.ContentType;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationById() {
+    void applicationById() throws IOException {
         Long id = applicationRepository.findByEntityIdIgnoreCase("blackboard").get().getId();
         Application application = given()
                 .when()
@@ -37,7 +39,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationByIdNotAllowed() {
+    void applicationByIdNotAllowed() throws IOException {
         Long id = applicationRepository.findByEntityIdIgnoreCase("blackboard").get().getId();
         given()
                 .when()
@@ -50,7 +52,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationsInvalidToken() {
+    void applicationsInvalidToken() throws IOException {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -100,7 +102,7 @@ class ApplicationControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteApplication() {
+    void deleteApplication() throws IOException {
         Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
         given()
                 .when()
@@ -114,7 +116,7 @@ class ApplicationControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteApplicationNotAllowed() {
+    void deleteApplicationNotAllowed() throws IOException {
         //Institution admin of other institution
         Application application = applicationRepository.findByEntityIdIgnoreCase("blackboard").get();
         given()
@@ -127,7 +129,7 @@ class ApplicationControllerTest extends AbstractTest {
     }
 
     @Test
-    void deleteApplicationNotAllowedByInviter() {
+    void deleteApplicationNotAllowedByInviter() throws IOException {
         Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
         given()
                 .when()
@@ -138,6 +140,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .statusCode(403);
     }
 
+    @SneakyThrows
     @Test
     @SuppressWarnings("unchecked")
     void applicationsForUser() {
@@ -157,7 +160,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationsFoInstitution() {
+    void applicationsFoInstitution() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Application> results = given()
                 .when()
@@ -176,7 +179,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void existingApplicationEntityIdNotExists() {
+    void existingApplicationEntityIdNotExists() throws IOException {
         Application application = applicationRepository.findByEntityIdIgnoreCase("blackboard").get();
         given()
                 .when()
@@ -191,7 +194,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationEntityIdNotExists() {
+    void applicationEntityIdNotExists() throws IOException {
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -205,7 +208,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void applicationEntityIdExists() {
+    void applicationEntityIdExists() throws IOException {
         Application application = applicationRepository.findByEntityIdIgnoreCase("blackboard").get();
         given()
                 .when()
