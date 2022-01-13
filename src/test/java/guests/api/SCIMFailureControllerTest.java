@@ -226,7 +226,7 @@ class SCIMFailureControllerTest extends AbstractTest {
         String externalId = GroupURN.urnFromRole("groupUrnPrefix", role);
 
         SCIMFailure scimFailure = new SCIMFailure(
-                objectMapper.writeValueAsString(new GroupRequest(externalId, role.getName(), emptyList())),
+                objectMapper.writeValueAsString(new GroupRequest(externalId, role.getName())),
                 GROUP_API,
                 HttpMethod.POST.name(),
                 "http://localhost:8081/scim/v1/groups",
@@ -257,7 +257,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .map(u -> new Member(userRole.getServiceProviderId(), true))
                 .collect(Collectors.toList());
         SCIMFailure scimFailure = new SCIMFailure(
-                objectMapper.writeValueAsString(new GroupRequest(externalId, role.getName(), members)),
+                objectMapper.writeValueAsString(new GroupRequest(externalId, role, role.getName(),  members)),
                 GROUP_API,
                 HttpMethod.PATCH.name(),
                 "http://localhost:8081/scim/v1/groups",
@@ -280,7 +280,7 @@ class SCIMFailureControllerTest extends AbstractTest {
         String externalId = GroupURN.urnFromRole("groupUrnPrefix", role);
 
         SCIMFailure scimFailure = new SCIMFailure(
-                objectMapper.writeValueAsString(new GroupRequest(externalId, role.getName(), emptyList())),
+                objectMapper.writeValueAsString(new GroupRequest(externalId, role, role.getName(), emptyList())),
                 GROUP_API,
                 HttpMethod.DELETE.name(),
                 "http://localhost:8081/scim/v1/groups",

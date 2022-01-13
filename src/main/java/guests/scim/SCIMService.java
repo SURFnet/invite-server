@@ -106,7 +106,7 @@ public class SCIMService {
     public void newRoleRequest(Role role) {
         if (role.getApplication().provisioningEnabled()) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            String groupRequest = prettyJson(new GroupRequest(externalId, role.getName(), Collections.emptyList()));
+            String groupRequest = prettyJson(new GroupRequest(externalId, role.getName()));
             this.newRequest(role.getApplication(), groupRequest, GROUP_API, role);
         }
     }
@@ -122,7 +122,7 @@ public class SCIMService {
             if (CollectionUtils.isEmpty(members)) {
                 return;
             }
-            String groupRequest = prettyJson(new GroupRequest(externalId, role.getName(), members));
+            String groupRequest = prettyJson(new GroupRequest(externalId, role, role.getName(), members));
             this.updateRequest(role.getApplication(), groupRequest, GROUP_API, role);
         }
     }
@@ -130,7 +130,7 @@ public class SCIMService {
     public void deleteRolesRequest(Role role) {
         if (role.getApplication().provisioningEnabled()) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            String groupRequest = prettyJson(new GroupRequest(externalId, role.getName(), Collections.emptyList()));
+            String groupRequest = prettyJson(new GroupRequest(externalId, role, role.getName(), Collections.emptyList()));
             this.deleteRequest(role.getApplication(), groupRequest, GROUP_API, role);
         }
     }
