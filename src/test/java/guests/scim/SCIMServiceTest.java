@@ -36,6 +36,7 @@ class SCIMServiceTest extends AbstractMailTest {
         String htmlContent = parser.getHtmlContent();
 
         assertTrue(htmlContent.contains(user.getEmail()));
+        assertNoSCIMFailures();
     }
 
     @Test
@@ -62,6 +63,7 @@ class SCIMServiceTest extends AbstractMailTest {
         String htmlContent = parser.getHtmlContent();
 
         assertTrue(htmlContent.contains(serviceProviderId));
+        assertNoSCIMFailures();
     }
 
     @Test
@@ -90,6 +92,7 @@ class SCIMServiceTest extends AbstractMailTest {
         String htmlContent = parser.getHtmlContent();
 
         assertTrue(htmlContent.contains(serviceProviderId));
+        assertNoSCIMFailures();
     }
 
     @Test
@@ -98,6 +101,18 @@ class SCIMServiceTest extends AbstractMailTest {
         assertNoSCIMFailures();
     }
 
+    @Test
+    void newRoleRequestEmailProvisioning() {
+        User user = this.seedUserWithEmailProvisioning();
+        Application application = user.getRoles().iterator().next().getRole().getApplication();
+        scimService.newRoleRequest(new Role("xyz", application));
+
+        MimeMessageParser parser = mailMessage();
+        String htmlContent = parser.getHtmlContent();
+
+        assertTrue(htmlContent.contains("xyz"));
+        assertNoSCIMFailures();
+    }
 
     @Test
     void updateRoleRequestWithNoServiceProviderId() {
@@ -206,7 +221,6 @@ class SCIMServiceTest extends AbstractMailTest {
         String htmlContent = parser.getHtmlContent();
 
         assertTrue(htmlContent.contains(serviceProviderId));
-
     }
 
     private void assertNoSCIMFailures() {

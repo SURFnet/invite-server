@@ -81,7 +81,14 @@ public class SCIMService {
         String userRequest = prettyJson(new UserRequest(user));
         getApplicationsFromUserRoles(user).forEach(application -> {
             UserRole userRole = userRoles(user, application);
-            this.newRequest(application, userRequest, USER_API, userRole);
+            if (hasEmailHook(application)) {
+                userRole.setServiceProviderId(UUID.randomUUID().toString());
+                String mailUserRequest = prettyJson(new UserRequest(user, userRole));
+                this.newRequest(application, mailUserRequest, USER_API, userRole);
+            } else {
+                this.newRequest(application, userRequest, USER_API, userRole);
+            }
+
         });
     }
 
@@ -104,10 +111,16 @@ public class SCIMService {
     }
 
     public void newRoleRequest(Role role) {
-        if (role.getApplication().provisioningEnabled()) {
+        Application application = role.getApplication();
+        if (application.provisioningEnabled()) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            String groupRequest = prettyJson(new GroupRequest(externalId, role.getName()));
-            this.newRequest(role.getApplication(), groupRequest, GROUP_API, role);
+            if (hasEmailHook(application)) {
+                role.setServiceProviderId(UUID.randomUUID().toString());
+            }
+            GroupRequest groupRequest = hasEmailHook(application) ?
+                    new GroupRequest(externalId, role, role.getName(), Collections.emptyList()) :
+                    new GroupRequest(externalId, role.getName());
+            this.newRequest(application, prettyJson(groupRequest), GROUP_API, role);
         }
     }
 
@@ -116,7 +129,7 @@ public class SCIMService {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
             boolean hasHookUrl = StringUtils.hasText(role.getApplication().getProvisioningHookUrl());
             List<Member> members = users.stream()
-                    .map(user -> this.serviceProviderId(user, role, externalId))
+                    .map(user -> this.serviceProviderId(user, role))
                     .filter(member -> !hasHookUrl || member.isFromExternalServiceProvider())
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(members)) {
@@ -266,14 +279,14 @@ public class SCIMService {
         }
     }
 
-    private Member serviceProviderId(User user, Role role, String externalId) {
+    private Member serviceProviderId(User user, Role role) {
         UserRole userRole = user.getRoles().stream()
                 .filter(r -> r.getRole().getId().equals(role.getId()))
                 .findFirst().orElseThrow(NotFoundException::new);
         String serviceProviderId = userRole.getServiceProviderId();
         //When email provisioning is used, we don't have an serviceProviderId
         boolean fromExternalServiceProvider = StringUtils.hasText(serviceProviderId);
-        return new Member(fromExternalServiceProvider ? serviceProviderId : externalId, fromExternalServiceProvider);
+        return new Member(fromExternalServiceProvider ? serviceProviderId : userRole.getServiceProviderId(), fromExternalServiceProvider);
     }
 
     private boolean hasEmailHook(Application application) {
