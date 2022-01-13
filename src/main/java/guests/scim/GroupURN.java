@@ -5,6 +5,9 @@ import guests.domain.Role;
 
 public class GroupURN {
 
+    private GroupURN() {
+    }
+
     public static String urnFromRole(String groupUrnPrefix, Role role) {
         Application application = role.getApplication();
         return String.format("%s:%s:%s:%s",

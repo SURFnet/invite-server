@@ -8,7 +8,7 @@ class HashGeneratorTest {
 
     @Test
     void generateHash() {
-        String hash = new HashGenerator().generateHash();
+        String hash = HashGenerator.generateHash();
         assertTrue(hash.length() > 128);
     }
 }

@@ -13,13 +13,12 @@ class SharedTest {
 
     @Test
     void verifyAuthority() {
-        Shared shared = new Shared();
         User user = new User();
         Institution institution = new Institution();
         institution.setId(1L);
         user.addMembership(new InstitutionMembership(Authority.GUEST, institution));
-        assertThrows(UserRestrictionException.class, () -> shared.verifyAuthority(user, institution.getId(), Authority.INVITER));
+        assertThrows(UserRestrictionException.class, () -> Shared.verifyAuthority(user, institution.getId(), Authority.INVITER));
 
-        shared.verifyAuthority(user, institution.getId(), Authority.GUEST);
+        Shared.verifyAuthority(user, institution.getId(), Authority.GUEST);
     }
 }

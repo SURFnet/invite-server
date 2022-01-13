@@ -12,6 +12,9 @@ public class HashGenerator {
 
     private static final Random secureRandom = new SecureRandom();
 
+    private HashGenerator() {
+    }
+
     @SneakyThrows
     public static String generateHash() {
         byte[] aesKey = new byte[128];

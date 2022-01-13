@@ -4,6 +4,9 @@ public class ThreadLocalSCIMFailureStrategy {
 
     private static final ThreadLocal<Boolean> contextHolder = new ThreadLocal<>();
 
+    private ThreadLocalSCIMFailureStrategy() {
+    }
+
     public static Boolean ignoreFailures() {
         return contextHolder.get() != null;
     }

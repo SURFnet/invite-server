@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
 
 public class Shared {
 
+    private Shared() {
+    }
+
     public static <V> ResponseEntity<Map<String, Boolean>> doesExists(@RequestBody ObjectExists objectExists, Optional<V> optional) {
         Boolean exists = optional.map(institution -> !objectExists.isExistingObject()).orElse(false);
         return ResponseEntity.ok(Collections.singletonMap("exists", exists));
