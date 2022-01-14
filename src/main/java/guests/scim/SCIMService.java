@@ -215,9 +215,11 @@ public class SCIMService {
     @SneakyThrows
     private void newRequest(Application application, String request, String apiType, ServiceProviderIdentifier serviceProviderIdentifier) {
         if (hasEmailHook(application)) {
+            LOG.info(String.format("Send SCIM create request to %s", application.getProvisioningHookEmail()));
             mailBox.sendProvisioningMail(String.format("SCIM %s: CREATE", apiType), request, application.getProvisioningHookEmail());
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.empty());
+            LOG.info(String.format("Send SCIM create request to %s", uri.toString()));
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.POST, uri);
             Optional<Map<String, Object>> results = doExchange(requestEntity, apiType, serviceProviderIdentifier, mapParameterizedTypeReference, application);
             results.ifPresent(map -> {
@@ -230,9 +232,11 @@ public class SCIMService {
     @SneakyThrows
     private void updateRequest(Application application, String request, String apiType, ServiceProviderIdentifier serviceProviderIdentifier) {
         if (hasEmailHook(application)) {
+            LOG.info(String.format("Send SCIM update request to %s", application.getProvisioningHookEmail()));
             mailBox.sendProvisioningMail(String.format("SCIM %s: UPDATE", apiType), request, application.getProvisioningHookEmail());
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
+            LOG.info(String.format("Send SCIM update request to %s", uri.toString()));
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.PATCH, uri);
             doExchange(requestEntity, apiType, serviceProviderIdentifier, mapParameterizedTypeReference, application);
         }
@@ -241,9 +245,11 @@ public class SCIMService {
     @SneakyThrows
     private void deleteRequest(Application application, String request, String apiType, ServiceProviderIdentifier serviceProviderIdentifier) {
         if (hasEmailHook(application)) {
+            LOG.info(String.format("Send SCIM remove request to %s", application.getProvisioningHookEmail()));
             mailBox.sendProvisioningMail(String.format("SCIM %s: DELETE", apiType), request, application.getProvisioningHookEmail());
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
+            LOG.info(String.format("Send SCIM remove request to %s", uri.toString()));
             HttpHeaders headers = new HttpHeaders();
             headers.setBasicAuth(application.getProvisioningHookUsername(), application.getProvisioningHookPassword());
             RequestEntity<String> requestEntity = new RequestEntity<>(request, headers, HttpMethod.DELETE, uri);
