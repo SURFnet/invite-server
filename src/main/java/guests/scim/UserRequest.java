@@ -2,10 +2,7 @@ package guests.scim;
 
 import guests.domain.ServiceProviderIdentifier;
 import guests.domain.User;
-import guests.domain.UserRole;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Collections;

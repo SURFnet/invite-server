@@ -1,6 +1,7 @@
 package guests.api;
 
-import guests.domain.*;
+import guests.domain.Application;
+import guests.domain.User;
 import guests.exception.NotFoundException;
 import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;

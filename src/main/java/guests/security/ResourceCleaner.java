@@ -1,11 +1,8 @@
 package guests.security;
 
 
-import guests.domain.Application;
-import guests.domain.Role;
 import guests.domain.User;
 import guests.domain.UserRole;
-import guests.exception.NotFoundException;
 import guests.repository.UserRepository;
 import guests.repository.UserRoleRepository;
 import guests.scim.SCIMService;
@@ -19,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.Period;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
