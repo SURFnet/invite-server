@@ -11,6 +11,10 @@ import org.springframework.test.context.ActiveProfiles;
 
 import javax.mail.internet.MimeMessage;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static org.awaitility.Awaitility.await;
 
 
@@ -38,5 +42,17 @@ class AbstractMailTest extends AbstractTest {
         MimeMessage mimeMessage = greenMail.getReceivedMessages()[0];
         MimeMessageParser parser = new MimeMessageParser(mimeMessage);
         return parser.parse();
+    }
+
+    protected List<MimeMessageParser> allMailMessages(int expectedLength) throws Exception {
+        await().until(() -> greenMail.getReceivedMessages().length == expectedLength);
+        MimeMessage[] receivedMessages = greenMail.getReceivedMessages();
+        return Stream.of(receivedMessages).map(mimeMessage -> {
+            try {
+                return new MimeMessageParser(mimeMessage).parse();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
     }
 }

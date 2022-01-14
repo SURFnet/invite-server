@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @AllArgsConstructor
-public class ServiceProviderIdentifierReference implements ServiceProviderIdentifier {
+public class ServiceProviderIdentifierRef implements ServiceProviderIdentifier {
 
     private final String serviceProviderId;
 

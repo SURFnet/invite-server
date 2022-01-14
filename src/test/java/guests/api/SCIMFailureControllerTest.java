@@ -254,8 +254,8 @@ class SCIMFailureControllerTest extends AbstractTest {
 
         String externalId = GroupURN.urnFromRole("groupUrnPrefix", role);
 
-        List<Member> members = userRepository.findByRoles_role_id(role.getId()).stream()
-                .map(u -> new Member(userRole.getServiceProviderId(), true))
+        List<Member> members = userRoleRepository.findByRoleId(role.getId()).stream()
+                .map(u -> new Member(userRole.getServiceProviderId()))
                 .collect(Collectors.toList());
         SCIMFailure scimFailure = new SCIMFailure(
                 objectMapper.writeValueAsString(new GroupRequest(externalId, role, role.getName(),  members)),

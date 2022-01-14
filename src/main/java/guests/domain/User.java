@@ -2,6 +2,7 @@ package guests.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import guests.exception.NotFoundException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,10 +12,8 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity(name = "users")
 @NoArgsConstructor
@@ -140,6 +139,25 @@ public class User implements Serializable {
                 aup.getInstitution().getId().equals(institution.getId()) &&
                         aup.getVersion().equals(institution.getAupVersion()));
 
+    }
+
+    @JsonIgnore
+    private Application findApplication(Long id) {
+        return roles.stream().map(userRole -> userRole.getRole().getApplication())
+                .filter(application -> application.getId().equals(id))
+                .findFirst()
+                .orElseThrow(NotFoundException::new);
+    }
+
+    @JsonIgnore
+    public Map<Application, List<UserRole>> userRolesPerApplication() {
+        Map<Long, List<UserRole>> userRolesPerApplicationId = getRoles().stream()
+                .collect(Collectors.groupingBy(
+                        userRole -> userRole.getRole().getApplication().getId(),
+                        Collectors.mapping(userRole -> userRole, Collectors.toList()))
+                );
+        return userRolesPerApplicationId.entrySet().stream()
+                .collect(Collectors.toMap(entry -> findApplication(entry.getKey()), entry -> entry.getValue()));
     }
 
     private String toScimString() {

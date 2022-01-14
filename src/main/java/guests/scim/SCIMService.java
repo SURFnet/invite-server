@@ -9,6 +9,7 @@ import guests.mail.MailBox;
 import guests.repository.RoleRepository;
 import guests.repository.SCIMFailureRepository;
 import guests.repository.UserRepository;
+import guests.repository.UserRoleRepository;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import org.apache.commons.logging.Log;
@@ -22,7 +23,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -51,6 +51,7 @@ public class SCIMService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final SCIMFailureRepository scimFailureRepository;
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
     private final ObjectMapper objectMapper;
     private final MailBox mailBox;
@@ -59,12 +60,14 @@ public class SCIMService {
     @Autowired
     public SCIMService(SCIMFailureRepository scimFailureRepository,
                        UserRepository userRepository,
+                       UserRoleRepository userRoleRepository,
                        RoleRepository roleRepository,
                        ObjectMapper objectMapper,
                        MailBox mailBox,
                        @Value("${voot.group_urn_domain}") String groupUrnDomain) {
         this.scimFailureRepository = scimFailureRepository;
         this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
         this.roleRepository = roleRepository;
         this.objectMapper = objectMapper;
         this.mailBox = mailBox;
@@ -78,24 +81,30 @@ public class SCIMService {
 
     @SneakyThrows
     public void newUserRequest(User user) {
-        String userRequest = prettyJson(new UserRequest(user));
-        getApplicationsFromUserRoles(user).forEach(application -> {
-            UserRole userRole = userRoles(user, application);
+        user.userRolesPerApplication().forEach((application, userRoles) -> {
+            /*
+             * Contract of userRolesPerApplication is that there is at least one UserRole
+             *
+             * All userRoles in the same application have the same serviceProviderID
+             */
+            UserRole userRole = userRoles.get(0);
             if (hasEmailHook(application)) {
-                userRole.setServiceProviderId(UUID.randomUUID().toString());
+                String serviceProviderID = UUID.randomUUID().toString();
+                userRoles.forEach(ur -> ur.setServiceProviderId(serviceProviderID));
                 String mailUserRequest = prettyJson(new UserRequest(user, userRole));
                 this.newRequest(application, mailUserRequest, USER_API, userRole);
             } else {
+                String userRequest = prettyJson(new UserRequest(user));
                 this.newRequest(application, userRequest, USER_API, userRole);
+                userRoles.forEach(ur -> ur.setServiceProviderId(userRole.getServiceProviderId()));
             }
-
         });
     }
 
     @SneakyThrows
     public void updateUserRequest(User user) {
-        getApplicationsFromUserRoles(user).forEach(application -> {
-            UserRole userRole = userRoles(user, application);
+        user.userRolesPerApplication().forEach((application, userRoles) -> {
+            UserRole userRole = userRoles.get(0);
             String userRequest = prettyJson(new UserRequest(user, userRole));
             this.updateRequest(application, userRequest, USER_API, userRole);
         });
@@ -103,8 +112,11 @@ public class SCIMService {
 
     @SneakyThrows
     public void deleteUserRequest(User user) {
-        getApplicationsFromUserRoles(user).forEach(application -> {
-            UserRole userRole = userRoles(user, application);
+        //First send update role requests
+        user.getRoles().forEach(userRole -> this.doUpdateRoleRequest(userRole.getRole(), user.getRoles()));
+
+        user.userRolesPerApplication().forEach((application, userRoles) -> {
+            UserRole userRole = userRoles.get(0);
             String userRequest = prettyJson(new UserRequest(user, userRole));
             this.deleteRequest(application, userRequest, USER_API, userRole);
         });
@@ -124,19 +136,34 @@ public class SCIMService {
         }
     }
 
-    public void updateRoleRequest(Role role, List<User> users) {
+    public void updateRoleRequest(Role role) {
+        doUpdateRoleRequest(role, Collections.emptyList());
+    }
+
+    private void doUpdateRoleRequest(Role role, Collection<UserRole> userRolesToBeDeleted) {
         if (role.getApplication().provisioningEnabled()) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            boolean hasHookUrl = StringUtils.hasText(role.getApplication().getProvisioningHookUrl());
-            List<Member> members = users.stream()
-                    .map(user -> this.serviceProviderId(user, role))
-                    .filter(member -> !hasHookUrl || member.isFromExternalServiceProvider())
+            Set<Long> userRoleIdentifiers = userRolesToBeDeleted.stream()
+                    .map(UserRole::getId)
+                    .collect(Collectors.toSet());
+            List<UserRole> userRoles = userRoleRepository
+                    .findByRoleId(role.getId())
+                    .stream()
+                    .filter(userRole -> !userRoleIdentifiers.contains(userRole.getId()))
                     .collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(members)) {
-                return;
+            Collection<Member> members = userRoles.stream()
+                    .map(userRole -> new Member(userRole.getServiceProviderId()))
+                    .collect(Collectors.toMap(
+                            Member::getValue,
+                            member -> member,
+                            (a1, a2) -> a1))
+                    .values();
+            String groupRequest = prettyJson(new GroupRequest(externalId, role, role.getName(), new ArrayList<>(members)));
+            if (StringUtils.hasText(role.getServiceProviderId())) {
+                this.updateRequest(role.getApplication(), groupRequest, GROUP_API, role);
+            } else {
+                this.newRoleRequest(role);
             }
-            String groupRequest = prettyJson(new GroupRequest(externalId, role, role.getName(), members));
-            this.updateRequest(role.getApplication(), groupRequest, GROUP_API, role);
         }
     }
 
@@ -164,7 +191,7 @@ public class SCIMService {
                             scimFailure.getApplication(),
                             scimFailure.getMessage(),
                             USER_API,
-                            new ServiceProviderIdentifierReference(scimFailure.getServiceProviderId()));
+                            new ServiceProviderIdentifierRef(scimFailure.getServiceProviderId()));
                     return Optional.empty();
                 }
                 default -> throw new IllegalArgumentException(String.format("Unknown HTTPmethod %s", scimFailure.getHttpMethod()));
@@ -185,8 +212,7 @@ public class SCIMService {
                 case PATCH -> {
                     Role role = roleRepository.findByServiceProviderId(scimFailure.getServiceProviderId())
                             .orElseThrow(NotFoundException::new);
-                    List<User> users = userRepository.findByRoles_role_id(role.getId());
-                    this.updateRoleRequest(role, users);
+                    this.updateRoleRequest(role);
                     return Optional.of(role);
                 }
                 case DELETE -> {
@@ -194,7 +220,7 @@ public class SCIMService {
                             scimFailure.getApplication(),
                             scimFailure.getMessage(),
                             GROUP_API,
-                            new ServiceProviderIdentifierReference(scimFailure.getServiceProviderId()));
+                            new ServiceProviderIdentifierRef(scimFailure.getServiceProviderId()));
                     return Optional.empty();
                 }
                 default -> throw new IllegalArgumentException(String.format("Unknown HTTPmethod %s", scimFailure.getHttpMethod()));
@@ -215,11 +241,9 @@ public class SCIMService {
     @SneakyThrows
     private void newRequest(Application application, String request, String apiType, ServiceProviderIdentifier serviceProviderIdentifier) {
         if (hasEmailHook(application)) {
-            LOG.info(String.format("Send SCIM create request to %s", application.getProvisioningHookEmail()));
             mailBox.sendProvisioningMail(String.format("SCIM %s: CREATE", apiType), request, application.getProvisioningHookEmail());
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.empty());
-            LOG.info(String.format("Send SCIM create request to %s", uri.toString()));
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.POST, uri);
             Optional<Map<String, Object>> results = doExchange(requestEntity, apiType, serviceProviderIdentifier, mapParameterizedTypeReference, application);
             results.ifPresent(map -> {
@@ -232,11 +256,9 @@ public class SCIMService {
     @SneakyThrows
     private void updateRequest(Application application, String request, String apiType, ServiceProviderIdentifier serviceProviderIdentifier) {
         if (hasEmailHook(application)) {
-            LOG.info(String.format("Send SCIM update request to %s", application.getProvisioningHookEmail()));
             mailBox.sendProvisioningMail(String.format("SCIM %s: UPDATE", apiType), request, application.getProvisioningHookEmail());
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
-            LOG.info(String.format("Send SCIM update request to %s", uri.toString()));
             RequestEntity<String> requestEntity = new RequestEntity<>(request, httpHeaders(application), HttpMethod.PATCH, uri);
             doExchange(requestEntity, apiType, serviceProviderIdentifier, mapParameterizedTypeReference, application);
         }
@@ -245,11 +267,9 @@ public class SCIMService {
     @SneakyThrows
     private void deleteRequest(Application application, String request, String apiType, ServiceProviderIdentifier serviceProviderIdentifier) {
         if (hasEmailHook(application)) {
-            LOG.info(String.format("Send SCIM remove request to %s", application.getProvisioningHookEmail()));
             mailBox.sendProvisioningMail(String.format("SCIM %s: DELETE", apiType), request, application.getProvisioningHookEmail());
         } else {
             URI uri = this.provisioningUri(application, apiType, Optional.of(serviceProviderIdentifier));
-            LOG.info(String.format("Send SCIM remove request to %s", uri.toString()));
             HttpHeaders headers = new HttpHeaders();
             headers.setBasicAuth(application.getProvisioningHookUsername(), application.getProvisioningHookPassword());
             RequestEntity<String> requestEntity = new RequestEntity<>(request, headers, HttpMethod.DELETE, uri);
@@ -263,6 +283,11 @@ public class SCIMService {
                                           ParameterizedTypeReference<T> typeReference,
                                           Application application) {
         try {
+            LOG.info(String.format("Send %s SCIM request to %s httpMethod %s and body %s",
+                    api,
+                    requestEntity.getUrl(),
+                    requestEntity.getMethod(),
+                    requestEntity.getBody()));
             return Optional.ofNullable(restTemplate.exchange(requestEntity, typeReference).getBody());
         } catch (RestClientException e) {
             LOG.error("Exception in SCIM exchange", e);
@@ -285,16 +310,6 @@ public class SCIMService {
         }
     }
 
-    private Member serviceProviderId(User user, Role role) {
-        UserRole userRole = user.getRoles().stream()
-                .filter(r -> r.getRole().getId().equals(role.getId()))
-                .findFirst().orElseThrow(NotFoundException::new);
-        String serviceProviderId = userRole.getServiceProviderId();
-        //When email provisioning is used, we don't have an serviceProviderId
-        boolean fromExternalServiceProvider = StringUtils.hasText(serviceProviderId);
-        return new Member(fromExternalServiceProvider ? serviceProviderId : userRole.getServiceProviderId(), fromExternalServiceProvider);
-    }
-
     private boolean hasEmailHook(Application application) {
         return StringUtils.hasText(application.getProvisioningHookEmail());
     }
@@ -305,25 +320,6 @@ public class SCIMService {
                 application.getProvisioningHookUrl(),
                 objectType,
                 postFix));
-    }
-
-    private Collection<Application> getApplicationsFromUserRoles(User user) {
-        //prevent duplicate provisioning of different roles to the same application
-        return user.getRoles().stream()
-                .map(userRole -> userRole.getRole().getApplication())
-                .filter(Application::provisioningEnabled)
-                .collect(Collectors.toMap(
-                        Application::getId,
-                        app -> app,
-                        (a1, a2) -> a1))
-                .values();
-    }
-
-    private UserRole userRoles(User user, Application application) {
-        return user.getRoles().stream()
-                .filter(userRole -> userRole.getRole().getApplication().getId().equals(application.getId()))
-                .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
     }
 
     @SneakyThrows

@@ -234,8 +234,10 @@ public abstract class AbstractTest {
         application = applicationRepository.save(application);
 
         Role role = new Role("administrator", application);
+        role = roleRepository.save(role);
+
         user.addUserRole(new UserRole(role, Instant.now().plus(Period.ofDays(365))));
-        return user;
+        return userRepository.save(user);
     }
 
 

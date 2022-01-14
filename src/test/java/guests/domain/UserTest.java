@@ -2,11 +2,13 @@ package guests.domain;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserTest {
 
@@ -48,7 +50,34 @@ class UserTest {
         other.setAupUrl("https://aup");
         other.setAupVersion(1);
         assertFalse(user.hasAgreedWithAup(other));
+    }
 
+    @Test
+    void userRolesPerApplication() {
+        User user = new User();
+        AtomicLong id = new AtomicLong();
+        List<Application> apps = Arrays.asList(
+                application("LMS", id, "Guests", "Admins"),
+                application("Blackboard", id, "Students"),
+                application("Canvas", id)
+        );
+        apps.forEach(app -> app.getRoles().forEach(role -> user.addUserRole(new UserRole(role, null))));
 
+        Map<Application, List<UserRole>> applicationListMap = user.userRolesPerApplication();
+        assertEquals(2, applicationListMap.size());
+        applicationListMap.forEach((app, userRoles) ->
+                assertEquals(app.getName().equals("LMS") ? 2 : 1, userRoles.size()));
+    }
+
+    private Application application(String name, AtomicLong id, String... roles) {
+        Application app = new Application();
+        app.setName(name);
+        app.setId(id.incrementAndGet());
+
+        Arrays.stream(roles).forEach(roleName -> {
+            app.addRole(new Role(id.incrementAndGet(), roleName));
+        });
+
+        return app;
     }
 }

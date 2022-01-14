@@ -1,9 +1,11 @@
 package guests.security;
 
 
+import guests.domain.Application;
 import guests.domain.Role;
 import guests.domain.User;
 import guests.domain.UserRole;
+import guests.exception.NotFoundException;
 import guests.repository.UserRepository;
 import guests.repository.UserRoleRepository;
 import guests.scim.SCIMService;
@@ -59,17 +61,14 @@ public class ResourceCleaner {
     private void cleanUsers() {
         Instant past = Instant.now().minus(Period.ofDays(lastActivityDurationDays));
         List<User> users = userRepository.findByLastActivityBefore(past);
-        users.forEach(scimService::deleteUserRequest);
-        userRepository.deleteAll(users);
 
         LOG.info(String.format("Deleted %s users with no activity in the last %s days: %s ",
                 users.size(),
                 lastActivityDurationDays,
                 users.stream().map(User::getEduPersonPrincipalName).collect(Collectors.toList())));
 
-        users.forEach(user -> {
-            this.updateScimGroups(user.getRoles());
-        });
+        users.forEach(scimService::deleteUserRequest);
+        userRepository.deleteAll(users);
     }
 
     private void cleanUserRoles() {
@@ -80,7 +79,11 @@ public class ResourceCleaner {
                 userRoles.stream()
                         .map(userRole -> String.format("%s - %s", userRole.getUser().getEduPersonPrincipalName(), userRole.getRole().getName()))
                         .collect(Collectors.toList())));
+
+        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole.getRole()));
+
         userRoles.forEach(userRole -> {
+            //This is required by Hibernate - children can't be de-referenced
             User user = userRole.getUser();
             Set<UserRole> newRoles = user.getRoles().stream().filter(ur -> !ur.getId().equals(userRole.getId())).collect(Collectors.toSet());
             user.getRoles().clear();
@@ -88,15 +91,7 @@ public class ResourceCleaner {
             userRepository.save(user);
         });
 
-        updateScimGroups(userRoles);
-    }
 
-    private void updateScimGroups(Collection<UserRole> userRoles) {
-        userRoles.forEach(userRole -> {
-            Role role = userRole.getRole();
-            List<User> usersWithRole = userRepository.findByRoles_role_id(role.getId());
-            scimService.updateRoleRequest(role, usersWithRole);
-        });
     }
 
 }

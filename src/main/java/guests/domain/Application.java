@@ -106,6 +106,12 @@ public class Application implements Serializable, NameHolder {
     }
 
     @JsonIgnore
+    public void addRole(Role role) {
+        this.roles.add(role);
+        role.setApplication(this);
+    }
+
+    @JsonIgnore
     public boolean provisioningEnabled() {
         return StringUtils.hasText(provisioningHookUrl) || StringUtils.hasText(provisioningHookEmail);
     }

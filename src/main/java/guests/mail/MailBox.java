@@ -6,6 +6,8 @@ import guests.domain.Invitation;
 import guests.domain.SCIMFailure;
 import guests.domain.User;
 import lombok.SneakyThrows;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
@@ -24,6 +26,8 @@ public class MailBox {
     private final String languageCode = "en";
     private final String scimFailureEmail;
     private final String environment;
+
+    private static final Log LOG = LogFactory.getLog(MailBox.class);
 
     private final MustacheFactory mustacheFactory = new DefaultMustacheFactory("templates");
 
@@ -52,6 +56,8 @@ public class MailBox {
     }
 
     public void sendProvisioningMail(String title, String userRequest, String email) {
+        LOG.info(String.format("Send email SCIM request %s %s to %s", title, userRequest, email));
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userRequest", userRequest);
         sendMail(String.format("scim_provisioning_%s.html", languageCode),

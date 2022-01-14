@@ -58,6 +58,11 @@ public class Role implements Serializable, NameHolder, ServiceProviderIdentifier
         this.application = application;
     }
 
+    public Role(Long id, String roleName) {
+        this.id = id;
+        this.name = roleName;
+    }
+
     @JsonProperty(value = "applicationName", access = JsonProperty.Access.READ_ONLY)
     public String getApplicationName() {
         try {

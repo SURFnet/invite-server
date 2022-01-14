@@ -10,12 +10,14 @@ import guests.mail.MailBox;
 import guests.repository.*;
 import guests.scim.SCIMService;
 import guests.validation.EmailFormatValidator;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -123,15 +125,13 @@ public class InvitationController {
                     }
                 });
         // This will assign the external ID to the userRoles
-        if (user.getId() == null) {
+        if (user.getId() == null || user.getRoles().stream().noneMatch(userRole -> StringUtils.hasText(userRole.getServiceProviderId()))) {
             scimService.newUserRequest(user);
         }
         newUser = userRepository.save(user);
 
-        newRoles.forEach(role -> {
-            List<User> users = userRepository.findByRoles_role_id(role.getId());
-            scimService.updateRoleRequest(role, users);
-        });
+        newRoles.forEach(scimService::updateRoleRequest);
+
         invitationRepository.delete(invitation);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
@@ -184,12 +184,7 @@ public class InvitationController {
 
     @PutMapping("/resend")
     public ResponseEntity<Map<String, Integer>> resend(User authenticatedUser, @RequestBody InvitationUpdate invitation) {
-
-        Invitation invitationFromDB = invitationRepository.findById(invitation.getId()).orElseThrow(NotFoundException::new);
-        Long institutionId = invitationFromDB.getInstitution().getId();
-
-        verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);
-        verifyInviterAuthority(authenticatedUser, invitationFromDB, institutionId);
+        Invitation invitationFromDB = getInvitationFromDB(authenticatedUser, invitation.getId());
 
         invitationFromDB.setMessage(invitation.getMessage());
         invitationFromDB.setExpiryDate(invitation.getExpiryDate());
@@ -199,16 +194,30 @@ public class InvitationController {
         return createdResponse();
     }
 
+    @PutMapping("/update-expiry-date")
+    public ResponseEntity<Map<String, Integer>> update(User authenticatedUser, @RequestBody InvitationUpdate invitation) {
+        Invitation invitationFromDB = getInvitationFromDB(authenticatedUser, invitation.getId());
+
+        invitationFromDB.setExpiryDate(invitation.getExpiryDate());
+        invitationRepository.save(invitationFromDB);
+        return createdResponse();
+    }
+
     @DeleteMapping("{id}")
     public ResponseEntity<Map<String, Integer>> deleteInvitation(User authenticatedUser, @PathVariable("id") Long id) {
-        Invitation invitation = invitationRepository.findById(id).orElseThrow(NotFoundException::new);
-        Long institutionId = invitation.getInstitution().getId();
-
-        verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);
-        verifyInviterAuthority(authenticatedUser, invitation, institutionId);
+        Invitation invitation = getInvitationFromDB(authenticatedUser, id);
 
         invitationRepository.delete(invitation);
         return createdResponse();
+    }
+
+    private Invitation getInvitationFromDB(User authenticatedUser, Long id) {
+        Invitation invitationFromDB = invitationRepository.findById(id).orElseThrow(NotFoundException::new);
+        Long institutionId = invitationFromDB.getInstitution().getId();
+
+        verifyAuthority(authenticatedUser, institutionId, Authority.INVITER);
+        verifyInviterAuthority(authenticatedUser, invitationFromDB, institutionId);
+        return invitationFromDB;
     }
 
     private void verifyInviterAuthority(User authenticatedUser, Invitation invitation, Long institutionId) {

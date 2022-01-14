@@ -388,6 +388,30 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
+    void updateInvitation() throws IOException {
+        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        Long id = invitation.getId();
+
+        InvitationUpdate invitationUpdate = new InvitationUpdate();
+        invitationUpdate.setId(id);
+        invitationUpdate.setExpiryDate(Instant.now().plus(14, ChronoUnit.DAYS));
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .body(invitationUpdate)
+                .put("/guests/api/invitations/update-expiry-date")
+                .then()
+                .statusCode(201);
+
+        invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        assertEquals(invitationUpdate.getExpiryDate().toString().substring(0, 10),
+                invitation.getExpiryDate().toString().substring(0, 10));
+    }
+
+    @Test
     void deleteAllowedByInviterGuestInvitation() throws IOException {
         Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
         invitation.setIntendedAuthority(Authority.GUEST);

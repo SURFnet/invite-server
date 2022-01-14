@@ -17,4 +17,7 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
 
     List<UserRole> findByEndDateBefore(Instant instant);
 
+    List<UserRole> findByRoleId(Long roleId);
+
+
 }

@@ -3,11 +3,11 @@ package guests.scim;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.AbstractMailTest;
 import guests.domain.*;
+import lombok.SneakyThrows;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -68,12 +68,14 @@ class SCIMServiceTest extends AbstractMailTest {
     }
 
     @Test
-    void deleteUserRequest() {
+    void deleteUserRequest() throws JsonProcessingException {
         User user = seedUser();
         String serviceProviderId = UUID.randomUUID().toString();
         UserRole userRole = user.getRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
+        userRole.getRole().setServiceProviderId(UUID.randomUUID().toString());
 
+        stubForUpdateRole();
         stubForDeleteUser();
 
         scimService.deleteUserRequest(user);
@@ -88,12 +90,17 @@ class SCIMServiceTest extends AbstractMailTest {
         userRole.setServiceProviderId(serviceProviderId);
 
         scimService.deleteUserRequest(user);
-
-        MimeMessageParser parser = mailMessage();
-        String htmlContent = parser.getHtmlContent();
-
-        assertTrue(htmlContent.contains(serviceProviderId));
         assertNoSCIMFailures();
+
+        List<MimeMessageParser> mimeMessageParsers = allMailMessages(2);
+        mimeMessageParsers.forEach(parser -> {
+            String htmlContent = parser.getHtmlContent();
+            if (htmlContent.contains("urn:ietf:params:scim:schemas:core:2.0:Group")) {
+                assertTrue(htmlContent.contains("members&quot; : [ ]"));
+            } else {
+                assertTrue(htmlContent.contains(serviceProviderId));
+            }
+        });
     }
 
     @Test
@@ -116,13 +123,13 @@ class SCIMServiceTest extends AbstractMailTest {
     }
 
     @Test
-    void updateRoleRequestWithNoServiceProviderId() {
+    void updateRoleRequestWithNoServiceProviderId() throws JsonProcessingException {
         User user = seedUser();
         UserRole userRole = user.getRoles().iterator().next();
         Role role = userRole.getRole();
-        role.setId(1L);
 
-        scimService.updateRoleRequest(role, Collections.singletonList(user));
+        stubForCreateRole();
+        scimService.updateRoleRequest(role);
         assertNoSCIMFailures();
 
     }
@@ -134,16 +141,16 @@ class SCIMServiceTest extends AbstractMailTest {
         String serviceProviderId = stubForUpdateRole();
         userRole.setServiceProviderId(serviceProviderId);
         Role role = userRole.getRole();
-        role.setId(1L);
+        role.setServiceProviderId(UUID.randomUUID().toString());
 
-        scimService.updateRoleRequest(role, Collections.singletonList(user));
+        scimService.updateRoleRequest(role);
         assertNoSCIMFailures();
 
     }
 
     @Test
     void updateRoleRequestNoProvisioning() {
-        scimService.updateRoleRequest(new Role("name", new Application()), Collections.emptyList());
+        scimService.updateRoleRequest(new Role("name", new Application()));
         assertNoSCIMFailures();
     }
 
@@ -169,7 +176,9 @@ class SCIMServiceTest extends AbstractMailTest {
         userRole.setServiceProviderId(serviceProviderId);
 
         scimService.deleteUserRequest(user);
-        assertSCIMFailure("http://localhost:8081/scim/v1/users/" + serviceProviderId);
+
+        List<SCIMFailure> failures = scimFailureRepository.findAll();
+        assertEquals(2, failures.size());
     }
 
     @Test
@@ -193,7 +202,7 @@ class SCIMServiceTest extends AbstractMailTest {
     }
 
     @Test
-    void updateRoleRequestFailure() {
+    void updateRoleRequestFailure() throws Exception {
         User user = seedUser();
         String serviceProviderId = UUID.randomUUID().toString();
         UserRole userRole = user.getRoles().iterator().next();
@@ -203,7 +212,7 @@ class SCIMServiceTest extends AbstractMailTest {
         role.setServiceProviderId(serviceProviderId);
         role.setId(1L);
 
-        scimService.updateRoleRequest(role, Collections.singletonList(user));
+        scimService.updateRoleRequest(role);
         assertSCIMFailure("http://localhost:8081/scim/v1/groups/" + serviceProviderId);
     }
 
@@ -217,17 +226,13 @@ class SCIMServiceTest extends AbstractMailTest {
 
         scimService.deleteRolesRequest(role);
         assertSCIMFailure("http://localhost:8081/scim/v1/groups/" + serviceProviderId);
-
-        MimeMessageParser parser = mailMessage();
-        String htmlContent = parser.getHtmlContent();
-
-        assertTrue(htmlContent.contains(serviceProviderId));
     }
 
     private void assertNoSCIMFailures() {
         assertEquals(0, scimFailureRepository.count());
     }
 
+    @SneakyThrows
     private void assertSCIMFailure(String uri) {
         List<SCIMFailure> failures = scimFailureRepository.findAll();
         assertEquals(1, failures.size());
@@ -235,6 +240,11 @@ class SCIMServiceTest extends AbstractMailTest {
         SCIMFailure scimFailure = failures.get(0);
         assertEquals(uri, scimFailure.getUri());
         assertNotNull(scimFailure.getCreatedAt());
+
+        MimeMessageParser parser = mailMessage();
+        String htmlContent = parser.getHtmlContent();
+
+        assertTrue(htmlContent.contains("SCIMFailure"));
     }
 
     private User seedUserWithEmailProvisioning() {

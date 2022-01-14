@@ -11,10 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static guests.api.Shared.*;
 
@@ -68,7 +66,7 @@ public class UserController {
 
     @DeleteMapping
     public ResponseEntity<Map<String, Integer>> delete(User user) {
-        doDeleteUserAndUpdateScim(user);
+        doDeleteUser(user);
         return createdResponse();
     }
 
@@ -76,18 +74,13 @@ public class UserController {
     public ResponseEntity<Map<String, Integer>> deleteOther(User authenticatedUser, @PathVariable("userId") Long userId) {
         User subject = userRepository.findById(userId).orElseThrow(NotFoundException::new);
         verifyAuthorityForSubject(authenticatedUser, subject);
-        doDeleteUserAndUpdateScim(subject);
+        doDeleteUser(subject);
         return createdResponse();
     }
 
-    private void doDeleteUserAndUpdateScim(User subject) {
-        userRepository.delete(subject);
+    private void doDeleteUser(User subject) {
         scimService.deleteUserRequest(subject);
-        Collection<Role> roles = subject.getRoles().stream().map(UserRole::getRole).collect(Collectors.toMap(Role::getId, role -> role)).values();
-        roles.forEach(role -> {
-            List<User> users = userRepository.findByRoles_role_id(role.getId());
-            scimService.updateRoleRequest(role, users);
-        });
+        userRepository.delete(subject);
     }
 
 }

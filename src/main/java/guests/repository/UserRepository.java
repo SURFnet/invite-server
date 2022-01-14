@@ -25,8 +25,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByRoles_role_application_id(Long applicationId);
 
-    List<User> findByRoles_role_id(Long roleId);
-
     List<User> findByLastActivityBefore(Instant instant);
 
     @Query(value = "select u.email, u.given_name, u.family_name from users u inner join institution_memberships m on m.user_id = u.id where m.institution_id = ?1 and m.authority = 'GUEST'",
