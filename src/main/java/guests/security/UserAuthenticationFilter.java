@@ -53,10 +53,7 @@ public class UserAuthenticationFilter extends GenericFilterBean {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
-        if (!(authentication instanceof BearerTokenAuthentication tokenAuthentication)) {
-            responseForbidden(servletResponse, authentication, requestURI);
-            return;
-        }
+        BearerTokenAuthentication tokenAuthentication = (BearerTokenAuthentication) authentication;
         String httpMethod = request.getMethod().toLowerCase();
         String edupersonPrincipalName = (String) tokenAuthentication.getTokenAttributes().get("eduperson_principal_name");
         Optional<User> optionalUser = userRepository.findByEduPersonPrincipalNameIgnoreCase(edupersonPrincipalName);

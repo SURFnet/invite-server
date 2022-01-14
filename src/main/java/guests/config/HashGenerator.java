@@ -15,7 +15,6 @@ public class HashGenerator {
     private HashGenerator() {
     }
 
-    @SneakyThrows
     public static String generateHash() {
         byte[] aesKey = new byte[128];
         secureRandom.nextBytes(aesKey);

@@ -35,6 +35,17 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void getWithoutToken() {
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .get("/guests/api/users/me")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void allByInstitution() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<User> users = given()
