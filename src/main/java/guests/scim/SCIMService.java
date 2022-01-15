@@ -50,6 +50,7 @@ public class SCIMService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final SCIMFailureRepository scimFailureRepository;
+
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;

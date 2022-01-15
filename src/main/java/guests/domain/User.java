@@ -152,12 +152,10 @@ public class User implements Serializable {
     @JsonIgnore
     public Map<Application, List<UserRole>> userRolesPerApplication() {
         Map<Long, List<UserRole>> userRolesPerApplicationId = getRoles().stream()
-                .collect(Collectors.groupingBy(
-                        userRole -> userRole.getRole().getApplication().getId(),
-                        Collectors.mapping(userRole -> userRole, Collectors.toList()))
-                );
+                .filter(userRole -> userRole.getRole() != null && userRole.getRole().getApplication() != null)
+                .collect(Collectors.groupingBy(userRole -> userRole.getRole().getApplication().getId()));
         return userRolesPerApplicationId.entrySet().stream()
-                .collect(Collectors.toMap(entry -> findApplication(entry.getKey()), entry -> entry.getValue()));
+                .collect(Collectors.toMap(entry -> findApplication(entry.getKey()), Map.Entry::getValue));
     }
 
     private String toScimString() {

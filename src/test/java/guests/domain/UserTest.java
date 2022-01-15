@@ -69,6 +69,15 @@ class UserTest {
                 assertEquals(app.getName().equals("LMS") ? 2 : 1, userRoles.size()));
     }
 
+    @Test
+    void userRolesPerApplicationEmpty() {
+        User user = new User();
+        user.addUserRole(new UserRole());
+        user.addUserRole(new UserRole(new Role(), null));
+        Map<Application, List<UserRole>> applicationListMap = user.userRolesPerApplication();
+        assertEquals(0, applicationListMap.size());
+    }
+
     private Application application(String name, AtomicLong id, String... roles) {
         Application app = new Application();
         app.setName(name);
