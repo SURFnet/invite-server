@@ -79,11 +79,8 @@ public class ResourceCleaner {
         userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole.getRole()));
 
         userRoles.forEach(userRole -> {
-            //This is required by Hibernate - children can't be de-referenced
             User user = userRole.getUser();
-            Set<UserRole> newRoles = user.getRoles().stream().filter(ur -> !ur.getId().equals(userRole.getId())).collect(Collectors.toSet());
-            user.getRoles().clear();
-            user.getRoles().addAll(newRoles);
+            user.removeUserRole(userRole);
             userRepository.save(user);
         });
 

@@ -19,8 +19,7 @@ import static org.awaitility.Awaitility.await;
 
 
 @ActiveProfiles(value = "prod", inheritProfiles = false)
-public
-class AbstractMailTest extends AbstractTest {
+public class AbstractMailTest extends AbstractTest {
 
     @RegisterExtension
     static GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP);

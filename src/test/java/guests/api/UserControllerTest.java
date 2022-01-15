@@ -1,10 +1,7 @@
 package guests.api;
 
 import guests.AbstractTest;
-import guests.domain.Application;
-import guests.domain.Authority;
-import guests.domain.Institution;
-import guests.domain.User;
+import guests.domain.*;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
@@ -236,5 +233,23 @@ class UserControllerTest extends AbstractTest {
         assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").isPresent());
     }
 
+    @Test
+    void deleteOtherUserRole() throws IOException {
+        super.stubForUpdateRole();
+        User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        UserRole userRole = admin.getRoles().iterator().next();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("userId", admin.getId())
+                .pathParam("userRoleId", userRole.getId())
+                .delete("/guests/api/users/{userId}/{userRoleId}")
+                .then()
+                .statusCode(201);
+
+        admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        assertEquals(0, admin.getRoles().size());
+    }
 
 }

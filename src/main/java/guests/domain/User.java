@@ -95,6 +95,14 @@ public class User implements Serializable {
     }
 
     @JsonIgnore
+    public void removeUserRole(UserRole role) {
+        //This is required by Hibernate - children can't be de-referenced
+        Set<UserRole> newRoles = roles.stream().filter(ur -> !ur.getId().equals(role.getId())).collect(Collectors.toSet());
+        roles.clear();
+        roles.addAll(newRoles);
+    }
+
+    @JsonIgnore
     public void addMembership(InstitutionMembership membership) {
         this.institutionMemberships.add(membership);
         membership.setUser(this);
