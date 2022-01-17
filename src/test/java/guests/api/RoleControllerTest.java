@@ -26,7 +26,7 @@ class RoleControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/roles/institution/{institutionId}")
+                .get("/api/v1/roles/institution/{institutionId}")
                 .then()
                 .extract()
                 .body()
@@ -44,7 +44,7 @@ class RoleControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("applicationId", application.getId())
-                .get("/guests/api/roles/application/{applicationId}")
+                .get("/api/v1/roles/application/{applicationId}")
                 .then()
                 .extract()
                 .body()
@@ -69,7 +69,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(roleMap)
-                .post("/guests/api/roles")
+                .post("/api/v1/roles")
                 .then()
                 .extract()
                 .body()
@@ -90,7 +90,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(roleMap)
-                .post("/guests/api/roles")
+                .post("/api/v1/roles")
                 .then()
                 .statusCode(403);
     }
@@ -107,7 +107,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(roleMap)
-                .post("/guests/api/roles")
+                .post("/api/v1/roles")
                 .then()
                 .statusCode(201);
         role = roleRepository.findById(role.getId()).get();
@@ -127,7 +127,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(roleMap)
-                .post("/guests/api/roles")
+                .post("/api/v1/roles")
                 .then()
                 .statusCode(404);
     }
@@ -142,7 +142,7 @@ class RoleControllerTest extends AbstractTest {
                 .when()
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("id", role.getId())
-                .delete("/guests/api/roles/{id}")
+                .delete("/api/v1/roles/{id}")
                 .then()
                 .statusCode(201);
         Optional<Role> optionalRole = roleRepository.findById(role.getId());
@@ -156,7 +156,7 @@ class RoleControllerTest extends AbstractTest {
                 .when()
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("id", role.getId())
-                .delete("/guests/api/roles/{id}")
+                .delete("/api/v1/roles/{id}")
                 .then()
                 .statusCode(403);
     }
@@ -172,7 +172,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new RoleExists(true, "administrator", application.getId()))
-                .post("/guests/api/roles/name-exists")
+                .post("/api/v1/roles/name-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(false));
     }
@@ -188,7 +188,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new RoleExists(false, "nope", application.getId()))
-                .post("/guests/api/roles/name-exists")
+                .post("/api/v1/roles/name-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(false));
     }
@@ -204,7 +204,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new RoleExists(false, "administratorCanvas", application.getId()))
-                .post("/guests/api/roles/name-exists")
+                .post("/api/v1/roles/name-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(true));
     }
@@ -219,7 +219,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("id", role.getId())
-                .get("/guests/api/roles/{id}")
+                .get("/api/v1/roles/{id}")
                 .then()
                 .body("name", IsEqual.equalTo(role.getName()));
     }
@@ -234,7 +234,7 @@ class RoleControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
                 .pathParam("id", role.getId())
-                .get("/guests/api/roles/{id}")
+                .get("/api/v1/roles/{id}")
                 .then()
                 .statusCode(403);
     }

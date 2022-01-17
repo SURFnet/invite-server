@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(value = "/guests/api/public", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/public", produces = MediaType.APPLICATION_JSON_VALUE)
 public class PublicController {
 
     private final String authorizationUrl;

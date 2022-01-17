@@ -49,7 +49,7 @@ public class UserAuthenticationFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String requestURI = request.getRequestURI();
-        if (requestURI.startsWith("/guests/api/public") || requestURI.startsWith("/guests/api/validations")) {
+        if (requestURI.startsWith("/api/v1/public") || requestURI.startsWith("/api/v1/validations")) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
@@ -74,7 +74,7 @@ public class UserAuthenticationFilter extends GenericFilterBean {
                 userRepository.save(user);
                 tokenAuthentication.setDetails(user);
                 filterChain.doFilter(servletRequest, servletResponse);
-            } else if (requestURI.startsWith("/guests/api/invitations") && (httpMethod.equals("post") || httpMethod.equals("get"))) {
+            } else if (requestURI.startsWith("/api/v1/invitations") && (httpMethod.equals("post") || httpMethod.equals("get"))) {
                 filterChain.doFilter(servletRequest, servletResponse);
             } else {
                 responseForbidden(servletResponse, authentication, requestURI);

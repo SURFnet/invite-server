@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toMap;
 
 @RestController
-@RequestMapping(value = "/guests/api/validations", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/validations", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class ValidationController {
 

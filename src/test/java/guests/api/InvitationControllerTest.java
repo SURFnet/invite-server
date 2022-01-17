@@ -23,7 +23,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("unknown@user.nl", "introspect.json"))
                 .pathParam("hash", INVITATION_UTRECHT_HASH)
-                .get("/guests/api/invitations/{hash}")
+                .get("/api/v1/invitations/{hash}")
                 .then()
                 .extract()
                 .body()
@@ -40,7 +40,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("hash", INVITATION_EMAIL_EQUALITY_HASH)
-                .get("/guests/api/invitations/{hash}")
+                .get("/api/v1/invitations/{hash}")
                 .then()
                 .extract()
                 .body()
@@ -57,7 +57,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("id", id)
-                .get("/guests/api/invitations/id/{id}")
+                .get("/api/v1/invitations/id/{id}")
                 .then()
                 .extract()
                 .body()
@@ -75,7 +75,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
                 .pathParam("id", id)
-                .get("/guests/api/invitations/id/{id}")
+                .get("/api/v1/invitations/id/{id}")
                 .then()
                 .statusCode(403);
     }
@@ -89,7 +89,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/invitations/institution/{institutionId}")
+                .get("/api/v1/invitations/institution/{institutionId}")
                 .then()
                 .extract()
                 .body()
@@ -107,7 +107,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("applicationId", application.getId())
-                .get("/guests/api/invitations/application/{applicationId}")
+                .get("/api/v1/invitations/application/{applicationId}")
                 .then()
                 .extract()
                 .body()
@@ -125,7 +125,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/invitations/institution/{institutionId}")
+                .get("/api/v1/invitations/institution/{institutionId}")
                 .then()
                 .statusCode(403);
     }
@@ -145,7 +145,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("new@user.nl", "introspect.json"))
                 .body(invitation)
-                .post("/guests/api/invitations")
+                .post("/api/v1/invitations")
                 .then()
                 .extract()
                 .body()
@@ -166,7 +166,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("new@user.nl", "introspect.json"))
                 .body(invitation)
-                .post("/guests/api/invitations")
+                .post("/api/v1/invitations")
                 .then()
                 .statusCode(HttpStatus.CONFLICT.value());
     }
@@ -189,7 +189,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitation)
-                .post("/guests/api/invitations")
+                .post("/api/v1/invitations")
                 .then()
                 .extract()
                 .body()
@@ -211,7 +211,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitation)
-                .post("/guests/api/invitations")
+                .post("/api/v1/invitations")
                 .then()
                 .extract()
                 .body()
@@ -236,7 +236,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitation)
-                .post("/guests/api/invitations")
+                .post("/api/v1/invitations")
                 .then()
                 .extract()
                 .body()
@@ -271,7 +271,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitationRequest)
-                .put("/guests/api/invitations")
+                .put("/api/v1/invitations")
                 .then()
                 .statusCode(201);
 
@@ -307,7 +307,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .body(invitationRequest)
-                .put("/guests/api/invitations")
+                .put("/api/v1/invitations")
                 .then()
                 .statusCode(403);
     }
@@ -320,7 +320,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("id", id)
-                .delete("/guests/api/invitations/{id}")
+                .delete("/api/v1/invitations/{id}")
                 .then()
                 .statusCode(403);
         assertTrue(invitationRepository.findById(id).isPresent());
@@ -334,7 +334,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("id", id)
-                .delete("/guests/api/invitations/{id}")
+                .delete("/api/v1/invitations/{id}")
                 .then()
                 .statusCode(201);
         assertFalse(invitationRepository.findById(id).isPresent());
@@ -353,7 +353,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .body(invitation)
-                .put("/guests/api/invitations/resend")
+                .put("/api/v1/invitations/resend")
                 .then()
                 .statusCode(403);
     }
@@ -376,7 +376,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .body(invitationUpdate)
-                .put("/guests/api/invitations/resend")
+                .put("/api/v1/invitations/resend")
                 .then()
                 .statusCode(201);
 
@@ -402,7 +402,7 @@ class InvitationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitationUpdate)
-                .put("/guests/api/invitations/update-expiry-date")
+                .put("/api/v1/invitations/update-expiry-date")
                 .then()
                 .statusCode(201);
 
@@ -423,7 +423,7 @@ class InvitationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("id", id)
-                .delete("/guests/api/invitations/{id}")
+                .delete("/api/v1/invitations/{id}")
                 .then()
                 .statusCode(201);
         assertFalse(invitationRepository.findById(id).isPresent());

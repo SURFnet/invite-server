@@ -24,7 +24,7 @@ class PublicControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .body(Collections.singletonMap("state", "http://localhost"))
-                .post("/guests/api/public/authorize")
+                .post("/api/v1/public/authorize")
                 .then()
                 .extract()
                 .body()

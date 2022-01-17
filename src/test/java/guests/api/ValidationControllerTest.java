@@ -17,7 +17,7 @@ class ValidationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .body(new Validation("email", "jdoe@example.com"))
-                .post("/guests/api/validations/validate")
+                .post("/api/v1/validations/validate")
                 .then()
                 .body("valid", equalTo(true));
     }
@@ -29,7 +29,7 @@ class ValidationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .body(new Validation("email", ""))
-                .post("/guests/api/validations/validate")
+                .post("/api/v1/validations/validate")
                 .then()
                 .body("valid", equalTo(true));
     }
@@ -41,7 +41,7 @@ class ValidationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .body(new Validation("email", "nope"))
-                .post("/guests/api/validations/validate")
+                .post("/api/v1/validations/validate")
                 .then()
                 .body("valid", equalTo(false));
     }
@@ -53,7 +53,7 @@ class ValidationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON).contentType(ContentType.JSON)
                 .body(new Validation("url", "https://example.com"))
-                .post("/guests/api/validations/validate")
+                .post("/api/v1/validations/validate")
                 .then()
                 .body("valid", equalTo(true));
     }
@@ -65,7 +65,7 @@ class ValidationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .body(new Validation("url", "nope"))
-                .post("/guests/api/validations/validate")
+                .post("/api/v1/validations/validate")
                 .then()
                 .body("valid", equalTo(false));
     }
@@ -77,7 +77,7 @@ class ValidationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .body(new Validation("url", null))
-                .post("/guests/api/validations/validate")
+                .post("/api/v1/validations/validate")
                 .then()
                 .body("valid", equalTo(true));
     }
@@ -89,7 +89,7 @@ class ValidationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .body(new Validation("nope", "value"))
-                .post("/guests/api/validations/validate")
+                .post("/api/v1/validations/validate")
                 .then()
                 .statusCode(500);
     }

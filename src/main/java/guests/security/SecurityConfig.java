@@ -61,7 +61,7 @@ public class SecurityConfig {
             http.cors().configurationSource(new OidcCorsConfigurationSource()).configure(http);
             http
                     .requestMatchers()
-                    .antMatchers("/guests/api/**")
+                    .antMatchers("/api/v1/**")
                     .and()
                     .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     .and()
@@ -70,13 +70,13 @@ public class SecurityConfig {
                     .anonymous()
                     .and()
                     .authorizeRequests(authz -> authz
-                            .antMatchers("/guests/api/public/**", "/guests/api/validations/**")
+                            .antMatchers("/api/v1/public/**", "/api/v1/validations/**")
                             .permitAll())
                     .addFilterAfter(
                             new UserAuthenticationFilter(institutionRepository, userRepository, superAdmin, scimService),
                             FilterSecurityInterceptor.class)
                     .authorizeRequests(authz -> authz
-                            .antMatchers("/guests/api/**").hasAuthority("SCOPE_openid")
+                            .antMatchers("/api/v1/**").hasAuthority("SCOPE_openid")
                             .anyRequest().authenticated())
                     .oauth2ResourceServer(oauth2 -> oauth2.opaqueToken(token -> token
                             .introspector(new CachingOpaqueTokenIntrospector(introspectionUri, clientId, secret))));

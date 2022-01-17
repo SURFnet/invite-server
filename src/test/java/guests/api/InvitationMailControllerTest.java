@@ -29,7 +29,7 @@ class InvitationMailControllerTest extends AbstractMailTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(invitation)
-                .put("/guests/api/invitations/resend")
+                .put("/api/v1/invitations/resend")
                 .then()
                 .statusCode(201);
 

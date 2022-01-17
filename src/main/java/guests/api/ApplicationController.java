@@ -23,7 +23,7 @@ import static guests.api.Shared.*;
 import static guests.api.UserPermissions.*;
 
 @RestController
-@RequestMapping(value = "/guests/api/applications", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/applications", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class ApplicationController {
 

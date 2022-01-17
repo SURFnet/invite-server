@@ -28,7 +28,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .get("/guests/api/applications/{id}", id)
+                .get("/api/v1/applications/{id}", id)
                 .then()
                 .extract()
                 .body()
@@ -45,7 +45,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
-                .get("/guests/api/applications/{id}", id)
+                .get("/api/v1/applications/{id}", id)
                 .then()
                 .statusCode(403);
     }
@@ -57,7 +57,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect-invalid-token.json"))
-                .get("/guests/api/applications")
+                .get("/api/v1/applications")
                 .then().statusCode(401);
     }
 
@@ -75,7 +75,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(appMap)
-                .put("/guests/api/applications")
+                .put("/api/v1/applications")
                 .then()
                 .statusCode(201);
         application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
@@ -96,7 +96,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(appMap)
-                .put("/guests/api/applications")
+                .put("/api/v1/applications")
                 .then()
                 .statusCode(403);
     }
@@ -108,7 +108,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .when()
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("id", application.getId())
-                .delete("/guests/api/applications/{id}")
+                .delete("/api/v1/applications/{id}")
                 .then()
                 .statusCode(201);
         Optional<Application> optionalApplication = applicationRepository.findByEntityIdIgnoreCase("canvas");
@@ -123,7 +123,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .when()
                 .auth().oauth2(opaqueAccessToken("mary@utrecht.nl", "introspect.json"))
                 .pathParam("id", application.getId())
-                .delete("/guests/api/applications/{id}")
+                .delete("/api/v1/applications/{id}")
                 .then()
                 .statusCode(403);
     }
@@ -135,7 +135,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .when()
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("id", application.getId())
-                .delete("/guests/api/applications/{id}")
+                .delete("/api/v1/applications/{id}")
                 .then()
                 .statusCode(403);
     }
@@ -148,7 +148,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
-                .get("/guests/api/applications/user")
+                .get("/api/v1/applications/user")
                 .then()
                 .extract()
                 .body()
@@ -167,7 +167,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/applications/institution/{institutionId}")
+                .get("/api/v1/applications/institution/{institutionId}")
                 .then()
                 .extract()
                 .body()
@@ -186,7 +186,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ApplicationExists(true, "blackboard", application.getInstitution().getId()))
-                .post("/guests/api/applications/entity-id-exists")
+                .post("/api/v1/applications/entity-id-exists")
                 .then()
                 .body("exists", equalTo(false));
     }
@@ -200,7 +200,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ApplicationExists(false, "nope", 1L))
-                .post("/guests/api/applications/entity-id-exists")
+                .post("/api/v1/applications/entity-id-exists")
                 .then()
                 .body("exists", equalTo(false));
     }
@@ -215,7 +215,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ApplicationExists(false, "blackboard", application.getInstitution().getId()))
-                .post("/guests/api/applications/entity-id-exists")
+                .post("/api/v1/applications/entity-id-exists")
                 .then()
                 .body("exists", equalTo(true));
     }

@@ -27,7 +27,7 @@ import static guests.api.UserPermissions.*;
 import static guests.api.Shared.*;
 
 @RestController
-@RequestMapping(value = "/guests/api/scim", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/scim", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class SCIMFailureController {
 

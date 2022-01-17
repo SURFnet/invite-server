@@ -25,7 +25,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .get("/guests/api/institutions")
+                .get("/api/v1/institutions")
                 .then()
                 .extract()
                 .body()
@@ -41,7 +41,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .get("/guests/api/institutions/mine")
+                .get("/api/v1/institutions/mine")
                 .then()
                 .extract()
                 .body()
@@ -58,7 +58,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .get("/guests/api/institutions/{id}", id)
+                .get("/api/v1/institutions/{id}", id)
                 .then()
                 .extract()
                 .body()
@@ -77,7 +77,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ObjectExists(true, "https://ut"))
-                .post("/guests/api/institutions/entity-id-exists")
+                .post("/api/v1/institutions/entity-id-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(false));
     }
@@ -91,7 +91,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ObjectExists(false, "nope"))
-                .post("/guests/api/institutions/entity-id-exists")
+                .post("/api/v1/institutions/entity-id-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(false));
     }
@@ -105,7 +105,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ObjectExists(false, "https://uva"))
-                .post("/guests/api/institutions/entity-id-exists")
+                .post("/api/v1/institutions/entity-id-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(true));
     }
@@ -119,7 +119,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ObjectExists(true, "uva.nl"))
-                .post("/guests/api/institutions/schac-home-exists")
+                .post("/api/v1/institutions/schac-home-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(false));
     }
@@ -133,7 +133,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ObjectExists(false, "nope"))
-                .post("/guests/api/institutions/schac-home-exists")
+                .post("/api/v1/institutions/schac-home-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(false));
     }
@@ -147,7 +147,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(new ObjectExists(false, "uva.nl"))
-                .post("/guests/api/institutions/schac-home-exists")
+                .post("/api/v1/institutions/schac-home-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(true));
     }
@@ -161,7 +161,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(institution)
-                .post("/guests/api/institutions")
+                .post("/api/v1/institutions")
                 .then()
                 .statusCode(201);
         institution = institutionRepository.findByHomeInstitutionIgnoreCase("home.nl").get();
@@ -177,7 +177,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(institution)
-                .post("/guests/api/institutions")
+                .post("/api/v1/institutions")
                 .then()
                 .statusCode(201);
         institution = institutionRepository.findByHomeInstitutionIgnoreCase("home.nl").get();
@@ -196,7 +196,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .body(institutionMap)
-                .put("/guests/api/institutions")
+                .put("/api/v1/institutions")
                 .then()
                 .statusCode(201);
         institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
@@ -212,7 +212,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("id", institution.getId())
-                .put("/guests/api/institutions/increment-aup/{id}")
+                .put("/api/v1/institutions/increment-aup/{id}")
                 .then()
                 .statusCode(201);
         institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
@@ -232,7 +232,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(institutionMap)
-                .put("/guests/api/institutions")
+                .put("/api/v1/institutions")
                 .then()
                 .statusCode(201);
         institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
@@ -247,7 +247,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .when()
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("id", institution.getId())
-                .delete("/guests/api/institutions/{id}")
+                .delete("/api/v1/institutions/{id}")
                 .then()
                 .statusCode(201);
         Optional<Institution> optionalInstitution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl");
@@ -260,7 +260,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .when()
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("id", 1)
-                .delete("/guests/api/institutions/{id}")
+                .delete("/api/v1/institutions/{id}")
                 .then()
                 .statusCode(403);
     }
@@ -271,7 +271,7 @@ class InstitutionControllerTest extends AbstractTest {
                 .when()
                 .auth().oauth2(opaqueAccessToken("nope@surf.nl", "introspect.json"))
                 .pathParam("id", 1)
-                .delete("/guests/api/institutions/{id}")
+                .delete("/api/v1/institutions/{id}")
                 .then()
                 .statusCode(403);
     }

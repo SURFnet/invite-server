@@ -50,7 +50,7 @@ class SCIMScenarioTest extends AbstractMailTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("new@utrecht.nl", "introspect.json"))
                 .body(invitationAccept)
-                .post("/guests/api/invitations")
+                .post("/api/v1/invitations")
                 .then()
                 .statusCode(201);
 
@@ -61,7 +61,7 @@ class SCIMScenarioTest extends AbstractMailTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("id", other.getId())
-                .delete("/guests/api/users/{id}")
+                .delete("/api/v1/users/{id}")
                 .then()
                 .statusCode(201);
 

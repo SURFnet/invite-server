@@ -22,7 +22,7 @@ class UserControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .get("/guests/api/users/me")
+                .get("/api/v1/users/me")
                 .then()
                 .extract()
                 .body()
@@ -37,7 +37,7 @@ class UserControllerTest extends AbstractTest {
         given()
                 .when()
                 .accept(ContentType.JSON)
-                .get("/guests/api/users/me")
+                .get("/api/v1/users/me")
                 .then()
                 .statusCode(401);
     }
@@ -51,7 +51,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/users/institution/{institutionId}")
+                .get("/api/v1/users/institution/{institutionId}")
                 .then()
                 .extract()
                 .body()
@@ -77,7 +77,7 @@ class UserControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
                 .body(invitation)
-                .post("/guests/api/invitations")
+                .post("/api/v1/invitations")
                 .then()
                 .statusCode(201);
 
@@ -87,7 +87,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/users/institution/{institutionId}")
+                .get("/api/v1/users/institution/{institutionId}")
                 .then()
                 .extract()
                 .body()
@@ -110,7 +110,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/users/emails/{institutionId}")
+                .get("/api/v1/users/emails/{institutionId}")
                 .then()
                 .extract()
                 .body()
@@ -131,7 +131,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("applicationId", application.getId())
-                .get("/guests/api/users/application/{applicationId}")
+                .get("/api/v1/users/application/{applicationId}")
                 .then()
                 .extract()
                 .body()
@@ -149,7 +149,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/users/institution/{institutionId}")
+                .get("/api/v1/users/institution/{institutionId}")
                 .then()
                 .statusCode(403);
     }
@@ -162,7 +162,7 @@ class UserControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
-                .delete("/guests/api/users")
+                .delete("/api/v1/users")
                 .then()
                 .statusCode(201);
         assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").isPresent());
@@ -175,7 +175,7 @@ class UserControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
-                .get("/guests/api/users/me")
+                .get("/api/v1/users/me")
                 .then()
                 .extract()
                 .body()
@@ -193,7 +193,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("userId", inviter.getId())
-                .get("/guests/api/users/{userId}")
+                .get("/api/v1/users/{userId}")
                 .then()
                 .extract()
                 .body()
@@ -211,7 +211,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("userId", admin.getId())
-                .get("/guests/api/users/{userId}")
+                .get("/api/v1/users/{userId}")
                 .then()
                 .statusCode(403);
     }
@@ -225,7 +225,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("userId", inviter.getId())
-                .get("/guests/api/users/{userId}")
+                .get("/api/v1/users/{userId}")
                 .then()
                 .statusCode(200);
     }
@@ -239,7 +239,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("userId", inviter.getId())
-                .delete("/guests/api/users/{userId}")
+                .delete("/api/v1/users/{userId}")
                 .then()
                 .statusCode(201);
         assertTrue(userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").isEmpty());
@@ -254,7 +254,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .pathParam("userId", admin.getId())
-                .delete("/guests/api/users/{userId}")
+                .delete("/api/v1/users/{userId}")
                 .then()
                 .statusCode(403);
     }
@@ -269,7 +269,7 @@ class UserControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("userId", inviter.getId())
-                .delete("/guests/api/users/{userId}")
+                .delete("/api/v1/users/{userId}")
                 .then()
                 .statusCode(201);
         assertFalse(userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").isPresent());
@@ -286,7 +286,7 @@ class UserControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("userId", admin.getId())
                 .pathParam("userRoleId", userRole.getId())
-                .delete("/guests/api/users/role/{userId}/{userRoleId}")
+                .delete("/api/v1/users/role/{userId}/{userRoleId}")
                 .then()
                 .statusCode(201);
 
@@ -305,7 +305,7 @@ class UserControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
                 .pathParam("userId", admin.getId())
                 .pathParam("userRoleId", userRole.getId())
-                .delete("/guests/api/users/role/{userId}/{userRoleId}")
+                .delete("/api/v1/users/role/{userId}/{userRoleId}")
                 .then()
                 .statusCode(403);
     }
@@ -321,7 +321,7 @@ class UserControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("userId", admin.getId())
                 .pathParam("membershipId", membership.getId())
-                .delete("/guests/api/users/membership/{userId}/{membershipId}")
+                .delete("/api/v1/users/membership/{userId}/{membershipId}")
                 .then()
                 .statusCode(201);
 
@@ -340,7 +340,7 @@ class UserControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("userId", admin.getId())
                 .pathParam("membershipId", membership.getId())
-                .delete("/guests/api/users/membership/{userId}/{membershipId}")
+                .delete("/api/v1/users/membership/{userId}/{membershipId}")
                 .then()
                 .statusCode(201);
 
@@ -359,7 +359,7 @@ class UserControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
                 .pathParam("userId", admin.getId())
                 .pathParam("membershipId", membership.getId())
-                .delete("/guests/api/users/membership/{userId}/{membershipId}")
+                .delete("/api/v1/users/membership/{userId}/{membershipId}")
                 .then()
                 .statusCode(403);
     }

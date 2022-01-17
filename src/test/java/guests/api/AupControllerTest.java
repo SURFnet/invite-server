@@ -25,7 +25,7 @@ class AupControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
                 .body(Collections.singletonList(inviter.getInstitutionMemberships().iterator().next().getInstitution().getId()))
-                .put("/guests/api/aups")
+                .put("/api/v1/aups")
                 .then()
                 .statusCode(201);
 
@@ -44,7 +44,7 @@ class AupControllerTest extends AbstractTest {
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .body(Collections.singletonList(admin.getInstitutionMemberships().iterator().next().getInstitution().getId()))
-                .put("/guests/api/aups")
+                .put("/api/v1/aups")
                 .then()
                 .statusCode(201);
 

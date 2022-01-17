@@ -31,7 +31,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/scim/institution/{institutionId}")
+                .get("/api/v1/scim/institution/{institutionId}")
                 .then()
                 .extract()
                 .body()
@@ -49,7 +49,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/scim/institution/{institutionId}/count")
+                .get("/api/v1/scim/institution/{institutionId}/count")
                 .then()
                 .extract()
                 .body()
@@ -68,7 +68,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("id", scimFailure.getId())
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/scim/id/{id}/{institutionId}")
+                .get("/api/v1/scim/id/{id}/{institutionId}")
                 .then()
                 .extract()
                 .body()
@@ -87,7 +87,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
                 .pathParam("id", scimFailure.getId())
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/scim/id/{id}/{institutionId}")
+                .get("/api/v1/scim/id/{id}/{institutionId}")
                 .then()
                 .statusCode(403);
     }
@@ -102,7 +102,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("id", scimFailure.getId())
                 .pathParam("institutionId", institution.getId())
-                .get("/guests/api/scim/id/{id}/{institutionId}")
+                .get("/api/v1/scim/id/{id}/{institutionId}")
                 .then()
                 .statusCode(200);
     }
@@ -117,7 +117,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("id", scimFailure.getId())
                 .pathParam("institutionId", institution.getId())
-                .delete("/guests/api/scim/id/{id}/{institutionId}")
+                .delete("/api/v1/scim/id/{id}/{institutionId}")
                 .then()
                 .statusCode(201);
         assertEquals(0, scimFailureRepository.count());
@@ -211,7 +211,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("id", scimFailure.getId())
                 .pathParam("institutionId", scimFailure.getApplication().getInstitution().getId())
-                .put("/guests/api/scim/id/{id}/{institutionId}")
+                .put("/api/v1/scim/id/{id}/{institutionId}")
                 .then()
                 .statusCode(500);
         assertEquals(1, scimFailureRepository.count());
@@ -351,7 +351,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken(eppn, "introspect.json"))
                 .pathParam("id", scimFailure.getId())
                 .pathParam("institutionId", institution.getId())
-                .put("/guests/api/scim/id/{id}/{institutionId}")
+                .put("/api/v1/scim/id/{id}/{institutionId}")
                 .then()
                 .statusCode(success ? 201 : 500);
         assertEquals(success ? 0 : 1, scimFailureRepository.count());

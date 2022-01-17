@@ -22,7 +22,7 @@ import static guests.api.UserPermissions.*;
 
 
 @RestController
-@RequestMapping(value = "/guests/api/institutions", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/institutions", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class InstitutionController {
 

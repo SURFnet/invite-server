@@ -22,7 +22,7 @@ import static guests.api.Shared.createdResponse;
 import static guests.api.UserPermissions.verifyUser;
 
 @RestController
-@RequestMapping(value = "/guests/api/aups", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/aups", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class AupController {
 

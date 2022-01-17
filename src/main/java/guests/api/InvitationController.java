@@ -26,7 +26,7 @@ import static guests.api.UserPermissions.verifyAuthority;
 
 
 @RestController
-@RequestMapping(value = "/guests/api/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class InvitationController {
 
