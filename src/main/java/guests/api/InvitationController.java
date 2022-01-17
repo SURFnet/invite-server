@@ -120,13 +120,13 @@ public class InvitationController {
         invitationFromDB.getRoles()
                 .forEach(invitationRole -> {
                     Role role = invitationRole.getRole();
-                    if (user.getRoles().stream().noneMatch(userRole -> userRole.getRole().getId().equals(role.getId()))) {
+                    if (user.getUserRoles().stream().noneMatch(userRole -> userRole.getRole().getId().equals(role.getId()))) {
                         user.addUserRole(new UserRole(role, invitationRole.getEndDate()));
                         newRoles.add(role);
                     }
                 });
         // This will assign the external ID to the userRoles
-        if (user.getId() == null || user.getRoles().stream().noneMatch(userRole -> StringUtils.hasText(userRole.getServiceProviderId()))) {
+        if (user.getId() == null || user.getUserRoles().stream().noneMatch(userRole -> StringUtils.hasText(userRole.getServiceProviderId()))) {
             scimService.newUserRequest(user);
         }
         newUser = userRepository.save(user);

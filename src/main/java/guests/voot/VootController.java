@@ -38,7 +38,7 @@ public class VootController {
             User user = optionalUser.get();
             user.setLastActivity(Instant.now());
             userRepository.save(user);
-            List<Map<String, String>> roles = user.getRoles().stream().map(this::parseUserRole).collect(Collectors.toList());
+            List<Map<String, String>> roles = user.getUserRoles().stream().map(this::parseUserRole).collect(Collectors.toList());
             return ResponseEntity.ok(roles);
         }
         return ResponseEntity.ok(Collections.emptyList());

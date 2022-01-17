@@ -1,7 +1,10 @@
 package guests.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -29,13 +32,22 @@ public class Auditable implements Serializable {
     @PrePersist
     public void prePersist() {
         createdAt = Instant.now();
-        createdBy = SecurityContextHolder.getContext().getAuthentication().getName();
+        createdBy = currentUser();
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = Instant.now();
-        updatedBy = SecurityContextHolder.getContext().getAuthentication().getName();
+        updatedBy = currentUser();
+    }
+
+    @JsonIgnore
+    private String currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof BearerTokenAuthentication bearerTokenAuthentication) {
+            return (String) bearerTokenAuthentication.getTokenAttributes().get("eduperson_principal_name");
+        }
+        return authentication.getName();
     }
 
 }

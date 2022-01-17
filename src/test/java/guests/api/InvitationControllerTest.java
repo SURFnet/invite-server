@@ -178,7 +178,7 @@ class InvitationControllerTest extends AbstractTest {
         invitation.put("status", Status.ACCEPTED);
         //prevent user_roles_unique_user_role exception
         User userFromDB = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        userFromDB.setRoles(new HashSet<>());
+        userFromDB.setUserRoles(new HashSet<>());
         userRepository.save(userFromDB);
 
         this.stubForUpdateRole();
@@ -196,7 +196,7 @@ class InvitationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", User.class);
         assertEquals("admin@utrecht.nl", user.getEduPersonPrincipalName());
-        assertEquals(1, user.getRoles().size());
+        assertEquals(1, user.getUserRoles().size());
     }
 
     @Test
@@ -218,7 +218,7 @@ class InvitationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", User.class);
         assertEquals("admin@utrecht.nl", user.getEduPersonPrincipalName());
-        assertEquals(1, user.getRoles().size());
+        assertEquals(1, user.getUserRoles().size());
     }
 
     @Test

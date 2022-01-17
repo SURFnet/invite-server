@@ -24,7 +24,7 @@ class SCIMServiceTest extends AbstractMailTest {
         User user = seedUser();
         scimService.newUserRequest(user);
 
-        assertEquals(serviceProviderId, user.getRoles().iterator().next().getServiceProviderId());
+        assertEquals(serviceProviderId, user.getUserRoles().iterator().next().getServiceProviderId());
         assertNoSCIMFailures();
     }
 
@@ -44,7 +44,7 @@ class SCIMServiceTest extends AbstractMailTest {
     void updateUserRequest() {
         User user = seedUser();
         String serviceProviderId = stubForUpdateUser();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
 
         scimService.updateUserRequest(user);
@@ -55,7 +55,7 @@ class SCIMServiceTest extends AbstractMailTest {
     void updateUserRequestMail() throws Exception {
         User user = seedUserWithEmailProvisioning();
         String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
 
         scimService.updateUserRequest(user);
@@ -71,7 +71,7 @@ class SCIMServiceTest extends AbstractMailTest {
     void deleteUserRequest() throws JsonProcessingException {
         User user = seedUser();
         String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
         userRole.getRole().setServiceProviderId(UUID.randomUUID().toString());
 
@@ -86,7 +86,7 @@ class SCIMServiceTest extends AbstractMailTest {
     void deleteUserRequestMail() throws Exception {
         User user = seedUserWithEmailProvisioning();
         String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
 
         scimService.deleteUserRequest(user);
@@ -112,7 +112,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void newRoleRequestEmailProvisioning() throws Exception {
         User user = this.seedUserWithEmailProvisioning();
-        Application application = user.getRoles().iterator().next().getRole().getApplication();
+        Application application = user.getUserRoles().iterator().next().getRole().getApplication();
         scimService.newRoleRequest(new Role("xyz", application));
 
         MimeMessageParser parser = mailMessage();
@@ -125,7 +125,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void updateRoleRequestWithNoServiceProviderId() throws JsonProcessingException {
         User user = seedUser();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         Role role = userRole.getRole();
 
         stubForCreateRole();
@@ -137,7 +137,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void updateRoleRequest() throws JsonProcessingException {
         User user = seedUser();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         String serviceProviderId = stubForUpdateRole();
         userRole.setServiceProviderId(serviceProviderId);
         Role role = userRole.getRole();
@@ -172,7 +172,7 @@ class SCIMServiceTest extends AbstractMailTest {
     void deleteUserRequestFailure() {
         User user = seedUser();
         String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
 
         scimService.deleteUserRequest(user);
@@ -185,7 +185,7 @@ class SCIMServiceTest extends AbstractMailTest {
     void updateUserRequestFailure() {
         User user = seedUser();
         String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
 
         scimService.updateUserRequest(user);
@@ -195,7 +195,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void createRoleRequestFailure() {
         User user = seedUser();
-        Role role = user.getRoles().iterator().next().getRole();
+        Role role = user.getUserRoles().iterator().next().getRole();
 
         scimService.newRoleRequest(role);
         assertSCIMFailure("http://localhost:8081/scim/v1/groups");
@@ -205,7 +205,7 @@ class SCIMServiceTest extends AbstractMailTest {
     void updateRoleRequestFailure() throws Exception {
         User user = seedUser();
         String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         userRole.setServiceProviderId(serviceProviderId);
 
         Role role = userRole.getRole();
@@ -220,7 +220,7 @@ class SCIMServiceTest extends AbstractMailTest {
     void deleteRoleRequestFailure() throws Exception {
         User user = seedUser();
         String serviceProviderId = UUID.randomUUID().toString();
-        Role role = user.getRoles().iterator().next().getRole();
+        Role role = user.getUserRoles().iterator().next().getRole();
         role.setId(1L);
         role.setServiceProviderId(serviceProviderId);
 
@@ -249,7 +249,7 @@ class SCIMServiceTest extends AbstractMailTest {
 
     private User seedUserWithEmailProvisioning() {
         User user = seedUser();
-        Application application = user.getRoles().iterator().next().getRole().getApplication();
+        Application application = user.getUserRoles().iterator().next().getRole().getApplication();
         application.setProvisioningHookUrl(null);
         application.setProvisioningHookEmail("admin@uva.nl");
         return user;

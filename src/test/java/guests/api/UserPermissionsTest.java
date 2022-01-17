@@ -40,7 +40,7 @@ class UserPermissionsTest {
         User user = getUser(Authority.GUEST);
         InstitutionMembership institutionMembership = user.getInstitutionMemberships().iterator().next();
         user.addUserRole(new UserRole(new Role("role", new Application(institutionMembership.getInstitution())), Instant.now()));
-        deleteUserRoleAllowed(user, user.getRoles().iterator().next());
+        deleteUserRoleAllowed(user, user.getUserRoles().iterator().next());
         deleteInstitutionMembershipAllowed(user, institutionMembership);
     }
 

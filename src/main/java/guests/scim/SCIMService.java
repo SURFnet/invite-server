@@ -114,7 +114,7 @@ public class SCIMService {
     @SneakyThrows
     public void deleteUserRequest(User user) {
         //First send update role requests
-        user.getRoles().forEach(userRole -> this.doUpdateRoleRequest(userRole.getRole(), user.getRoles()));
+        user.getUserRoles().forEach(userRole -> this.doUpdateRoleRequest(userRole.getRole(), user.getUserRoles()));
 
         user.userRolesPerApplication().forEach((application, userRoles) -> {
             UserRole userRole = userRoles.get(0);

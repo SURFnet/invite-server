@@ -126,7 +126,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     @Test
     void resendSCIMFailureCreateUser() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
 
         assertNotNull(userRole.getServiceProviderId());
 
@@ -144,7 +144,7 @@ class SCIMFailureControllerTest extends AbstractTest {
 
         this.doResendSCIMFailure(scimFailure, "j.doe@example.com", true);
 
-        UserRole userRoleAfter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get().getRoles().iterator().next();
+        UserRole userRoleAfter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get().getUserRoles().iterator().next();
 
         assertNotNull(userRoleAfter.getServiceProviderId());
         assertNotEquals(userRole.getServiceProviderId(), userRoleAfter.getServiceProviderId());
@@ -153,7 +153,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     @Test
     void resendSCIMFailureUpdateUser() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         SCIMFailure scimFailure = new SCIMFailure(
                 objectMapper.writeValueAsString(new UserRequest(user)),
                 USER_API,
@@ -172,7 +172,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     @Test
     void resendSCIMFailureDeleteUser() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         SCIMFailure scimFailure = new SCIMFailure(
                 objectMapper.writeValueAsString(new UserRequest(user)),
                 USER_API,
@@ -191,7 +191,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     @Test
     void resendSCIMFailureCreateUserEndpointDown() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
 
         assertNotNull(userRole.getServiceProviderId());
 
@@ -220,7 +220,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     @Test
     void resendSCIMFailureCreateRole() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        Role role = user.getRoles().iterator().next().getRole();
+        Role role = user.getUserRoles().iterator().next().getRole();
         assertNotNull(role.getServiceProviderId());
 
         String externalId = GroupURN.urnFromRole("groupUrnPrefix", role);
@@ -239,7 +239,7 @@ class SCIMFailureControllerTest extends AbstractTest {
 
         this.doResendSCIMFailure(scimFailure, "j.doe@example.com", true);
 
-        Role roleAfter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get().getRoles().iterator().next().getRole();
+        Role roleAfter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get().getUserRoles().iterator().next().getRole();
 
         assertNotNull(roleAfter.getServiceProviderId());
         assertNotEquals(role.getServiceProviderId(), roleAfter.getServiceProviderId());
@@ -248,7 +248,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     @Test
     void resendSCIMFailureUpdateRole() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         Role role = userRole.getRole();
 
         String externalId = GroupURN.urnFromRole("groupUrnPrefix", role);
@@ -274,7 +274,7 @@ class SCIMFailureControllerTest extends AbstractTest {
     @Test
     void resendSCIMFailureDeleteRole() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        UserRole userRole = user.getRoles().iterator().next();
+        UserRole userRole = user.getUserRoles().iterator().next();
         Role role = userRole.getRole();
 
         String externalId = GroupURN.urnFromRole("groupUrnPrefix", role);
@@ -338,7 +338,7 @@ class SCIMFailureControllerTest extends AbstractTest {
 
     private SCIMFailure seedSCIMFailure() {
         User user = seedUser();
-        Application application = user.getRoles().iterator().next().getRole().getApplication();
+        Application application = user.getUserRoles().iterator().next().getRole().getApplication();
         SCIMFailure scimFailure = new SCIMFailure("message", "groups", HttpMethod.POST.toString(), "https://failure", "serviceProviderId", application);
         return scimFailureRepository.save(scimFailure);
     }

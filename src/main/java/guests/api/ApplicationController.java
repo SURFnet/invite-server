@@ -39,7 +39,7 @@ public class ApplicationController {
     @GetMapping("/user")
     public ResponseEntity<List<Application>> getForUser(User authenticatedUser) {
         User user = userRepository.findById(authenticatedUser.getId()).orElseThrow(NotFoundException::new);
-        List<Long> roleIdentifiers = user.getRoles().stream().map(role -> role.getRole().getId()).collect(Collectors.toList());
+        List<Long> roleIdentifiers = user.getUserRoles().stream().map(role -> role.getRole().getId()).collect(Collectors.toList());
         return ResponseEntity.ok(unProxy(applicationRepository.findByRoles_IdIn(roleIdentifiers), Application.class));
     }
 

@@ -52,7 +52,7 @@ public class User implements Serializable {
     private Set<Aup> aups = new HashSet<>();
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<UserRole> roles = new HashSet<>();
+    private Set<UserRole> userRoles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<InstitutionMembership> institutionMemberships = new HashSet<>();
@@ -90,16 +90,16 @@ public class User implements Serializable {
 
     @JsonIgnore
     public void addUserRole(UserRole role) {
-        this.roles.add(role);
+        this.userRoles.add(role);
         role.setUser(this);
     }
 
     @JsonIgnore
     public void removeUserRole(UserRole role) {
         //This is required by Hibernate - children can't be de-referenced
-        Set<UserRole> newRoles = roles.stream().filter(ur -> !ur.getId().equals(role.getId())).collect(Collectors.toSet());
-        roles.clear();
-        roles.addAll(newRoles);
+        Set<UserRole> newRoles = userRoles.stream().filter(ur -> !ur.getId().equals(role.getId())).collect(Collectors.toSet());
+        userRoles.clear();
+        userRoles.addAll(newRoles);
     }
 
     @JsonIgnore
@@ -160,7 +160,7 @@ public class User implements Serializable {
 
     @JsonIgnore
     private Application findApplication(Long id) {
-        return roles.stream().map(userRole -> userRole.getRole().getApplication())
+        return userRoles.stream().map(userRole -> userRole.getRole().getApplication())
                 .filter(application -> application.getId().equals(id))
                 .findFirst()
                 .orElseThrow(NotFoundException::new);
@@ -168,7 +168,7 @@ public class User implements Serializable {
 
     @JsonIgnore
     public Map<Application, List<UserRole>> userRolesPerApplication() {
-        Map<Long, List<UserRole>> userRolesPerApplicationId = getRoles().stream()
+        Map<Long, List<UserRole>> userRolesPerApplicationId = getUserRoles().stream()
                 .filter(userRole -> userRole.getRole() != null && userRole.getRole().getApplication() != null)
                 .collect(Collectors.groupingBy(userRole -> userRole.getRole().getApplication().getId()));
         return userRolesPerApplicationId.entrySet().stream()
@@ -178,7 +178,7 @@ public class User implements Serializable {
     @JsonIgnore
     public void removeOtherInstitutionData(Long institutionId) {
         getInstitutionMemberships().removeIf(membership -> !membership.getInstitution().getId().equals(institutionId));
-        getRoles().removeIf(userRole -> !userRole.getRole().getInstitutionId().equals(institutionId));
+        getUserRoles().removeIf(userRole -> !userRole.getRole().getInstitutionId().equals(institutionId));
     }
 
     @JsonIgnore
@@ -193,7 +193,7 @@ public class User implements Serializable {
                 .map(membership -> membership.getInstitution().getId())
                         .collect(Collectors.toSet());
         getInstitutionMemberships().removeIf(membership -> !institutionIdentifiers.contains(membership.getInstitution().getId()));
-        getRoles().removeIf(userRole -> !institutionIdentifiers.contains(userRole.getRole().getInstitutionId()));
+        getUserRoles().removeIf(userRole -> !institutionIdentifiers.contains(userRole.getRole().getInstitutionId()));
     }
 
     private String toScimString() {

@@ -89,11 +89,11 @@ class UserTest {
         otherRole.setId(2L);
 
         user.removeUserRole(otherRole);
-        assertEquals(1, user.getRoles().size());
+        assertEquals(1, user.getUserRoles().size());
 
         user.addUserRole(otherRole);
         user.removeUserRole(otherRole);
-        assertEquals(1, user.getRoles().size());
+        assertEquals(1, user.getUserRoles().size());
     }
 
     @Test
@@ -125,10 +125,10 @@ class UserTest {
         apps.forEach(app -> app.getRoles().forEach(role -> user.addUserRole(new UserRole(role, null))));
         apps.forEach(app -> user.addMembership(new InstitutionMembership(Authority.INVITER, app.getInstitution())));
 
-        assertEquals(3, user.getRoles().size());
+        assertEquals(3, user.getUserRoles().size());
 
         user.removeOtherInstitutionData(apps.get(0).getInstitution().getId());
-        assertEquals(2, user.getRoles().size());
+        assertEquals(2, user.getUserRoles().size());
         assertEquals(1, user.getInstitutionMemberships().size());
 
         User other = new User();
@@ -136,7 +136,7 @@ class UserTest {
         other.addMembership(new InstitutionMembership(Authority.INVITER, apps.get(1) .getInstitution()));
 
         user.removeOtherInstitutionData(other);
-        assertEquals(0, user.getRoles().size());
+        assertEquals(0, user.getUserRoles().size());
         assertEquals(0, user.getInstitutionMemberships().size());
     }
 

@@ -16,14 +16,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @EntityGraph(value = "findByEduPersonPrincipalNameIgnoreCase",
             type = EntityGraph.EntityGraphType.LOAD,
-            attributePaths = {"roles.role.application"})
+            attributePaths = {"userRoles.role.application"})
     Optional<User> findByEduPersonPrincipalNameIgnoreCase(String eduPersonPrincipalName);
 
     Optional<User> findByUnspecifiedIdIgnoreCase(String unspecifiedId);
 
     List<User> findByInstitutionMemberships_Institution_id(Long institutionId);
 
-    List<User> findByRoles_role_application_id(Long applicationId);
+    List<User> findByUserRoles_role_application_id(Long applicationId);
 
     List<User> findByLastActivityBefore(Instant instant);
 

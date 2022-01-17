@@ -79,7 +79,7 @@ public class UserController {
     public ResponseEntity<List<User>> getByApplication(User user, @PathVariable("applicationId") Long applicationId) {
         Application application = applicationRepository.findById(applicationId).orElseThrow(NotFoundException::new);
         verifyUser(user, application.getInstitution().getId());
-        return ResponseEntity.ok(userRepository.findByRoles_role_application_id(applicationId));
+        return ResponseEntity.ok(userRepository.findByUserRoles_role_application_id(applicationId));
     }
 
     @DeleteMapping
@@ -104,7 +104,7 @@ public class UserController {
                                                                    @PathVariable("userId") Long userId,
                                                                    @PathVariable("userRoleId") Long userRoleId) {
         User subject = userRepository.findById(userId).orElseThrow(NotFoundException::new);
-        UserRole userRole = subject.getRoles().stream()
+        UserRole userRole = subject.getUserRoles().stream()
                 .filter(r -> r.getId().equals(userRoleId)).findFirst().orElseThrow(NotFoundException::new);
 
         deleteUserRoleAllowed(authenticatedUser, userRole);
@@ -126,7 +126,7 @@ public class UserController {
         deleteInstitutionMembershipAllowed(authenticatedUser, institutionMembership);
 
         Long institutionId = institutionMembership.getInstitution().getId();
-        List<UserRole> userRoles = subject.getRoles().stream()
+        List<UserRole> userRoles = subject.getUserRoles().stream()
                 .filter(userRole -> userRole.getRole().getApplication().getInstitution().getId().equals(institutionId))
                 .collect(Collectors.toList());
 

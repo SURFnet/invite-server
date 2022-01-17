@@ -181,7 +181,7 @@ class UserControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getObject(".", User.class);
-        assertEquals(1, user.getRoles().size());
+        assertEquals(1, user.getUserRoles().size());
     }
 
     @Test
@@ -279,7 +279,7 @@ class UserControllerTest extends AbstractTest {
     void deleteOtherUserRole() throws IOException {
         super.stubForUpdateRole();
         User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        UserRole userRole = admin.getRoles().iterator().next();
+        UserRole userRole = admin.getUserRoles().iterator().next();
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -291,14 +291,14 @@ class UserControllerTest extends AbstractTest {
                 .statusCode(201);
 
         admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        assertEquals(0, admin.getRoles().size());
+        assertEquals(0, admin.getUserRoles().size());
     }
 
     @Test
     void deleteOtherUserRoleNotAllowed() throws IOException {
         super.stubForUpdateRole();
         User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
-        UserRole userRole = admin.getRoles().iterator().next();
+        UserRole userRole = admin.getUserRoles().iterator().next();
         given()
                 .when()
                 .accept(ContentType.JSON)
