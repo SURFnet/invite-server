@@ -46,7 +46,7 @@ public class Shared {
     }
 
     public static void viewOtherUserAllowed(User authenticatedUser, User subject) {
-        if (!authenticatedUser.isSuperAdmin()) {
+        if (!authenticatedUser.isSuperAdmin() && !authenticatedUser.getId().equals(subject.getId())) {
             boolean allowed = authenticatedUser.getInstitutionMemberships().stream()
                     .anyMatch(membership -> subject.getInstitutionMemberships().stream()
                             .anyMatch(subjectMembership -> subjectMembership.getInstitution().getId().equals(membership.getInstitution().getId()) &&
@@ -58,7 +58,7 @@ public class Shared {
     }
 
     public static void deleteOtherUserAllowed(User authenticatedUser, User subject) {
-        if (!authenticatedUser.isSuperAdmin()) {
+        if (!authenticatedUser.isSuperAdmin() && !authenticatedUser.getId().equals(subject.getId())) {
             boolean allowed = subject.getInstitutionMemberships().stream()
                     .allMatch(subjectMembership -> authenticatedUser.getInstitutionMemberships().stream()
                             .anyMatch(membership -> membership.getInstitution().getId().equals(subjectMembership.getInstitution().getId()) &&
