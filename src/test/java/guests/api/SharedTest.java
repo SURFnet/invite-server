@@ -48,6 +48,8 @@ class SharedTest {
     void viewOtherUserNotAllowed() {
         User authenticatedUser = getUser(Authority.INVITER);
         User subject = getUser(Authority.GUEST);
+        subject.setId(99L);
+
         viewOtherUserAllowed(authenticatedUser, subject);
 
         //ensure mismatch in InstitutionMembership.Institution
@@ -59,6 +61,8 @@ class SharedTest {
     void deleteOtherUserNotAllowed() {
         User authenticatedUser = getUser(Authority.INVITER);
         User subject = getUser(Authority.GUEST);
+        subject.setId(99L);
+
         viewOtherUserAllowed(authenticatedUser, subject);
 
         //ensure mismatch in InstitutionMembership.Institution
