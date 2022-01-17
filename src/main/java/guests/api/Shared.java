@@ -72,13 +72,17 @@ public class Shared {
     public static void deleteUserRoleAllowed(User authenticatedUser, UserRole subjectUserRole) {
         User subject = subjectUserRole.getUser();
         Long institutionId = subjectUserRole.getRole().getApplication().getInstitution().getId();
-        doDeleteUserRoleOrMembershipAllowed(authenticatedUser, subject, institutionId);
+        Authority highestAuthority = subject.getInstitutionMemberships().stream()
+                .map(InstitutionMembership::getAuthority)
+                .max(Authority::compareRights)
+                .orElse(Authority.GUEST);
+        doDeleteUserRoleOrMembershipAllowed(authenticatedUser, subject, institutionId, highestAuthority);
     }
 
     public static void deleteInstitutionMembershipAllowed(User authenticatedUser, InstitutionMembership institutionMembership) {
         User subject = institutionMembership.getUser();
         Long institutionId = institutionMembership.getInstitution().getId();
-        doDeleteUserRoleOrMembershipAllowed(authenticatedUser, subject, institutionId);
+        doDeleteUserRoleOrMembershipAllowed(authenticatedUser, subject, institutionId, institutionMembership.getAuthority());
     }
 
     public static UserRestrictionException userRestrictedException(User authenticatedUser, Long institutionId) {
@@ -95,11 +99,14 @@ public class Shared {
         return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
     }
 
-    private static void doDeleteUserRoleOrMembershipAllowed(User authenticatedUser, User subject, Long institutionId) {
+    private static void doDeleteUserRoleOrMembershipAllowed(User authenticatedUser,
+                                                            User subject,
+                                                            Long institutionId,
+                                                            Authority authority) {
         if (!authenticatedUser.isSuperAdmin() && !authenticatedUser.getId().equals(subject.getId())) {
             boolean allowed = authenticatedUser.getInstitutionMemberships().stream()
                     .anyMatch(membership -> membership.getInstitution().getId().equals(institutionId) &&
-                            membership.getAuthority().hasEqualOrHigherRights(Authority.INSTITUTION_ADMINISTRATOR));
+                            membership.getAuthority().hasHigherRights(authority));
             if (!allowed) {
                 throw userRestrictedException(authenticatedUser, subject);
             }

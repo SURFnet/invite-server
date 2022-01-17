@@ -26,8 +26,12 @@ class SharedTest {
         User subject = getUser(Authority.SUPER_ADMIN);
         viewOtherUserAllowed(authenticatedUser, subject);
         deleteOtherUserAllowed(authenticatedUser, subject);
+
         InstitutionMembership institutionMembershipSubject = subject.getInstitutionMemberships().iterator().next();
-        deleteUserRoleAllowed(authenticatedUser, new UserRole(new Role("role", new Application(institutionMembershipSubject.getInstitution())), null));
+        UserRole userRole = new UserRole(new Role("role", new Application(institutionMembershipSubject.getInstitution())), null);
+        subject.addUserRole(userRole);
+
+        deleteUserRoleAllowed(authenticatedUser, userRole);
         deleteInstitutionMembershipAllowed(authenticatedUser, institutionMembershipSubject);
     }
 

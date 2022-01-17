@@ -92,6 +92,15 @@ public class Application implements Serializable, NameHolder {
         }
     }
 
+    @JsonProperty(value = "institutionId", access = JsonProperty.Access.READ_ONLY)
+    public Long getInstitutionId() {
+        try {
+            return this.getInstitution().getId();
+        } catch (LazyInitializationException | NullPointerException e) {
+            return null;
+        }
+    }
+
     @Override
     @JsonIgnore
     public void nameUrnCompatibilityCheck() {

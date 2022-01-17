@@ -1,7 +1,5 @@
 package guests.domain;
 
-import java.util.Set;
-
 public enum Authority {
 
     SUPER_ADMIN(3), INSTITUTION_ADMINISTRATOR(2), INVITER(1), GUEST(0);
@@ -17,7 +15,7 @@ public enum Authority {
     }
 
     public boolean hasHigherRights(Authority requiredAuthority) {
-        return rights >= requiredAuthority.rights;
+        return rights > requiredAuthority.rights;
     }
 
     public String friendlyName() {
