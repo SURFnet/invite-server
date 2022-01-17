@@ -1,6 +1,5 @@
 package guests.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.AbstractTest;
 import guests.domain.*;
 import io.restassured.http.ContentType;
@@ -23,7 +22,7 @@ class InvitationControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("unknown@user.nl", "introspect.json"))
-                .pathParam("hash", INVITATION_HASH)
+                .pathParam("hash", INVITATION_UTRECHT_HASH)
                 .get("/guests/api/invitations/{hash}")
                 .then()
                 .extract()
@@ -31,7 +30,7 @@ class InvitationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", Invitation.class);
         assertEquals(Status.OPEN, invitation.getStatus());
-        assertEquals("administrator", invitation.getRoles().iterator().next().getRole().getName());
+        assertEquals("administratorCanvas", invitation.getRoles().iterator().next().getRole().getName());
     }
 
     @Test
@@ -52,7 +51,7 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     void getById() throws IOException {
-        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get().getId();
         Invitation invitation = given()
                 .when()
                 .accept(ContentType.JSON)
@@ -65,12 +64,12 @@ class InvitationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getObject(".", Invitation.class);
         assertEquals(Status.OPEN, invitation.getStatus());
-        assertEquals("administrator", invitation.getRoles().iterator().next().getRole().getName());
+        assertEquals("administratorCanvas", invitation.getRoles().iterator().next().getRole().getName());
     }
 
     @Test
     void getByIdNotAllowed() throws IOException {
-        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get().getId();
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -134,7 +133,7 @@ class InvitationControllerTest extends AbstractTest {
     @Test
     void post() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
-        invitation.put("hash", INVITATION_HASH);
+        invitation.put("hash", INVITATION_UTRECHT_HASH);
         invitation.put("status", Status.ACCEPTED);
 
         this.stubForCreateUser();
@@ -175,7 +174,7 @@ class InvitationControllerTest extends AbstractTest {
     @Test
     void postExistingUser() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
-        invitation.put("hash", INVITATION_HASH);
+        invitation.put("hash", INVITATION_UTRECHT_HASH);
         invitation.put("status", Status.ACCEPTED);
         //prevent user_roles_unique_user_role exception
         User userFromDB = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
@@ -203,7 +202,7 @@ class InvitationControllerTest extends AbstractTest {
     @Test
     void postExistingUserNoDuplicateRoles() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
-        invitation.put("hash", INVITATION_HASH);
+        invitation.put("hash", INVITATION_UTRECHT_HASH);
         invitation.put("status", Status.ACCEPTED);
 
         User user = given()
@@ -225,7 +224,7 @@ class InvitationControllerTest extends AbstractTest {
     @Test
     void postExistingUserNewMembership() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
-        invitation.put("hash", INVITATION_HASH);
+        invitation.put("hash", INVITATION_UTRECHT_HASH);
         invitation.put("status", Status.ACCEPTED);
         User userFromDB = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         userFromDB.setInstitutionMemberships(new HashSet<>());
@@ -252,6 +251,7 @@ class InvitationControllerTest extends AbstractTest {
         Role role = roleRepository.findAll().get(0);
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         Instant after90days = Instant.now().plus(90, ChronoUnit.DAYS);
+        long beforeCount = invitationRepository.count();
         Invitation invitation = new Invitation(Authority.GUEST,
                 "Please accept",
                 "guest@example.com",
@@ -276,7 +276,7 @@ class InvitationControllerTest extends AbstractTest {
                 .statusCode(201);
 
         List<Invitation> invitationList = invitationRepository.findAll();
-        assertEquals(4, invitationList.size());
+        assertEquals(beforeCount, invitationList.size() - invitationRequest.getInvites().size());
 
         InvitationRole invitationRole = invitationList.stream()
                 .filter(inv -> inv.getEmail().equals("admin@example.com"))
@@ -314,7 +314,7 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     void deleteNotAllowed() throws IOException {
-        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get().getId();
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -328,7 +328,7 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     void delete() throws IOException {
-        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get().getId();
         given()
                 .when()
                 .accept(ContentType.JSON)
@@ -342,7 +342,7 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     void resendNotAllowed() throws IOException {
-        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get().getId();
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("id", id);
         invitation.put("message", "Please...");
@@ -360,7 +360,7 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     void resendAllowedInvitationIsForGuest() throws IOException {
-        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get();
         invitation.setIntendedAuthority(Authority.GUEST);
         invitationRepository.save(invitation);
 
@@ -380,7 +380,7 @@ class InvitationControllerTest extends AbstractTest {
                 .then()
                 .statusCode(201);
 
-        invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        invitation = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get();
 
         assertEquals(invitationUpdate.getMessage(), invitation.getMessage());
         assertEquals(invitationUpdate.getExpiryDate().toString().substring(0, 10),
@@ -389,7 +389,7 @@ class InvitationControllerTest extends AbstractTest {
 
     @Test
     void updateInvitation() throws IOException {
-        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get();
         Long id = invitation.getId();
 
         InvitationUpdate invitationUpdate = new InvitationUpdate();
@@ -406,14 +406,14 @@ class InvitationControllerTest extends AbstractTest {
                 .then()
                 .statusCode(201);
 
-        invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        invitation = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get();
         assertEquals(invitationUpdate.getExpiryDate().toString().substring(0, 10),
                 invitation.getExpiryDate().toString().substring(0, 10));
     }
 
     @Test
     void deleteAllowedByInviterGuestInvitation() throws IOException {
-        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get();
+        Invitation invitation = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get();
         invitation.setIntendedAuthority(Authority.GUEST);
         invitationRepository.save(invitation);
 

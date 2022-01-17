@@ -135,16 +135,18 @@ public class InvitationController {
     }
 
     @PutMapping
-    public ResponseEntity<Map<String, Integer>> invite(User user, @RequestBody InvitationRequest invitationRequest) {
+    public ResponseEntity<Map<String, Integer>> invite(User authenticatedUser, @RequestBody InvitationRequest invitationRequest) {
         Invitation invitationData = invitationRequest.getInvitation();
         Institution institution = institutionRepository.findById(invitationRequest.getInstitutionId()).orElseThrow(NotFoundException::new);
-
-        verifyAuthority(user, institution.getId(), invitationData.getIntendedAuthority());
-        if (!user.isSuperAdmin()) {
-            Authority authority = user.authorityByInstitution(institution.getId()).orElseThrow(() -> userRestrictedException(user, institution.getId()));
+        // authenticatedUser must be at least Inviter
+        verifyAuthority(authenticatedUser, institution.getId(), Authority.INVITER);
+        // can not invite user for a higher role
+        verifyAuthority(authenticatedUser, institution.getId(), invitationData.getIntendedAuthority());
+        if (!authenticatedUser.isSuperAdmin()) {
+            Authority authority = authenticatedUser.authorityByInstitution(institution.getId()).orElseThrow(() -> userRestrictedException(authenticatedUser, institution.getId()));
             // Inviter can only invite GUESTS
             if (authority.equals(Authority.INVITER) && !invitationData.getIntendedAuthority().equals(Authority.GUEST)) {
-                throw userRestrictedException(user, institution.getId());
+                throw userRestrictedException(authenticatedUser, institution.getId());
             }
         }
 
@@ -155,7 +157,7 @@ public class InvitationController {
                     invitationData.getIntendedAuthority(),
                     Status.OPEN,
                     HashGenerator.generateHash(),
-                    user,
+                    authenticatedUser,
                     institution,
                     email);
             invitation.setMessage(invitationData.getMessage());
@@ -174,7 +176,7 @@ public class InvitationController {
                 transientRole.setName(persistentRole.getName());
             });
 
-            mailBox.sendInviteMail(user, saved);
+            mailBox.sendInviteMail(authenticatedUser, saved);
         });
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));

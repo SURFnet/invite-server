@@ -38,8 +38,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 @SuppressWarnings("unchecked")
 public abstract class AbstractTest {
 
-    protected final String INVITATION_HASH = HashGenerator.generateHash();
+    protected final String INVITATION_UTRECHT_HASH = HashGenerator.generateHash();
     protected final String INVITATION_EMAIL_EQUALITY_HASH = HashGenerator.generateHash();
+    protected final String INVITATION_UVA_HASH = HashGenerator.generateHash();
 
     @Autowired
     protected ObjectMapper objectMapper;
@@ -94,30 +95,47 @@ public abstract class AbstractTest {
         );
         applicationRepository.saveAll(applications);
 
-        Role role = new Role("administrator", applications.get(0));
-        role.setServiceProviderId(UUID.randomUUID().toString());
-        role = roleRepository.save(role);
+        Role administratorCanvas = new Role("administratorCanvas", applications.get(0));
+        administratorCanvas.setServiceProviderId(UUID.randomUUID().toString());
+        administratorCanvas = roleRepository.save(administratorCanvas);
+
+        Role guestCanvas = new Role("guestCanvas", applications.get(0));
+        guestCanvas.setServiceProviderId(UUID.randomUUID().toString());
+        guestCanvas = roleRepository.save(guestCanvas);
+
+        Role guestBlackboard = new Role("guestBlackboard", applications.get(1));
+        guestBlackboard.setServiceProviderId(UUID.randomUUID().toString());
+        guestBlackboard = roleRepository.save(guestBlackboard);
 
         User mary = user(utrecht, Authority.INSTITUTION_ADMINISTRATOR, "admin@utrecht.nl", "Mary", "Doe", "admin@utrecht.nl");
-        UserRole userRole = new UserRole(role, Instant.now().plus(Period.ofDays(90)));
+        UserRole userRole = new UserRole(administratorCanvas, Instant.now().plus(Period.ofDays(90)));
         userRole.setServiceProviderId(UUID.randomUUID().toString());
         mary.addUserRole(userRole);
         mary.addAup(new Aup(utrecht));
 
         User inviter = user(utrecht, Authority.INVITER, "inviter@utrecht.nl", "inv", "iter", "inviter@utrecht.nl");
+
         User guest = user(utrecht, Authority.GUEST, "guest@utrecht.nl", "fn", "ln", "guest@utrecht.nl");
+        UserRole guestUserRole = new UserRole(guestCanvas, Instant.now().plus(Period.ofDays(90)));
+        guestUserRole.setServiceProviderId(UUID.randomUUID().toString());
+        guest.addUserRole(guestUserRole);
+        guest.addAup(new Aup(utrecht));
+
         List<User> users = Arrays.asList(mary, guest, inviter);
         userRepository.saveAll(users);
 
-        Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_HASH, mary, utrecht, "guest@test.com");
-        invitation.addInvitationRole(new InvitationRole(role));
+        Invitation invitation = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_UTRECHT_HASH, mary, utrecht, "guest@test.com");
+        invitation.addInvitationRole(new InvitationRole(administratorCanvas));
         invitation.setMessage("Please join...");
 
         Invitation invitationEmailEquality = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_EMAIL_EQUALITY_HASH, mary, utrecht, "equals@test.com");
-        invitationEmailEquality.addInvitationRole(new InvitationRole(role));
+        invitationEmailEquality.addInvitationRole(new InvitationRole(administratorCanvas));
         invitationEmailEquality.setEnforceEmailEquality(true);
 
-        List<Invitation> invitations = Arrays.asList(invitation, invitationEmailEquality);
+        Invitation invitationUva = new Invitation(Authority.INVITER, Status.OPEN, INVITATION_UVA_HASH, mary, institutions.get(1), "guest@test.com");
+        invitationUva.addInvitationRole(new InvitationRole(guestBlackboard));
+
+        List<Invitation> invitations = Arrays.asList(invitation, invitationEmailEquality, invitationUva);
         invitationRepository.saveAll(invitations);
     }
 

@@ -2,6 +2,7 @@ package guests.domain;
 
 import org.junit.jupiter.api.Test;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -78,10 +79,76 @@ class UserTest {
         assertEquals(0, applicationListMap.size());
     }
 
+
+    @Test
+    void removeUserRole() {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setId(1L);
+        user.addUserRole(role);
+        UserRole otherRole = new UserRole();
+        otherRole.setId(2L);
+
+        user.removeUserRole(otherRole);
+        assertEquals(1, user.getRoles().size());
+
+        user.addUserRole(otherRole);
+        user.removeUserRole(otherRole);
+        assertEquals(1, user.getRoles().size());
+    }
+
+    @Test
+    void removeMemberShip() {
+        User user = new User();
+        InstitutionMembership membership = new InstitutionMembership();
+        membership.setId(1L);
+        user.addMembership(membership);
+        InstitutionMembership otherMembership = new InstitutionMembership();
+        otherMembership.setId(2L);
+
+        user.removeMembership(otherMembership);
+        assertEquals(1, user.getInstitutionMemberships().size());
+
+        user.addMembership(otherMembership);
+        user.removeMembership(otherMembership);
+        assertEquals(1, user.getInstitutionMemberships().size());
+    }
+
+    @Test
+    void removeOtherInstitutionData() {
+        User user = new User();
+        AtomicLong id = new AtomicLong();
+        List<Application> apps = Arrays.asList(
+                application("LMS", id, "Guests", "Admins"),
+                application("Blackboard", id, "Students"),
+                application("Canvas", id)
+        );
+        apps.forEach(app -> app.getRoles().forEach(role -> user.addUserRole(new UserRole(role, null))));
+        apps.forEach(app -> user.addMembership(new InstitutionMembership(Authority.INVITER, app.getInstitution())));
+
+        assertEquals(3, user.getRoles().size());
+
+        user.removeOtherInstitutionData(apps.get(0).getInstitution().getId());
+        assertEquals(2, user.getRoles().size());
+        assertEquals(1, user.getInstitutionMemberships().size());
+
+        User other = new User();
+        apps.get(0).getRoles().forEach(role -> other.addUserRole(new UserRole(role, null)));
+        other.addMembership(new InstitutionMembership(Authority.INVITER, apps.get(1) .getInstitution()));
+
+        user.removeOtherInstitutionData(other);
+        assertEquals(0, user.getRoles().size());
+        assertEquals(0, user.getInstitutionMemberships().size());
+    }
+
     private Application application(String name, AtomicLong id, String... roles) {
+        Institution institution = new Institution();
+        institution.setId(id.incrementAndGet());
+
         Application app = new Application();
         app.setName(name);
         app.setId(id.incrementAndGet());
+        app.setInstitution(institution);
 
         Arrays.stream(roles).forEach(roleName -> {
             app.addRole(new Role(id.incrementAndGet(), roleName));
@@ -89,4 +156,5 @@ class UserTest {
 
         return app;
     }
+
 }

@@ -64,6 +64,10 @@ public class Application implements Serializable, NameHolder {
     @Embedded
     private Auditable auditable = new Auditable();
 
+    public Application(Institution institution) {
+        this.institution = institution;
+    }
+
     public Application(Institution institution,
                        String entityId,
                        String landingPage,

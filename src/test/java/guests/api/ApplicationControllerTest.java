@@ -155,7 +155,7 @@ class ApplicationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", Application.class);
         assertEquals(1, results.size());
-        assertEquals(1, results.get(0).getRoles().size());
+        assertEquals(2, results.get(0).getRoles().size());
     }
 
     @Test
@@ -174,7 +174,6 @@ class ApplicationControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", Application.class);
         assertEquals(1, results.size());
-        assertEquals(1, results.get(0).getRoles().size());
     }
 
     @Test

@@ -11,9 +11,9 @@ class RoleRepositoryTest extends AbstractTest {
     @Test
     void findByApplication_nameIgnoreCaseAndApplication_institution_homeInstitutionIgnoreCaseAndNameIgnoreCase() {
         Role role = roleRepository.findByApplication_institution_homeInstitutionIgnoreCaseAndApplication_nameIgnoreCaseAndNameIgnoreCase(
-                "UTRECHT.nl", "canvas", "ADMINISTRATOR"
+                "UTRECHT.nl", "canvas", "ADMINISTRATORcanvas"
         ).get();
-        assertEquals("administrator", role.getName());
+        assertEquals("administratorCanvas", role.getName());
 
         roleRepository.findByServiceProviderId(role.getServiceProviderId()).get();
     }

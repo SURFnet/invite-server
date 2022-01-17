@@ -6,6 +6,7 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +62,47 @@ class UserControllerTest extends AbstractTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void allByInstitutionFiltered() throws IOException {
+        //First we need a user which is member of two institutions and then verify we only get one
+        Map<String, Object> invitation = new HashMap<>();
+        invitation.put("hash", INVITATION_UVA_HASH);
+        invitation.put("status", Status.ACCEPTED);
+
+        this.stubForCreateUser();
+        this.stubForUpdateRole();
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
+                .body(invitation)
+                .post("/guests/api/invitations")
+                .then()
+                .statusCode(201);
+
+        Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
+        List<User> users = given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("inviter@utrecht.nl", "introspect.json"))
+                .pathParam("institutionId", institution.getId())
+                .get("/guests/api/users/institution/{institutionId}")
+                .then()
+                .extract()
+                .body()
+                .jsonPath()
+                .getList(".", User.class);
+        assertEquals(3, users.size());
+
+        User guest = users.stream().filter(user -> user.getEduPersonPrincipalName().equals("guest@utrecht.nl")).findFirst().get();
+        assertEquals(1, guest.getInstitutionMemberships().size());
+
+        assertEquals(2, userRepository.findById(guest.getId()).get().getInstitutionMemberships().size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void emailsByInstitution() throws IOException {
         Institution institution = institutionRepository.findByEntityIdIgnoreCase("https://utrecht").get();
         List<Map> res = given()
@@ -95,7 +137,7 @@ class UserControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getList(".", User.class);
-        assertEquals(1, users.size());
+        assertEquals(2, users.size());
     }
 
     @Test
@@ -244,7 +286,7 @@ class UserControllerTest extends AbstractTest {
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
                 .pathParam("userId", admin.getId())
                 .pathParam("userRoleId", userRole.getId())
-                .delete("/guests/api/users/{userId}/{userRoleId}")
+                .delete("/guests/api/users/role/{userId}/{userRoleId}")
                 .then()
                 .statusCode(201);
 
@@ -252,4 +294,73 @@ class UserControllerTest extends AbstractTest {
         assertEquals(0, admin.getRoles().size());
     }
 
+    @Test
+    void deleteOtherUserRoleNotAllowed() throws IOException {
+        super.stubForUpdateRole();
+        User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        UserRole userRole = admin.getRoles().iterator().next();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
+                .pathParam("userId", admin.getId())
+                .pathParam("userRoleId", userRole.getId())
+                .delete("/guests/api/users/role/{userId}/{userRoleId}")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    void deleteOtherInstitutionMembership() throws IOException {
+        super.stubForUpdateRole();
+        User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        InstitutionMembership membership = admin.getInstitutionMemberships().iterator().next();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("userId", admin.getId())
+                .pathParam("membershipId", membership.getId())
+                .delete("/guests/api/users/membership/{userId}/{membershipId}")
+                .then()
+                .statusCode(201);
+
+        admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        assertEquals(0, admin.getInstitutionMemberships().size());
+    }
+
+    @Test
+    void deleteOtherNonSuperAdmin() throws IOException {
+        super.stubForUpdateRole();
+        User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").get();
+        InstitutionMembership membership = admin.getInstitutionMemberships().iterator().next();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("admin@utrecht.nl", "introspect.json"))
+                .pathParam("userId", admin.getId())
+                .pathParam("membershipId", membership.getId())
+                .delete("/guests/api/users/membership/{userId}/{membershipId}")
+                .then()
+                .statusCode(201);
+
+        admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("guest@utrecht.nl").get();
+        assertEquals(0, admin.getInstitutionMemberships().size());
+    }
+
+    @Test
+    void deleteOtherInstitutionMembershipNotAllowed() throws IOException {
+        super.stubForUpdateRole();
+        User admin = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
+        InstitutionMembership membership = admin.getInstitutionMemberships().iterator().next();
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("guest@utrecht.nl", "introspect.json"))
+                .pathParam("userId", admin.getId())
+                .pathParam("membershipId", membership.getId())
+                .delete("/guests/api/users/membership/{userId}/{membershipId}")
+                .then()
+                .statusCode(403);
+    }
 }

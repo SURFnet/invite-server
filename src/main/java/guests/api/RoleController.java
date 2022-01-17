@@ -73,16 +73,19 @@ public class RoleController {
     }
 
     @PostMapping("name-exists")
-    public ResponseEntity<Map<String, Boolean>> namExists(@RequestBody RoleExists roleExists) {
+    public ResponseEntity<Map<String, Boolean>> namExists(User authenticatedUser, @RequestBody RoleExists roleExists) {
+        Application application = applicationRepository.findById(roleExists.getApplicationId()).orElseThrow(NotFoundException::new);
+        verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
+
         Optional<Role> optional = roleRepository.findByApplication_idAndNameIgnoreCase(roleExists.getApplicationId(), roleExists.getUniqueAttribute());
         return doesExists(roleExists, optional);
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Integer>> delete(User user, @PathVariable("id") Long id) {
+    public ResponseEntity<Map<String, Integer>> delete(User authenticatedUser, @PathVariable("id") Long id) {
         Role role = roleRepository.findById(id).get();
-        this.restrictUser(user, role);
+        this.restrictUser(authenticatedUser, role);
         roleRepository.delete(role);
         scimService.deleteRolesRequest(role);
         return createdResponse();

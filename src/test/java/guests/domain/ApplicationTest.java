@@ -42,6 +42,20 @@ class ApplicationTest {
     }
 
     @Test
+    void provisioningEmptyApplicationValid() {
+        Application application = new Application();
+        application.validateProvisioning();
+    }
+
+    @Test
+    void provisioningEmailValid() {
+        Application application = new Application();
+        application.setProvisioningHookEmail("hook@app.nl");
+        application.validateProvisioning();
+        assertTrue(application.provisioningEnabled());
+    }
+
+    @Test
     void institutionName() {
         Application application = new Application();
         assertNull(application.getInstitutionName());

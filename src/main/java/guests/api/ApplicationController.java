@@ -71,7 +71,8 @@ public class ApplicationController {
     }
 
     @PostMapping("entity-id-exists")
-    public ResponseEntity<Map<String, Boolean>> entityIdExists(@RequestBody ApplicationExists applicationExists) {
+    public ResponseEntity<Map<String, Boolean>> entityIdExists(User authenticatedUser, @RequestBody ApplicationExists applicationExists) {
+        verifyAuthority(authenticatedUser, applicationExists.getInstitutionId(), Authority.INSTITUTION_ADMINISTRATOR);
         Optional<Application> optionalApplication = applicationRepository.findByInstitution_idAndEntityIdIgnoreCase(
                 applicationExists.getInstitutionId(), applicationExists.getUniqueAttribute());
         return doesExists(applicationExists, optionalApplication);

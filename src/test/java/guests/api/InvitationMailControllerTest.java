@@ -17,7 +17,7 @@ class InvitationMailControllerTest extends AbstractMailTest {
 
     @Test
     void resend() throws Exception {
-        Long id = invitationRepository.findByHashAndStatus(INVITATION_HASH, Status.OPEN).get().getId();
+        Long id = invitationRepository.findByHashAndStatus(INVITATION_UTRECHT_HASH, Status.OPEN).get().getId();
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("id", id);
         invitation.put("message", "Please...");

@@ -109,6 +109,15 @@ public class User implements Serializable {
     }
 
     @JsonIgnore
+    public void removeMembership(InstitutionMembership membership) {
+        //This is required by Hibernate - children can't be de-referenced
+        Set<InstitutionMembership> newMemberships = institutionMemberships.stream().filter(m -> !m.getId().equals(membership.getId())).collect(Collectors.toSet());
+        institutionMemberships.clear();
+        institutionMemberships.addAll(newMemberships);
+    }
+
+
+    @JsonIgnore
     public void addAup(Aup aup) {
         this.aups.add(aup);
         aup.setUser(this);
@@ -164,6 +173,27 @@ public class User implements Serializable {
                 .collect(Collectors.groupingBy(userRole -> userRole.getRole().getApplication().getId()));
         return userRolesPerApplicationId.entrySet().stream()
                 .collect(Collectors.toMap(entry -> findApplication(entry.getKey()), Map.Entry::getValue));
+    }
+
+    @JsonIgnore
+    public void removeOtherInstitutionData(Long institutionId) {
+        getInstitutionMemberships().removeIf(membership -> !membership.getInstitution().getId().equals(institutionId));
+        getRoles().removeIf(userRole -> !userRole.getRole().getInstitutionId().equals(institutionId));
+    }
+
+    @JsonIgnore
+    public void removeOtherInstitutionData(User authenticatedUser) {
+        Set<Long> institutionIdentifiers = authenticatedUser.getInstitutionMemberships().stream()
+                .filter(membership -> membership.getAuthority().hasEqualOrHigherRights(
+                        this.institutionMemberships.stream()
+                                .filter(m -> m.getInstitution().getId().equals(membership.getInstitution().getId()))
+                                .map(m -> m.getAuthority())
+                                .findFirst().orElse(Authority.GUEST)
+                ))
+                .map(membership -> membership.getInstitution().getId())
+                        .collect(Collectors.toSet());
+        getInstitutionMemberships().removeIf(membership -> !institutionIdentifiers.contains(membership.getInstitution().getId()));
+        getRoles().removeIf(userRole -> !institutionIdentifiers.contains(userRole.getRole().getInstitutionId()));
     }
 
     private String toScimString() {

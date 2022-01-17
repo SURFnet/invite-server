@@ -12,16 +12,19 @@ public enum Authority {
         this.rights = rights;
     }
 
-    public boolean isAllowed(Authority requiredAuthority) {
+    public boolean hasEqualOrHigherRights(Authority requiredAuthority) {
         return rights >= requiredAuthority.rights;
     }
 
-    public boolean isAllowedForAll(Set<Authority> requiredAuthorities) {
-        return requiredAuthorities.stream().allMatch(requiredAuthority -> rights >= requiredAuthority.rights);
+    public boolean hasHigherRights(Authority requiredAuthority) {
+        return rights >= requiredAuthority.rights;
     }
 
     public String friendlyName() {
         return this.name().replaceAll("_", " ").toLowerCase();
     }
 
+    public int compareRights(Authority authority) {
+        return this.rights - authority.rights;
+    }
 }

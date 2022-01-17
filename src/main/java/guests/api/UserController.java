@@ -1,12 +1,13 @@
 package guests.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import guests.domain.Application;
+import guests.domain.InstitutionMembership;
 import guests.domain.User;
 import guests.domain.UserRole;
 import guests.exception.NotFoundException;
 import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
-import guests.repository.UserRoleRepository;
 import guests.scim.SCIMService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static guests.api.Shared.*;
@@ -27,18 +27,18 @@ import static guests.api.Shared.*;
 public class UserController {
 
     private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
     private final ApplicationRepository applicationRepository;
     private final SCIMService scimService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public UserController(UserRepository userRepository,
-                          UserRoleRepository userRoleRepository,
                           ApplicationRepository applicationRepository,
+                          ObjectMapper objectMapper,
                           SCIMService scimService) {
         this.userRepository = userRepository;
-        this.userRoleRepository = userRoleRepository;
         this.applicationRepository = applicationRepository;
+        this.objectMapper = objectMapper;
         this.scimService = scimService;
     }
 
@@ -51,14 +51,20 @@ public class UserController {
     @GetMapping("{userId}")
     public ResponseEntity<User> other(User authenticatedUser, @PathVariable("userId") Long userId) {
         User other = userRepository.findById(userId).orElseThrow(NotFoundException::new);
-        verifyAuthorityForSubject(authenticatedUser, other);
+
+        viewOtherUserAllowed(authenticatedUser, other);
+        removeOtherInstitutionData(authenticatedUser, other);
+
         return ResponseEntity.ok(other);
     }
 
     @GetMapping("/institution/{institutionId}")
-    public ResponseEntity<List<User>> getByInstitution(User user, @PathVariable("institutionId") Long institutionId) {
-        verifyUser(user, institutionId);
-        return ResponseEntity.ok(userRepository.findByInstitutionMemberships_Institution_id(institutionId));
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<User>> getByInstitution(User authenticatedUser, @PathVariable("institutionId") Long institutionId) {
+        verifyUser(authenticatedUser, institutionId);
+        List<User> users = userRepository.findByInstitutionMemberships_Institution_id(institutionId);
+        removeOtherInstitutionData(authenticatedUser, institutionId, users);
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/emails/{institutionId}")
@@ -76,8 +82,8 @@ public class UserController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Map<String, Integer>> delete(User user) {
-        doDeleteUser(user);
+    public ResponseEntity<Map<String, Integer>> delete(User authenticatedUser) {
+        doDeleteUser(authenticatedUser);
         return createdResponse();
     }
 
@@ -86,24 +92,48 @@ public class UserController {
                                                             @PathVariable("userId") Long userId) {
         User subject = userRepository.findById(userId).orElseThrow(NotFoundException::new);
 
-        verifyAuthorityForSubject(authenticatedUser, subject);
+        deleteOtherUserAllowed(authenticatedUser, subject);
 
         doDeleteUser(subject);
         return createdResponse();
     }
 
-    @DeleteMapping("/{userId}/{userRoleId}")
+    @DeleteMapping("/role/{userId}/{userRoleId}")
     public ResponseEntity<Map<String, Integer>> deleteRoleForOther(User authenticatedUser,
                                                                    @PathVariable("userId") Long userId,
                                                                    @PathVariable("userRoleId") Long userRoleId) {
         User subject = userRepository.findById(userId).orElseThrow(NotFoundException::new);
-        UserRole userRole = userRoleRepository.findById(userRoleId).orElseThrow(NotFoundException::new);
+        UserRole userRole = subject.getRoles().stream()
+                .filter(r -> r.getId().equals(userRoleId)).findFirst().orElseThrow(NotFoundException::new);
 
-        verifyAuthorityForSubject(authenticatedUser, subject);
+        deleteUserRoleAllowed(authenticatedUser, userRole);
 
         subject.removeUserRole(userRole);
         userRepository.save(subject);
         scimService.updateRoleRequest(userRole.getRole());
+        return createdResponse();
+    }
+
+    @DeleteMapping("/membership/{userId}/{membershipId}")
+    public ResponseEntity<Map<String, Integer>> deleteMembershipForOther(User authenticatedUser,
+                                                                         @PathVariable("userId") Long userId,
+                                                                         @PathVariable("membershipId") Long membershipId) {
+        User subject = userRepository.findById(userId).orElseThrow(NotFoundException::new);
+        InstitutionMembership institutionMembership = subject.getInstitutionMemberships().stream()
+                .filter(m -> m.getId().equals(membershipId)).findFirst().orElseThrow(NotFoundException::new);
+
+        deleteInstitutionMembershipAllowed(authenticatedUser, institutionMembership);
+
+        Long institutionId = institutionMembership.getInstitution().getId();
+        List<UserRole> userRoles = subject.getRoles().stream()
+                .filter(userRole -> userRole.getRole().getApplication().getInstitution().getId().equals(institutionId))
+                .collect(Collectors.toList());
+
+        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole.getRole()));
+
+        userRoles.forEach(subject::removeUserRole);
+        subject.removeMembership(institutionMembership);
+        userRepository.save(subject);
         return createdResponse();
     }
 
@@ -112,4 +142,15 @@ public class UserController {
         userRepository.delete(subject);
     }
 
+    private void removeOtherInstitutionData(User authenticatedUser, Long institutionId, List<User> users) {
+        if (!authenticatedUser.isSuperAdmin()) {
+            users.forEach(user -> user.removeOtherInstitutionData(institutionId));
+        }
+    }
+
+    private void removeOtherInstitutionData(User authenticatedUser, User user) {
+        if (!authenticatedUser.isSuperAdmin()) {
+            user.removeOtherInstitutionData(authenticatedUser);
+        }
+    }
 }

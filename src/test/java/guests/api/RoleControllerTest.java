@@ -32,7 +32,7 @@ class RoleControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getList(".", Map.class);
-        assertEquals(1, results.size());
+        assertEquals(2, results.size());
         assertEquals("CANVAS", results.get(0).get("applicationName"));
     }
 
@@ -50,7 +50,7 @@ class RoleControllerTest extends AbstractTest {
                 .body()
                 .jsonPath()
                 .getList(".", Role.class);
-        assertEquals(1, results.size());
+        assertEquals(2, results.size());
     }
 
     @Test
@@ -203,7 +203,7 @@ class RoleControllerTest extends AbstractTest {
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
-                .body(new RoleExists(false, "administrator", application.getId()))
+                .body(new RoleExists(false, "administratorCanvas", application.getId()))
                 .post("/guests/api/roles/name-exists")
                 .then()
                 .body("exists", IsEqual.equalTo(true));
