@@ -1,6 +1,5 @@
 package guests.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import guests.AbstractTest;
 import guests.domain.*;
 import guests.scim.GroupRequest;

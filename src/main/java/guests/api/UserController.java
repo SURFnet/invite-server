@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static guests.api.Shared.*;
+import static guests.api.Shared.createdResponse;
+import static guests.api.UserPermissions.*;
 
 @RestController
 @RequestMapping(value = "/guests/api/users", produces = MediaType.APPLICATION_JSON_VALUE)

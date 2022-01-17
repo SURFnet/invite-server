@@ -20,7 +20,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-import static guests.api.Shared.*;
+import static guests.api.Shared.createdResponse;
+import static guests.api.UserPermissions.userRestrictedException;
+import static guests.api.UserPermissions.verifyAuthority;
+
 
 @RestController
 @RequestMapping(value = "/guests/api/invitations", produces = MediaType.APPLICATION_JSON_VALUE)

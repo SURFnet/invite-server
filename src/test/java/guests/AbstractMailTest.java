@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.mail.internet.MimeMessage;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

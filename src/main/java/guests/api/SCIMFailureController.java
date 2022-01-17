@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import static guests.api.UserPermissions.*;
 
 import static guests.api.Shared.*;
 

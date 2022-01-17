@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static guests.api.Shared.*;
+import static guests.api.UserPermissions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class SharedTest {
+class UserPermissionsTest {
 
     @Test
     void verifyAuthorities() {

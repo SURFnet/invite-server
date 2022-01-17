@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static guests.api.Shared.createdResponse;
-import static guests.api.Shared.verifyUser;
+import static guests.api.UserPermissions.verifyUser;
 
 @RestController
 @RequestMapping(value = "/guests/api/aups", produces = MediaType.APPLICATION_JSON_VALUE)

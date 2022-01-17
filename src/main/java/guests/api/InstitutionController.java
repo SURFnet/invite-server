@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static guests.api.Shared.*;
+import static guests.api.UserPermissions.*;
+
 
 @RestController
 @RequestMapping(value = "/guests/api/institutions", produces = MediaType.APPLICATION_JSON_VALUE)
