@@ -11,6 +11,8 @@ import org.hibernate.LazyInitializationException;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity(name = "roles")
 @NoArgsConstructor
@@ -63,31 +65,31 @@ public class Role implements Serializable, NameHolder, ServiceProviderIdentifier
         this.name = roleName;
     }
 
-    @JsonProperty(value = "applicationName", access = JsonProperty.Access.READ_ONLY)
-    public String getApplicationName() {
+    @JsonProperty(value = "application", access = JsonProperty.Access.READ_ONLY)
+    public Map<String, Object> getApplicationMap() {
         try {
-            return this.getApplication().getName();
+            Application application = this.getApplication();
+            Institution institution = application.getInstitution();
+
+            Map<String, Object> applicationMap = new HashMap<>();
+            applicationMap.put("id", application.getId());
+            applicationMap.put("name", application.getName());
+            applicationMap.put("landingPage", application.getLandingPage());
+
+            Map<String, Object> institutionMap = new HashMap<>();
+            institutionMap.put("id", institution.getId());
+
+            applicationMap.put("institution", institutionMap);
+
+            return applicationMap;
         } catch (LazyInitializationException e) {
             return null;
         }
     }
 
-    @JsonProperty(value = "applicationLandingPage", access = JsonProperty.Access.READ_ONLY)
-    public String getApplicationLandingPage() {
-        try {
-            return this.getApplication().getLandingPage();
-        } catch (LazyInitializationException e) {
-            return null;
-        }
-    }
-
-    @JsonProperty(value = "institutionId", access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     public Long getInstitutionId() {
-        try {
-            return this.getApplication().getInstitution().getId();
-        } catch (LazyInitializationException e) {
-            return null;
-        }
+        return this.getApplication().getInstitution().getId();
     }
 
     @Override

@@ -23,7 +23,6 @@ class PublicControllerTest extends AbstractTest {
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
-                .body(Collections.singletonMap("state", "http://localhost"))
                 .post("/api/v1/public/authorize")
                 .then()
                 .extract()
@@ -34,7 +33,7 @@ class PublicControllerTest extends AbstractTest {
 
         String url = results.get("authorizationUrl");
         MultiValueMap<String, String> parameters = UriComponentsBuilder.fromUriString(url).build().getQueryParams();
-        assertEquals("http://localhost", URLDecoder.decode(parameters.getFirst("state"), Charset.defaultCharset()));
+        assertEquals("openid", parameters.getFirst("scope"));
     }
 
 }

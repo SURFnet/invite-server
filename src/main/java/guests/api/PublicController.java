@@ -7,7 +7,6 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,18 +51,11 @@ public class PublicController {
         parameters.put("redirect_uri", redirectUri);
 
         parameters.put("nonce", UUID.randomUUID().toString());
-        if (additionalParameters != null && additionalParameters.containsKey("state")) {
-            parameters.put("state", additionalParameters.get("state"));
-        }
         parameters.put("code_challenge", codeChallenge.getValue());
         parameters.put("code_challenge_method", CodeChallengeMethod.S256.getValue());
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(authorizationUrl);
-        parameters.forEach((key, value) -> {
-            if (StringUtils.hasText(value)) {
-                builder.queryParam(key, encode(value));
-            }
-        });
+        parameters.forEach((key, value) -> builder.queryParam(key, encode(value)));
 
         Map<String, String> results = new HashMap<>();
         results.put("grantType", "authorization_code");

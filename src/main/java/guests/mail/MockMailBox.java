@@ -11,8 +11,11 @@ import java.io.IOException;
 
 public class MockMailBox extends MailBox {
 
+    private final String environment;
+
     public MockMailBox(JavaMailSender mailSender, String emailFrom, String baseUrl, String scimFailureEmail, String environment) {
         super(mailSender, emailFrom, baseUrl, scimFailureEmail, environment);
+        this.environment = environment;
     }
 
     @Override
@@ -23,7 +26,7 @@ public class MockMailBox extends MailBox {
     @Override
     protected void setText(String html, MimeMessageHelper helper) throws MessagingException, IOException {
         String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.contains("mac os x")) {
+        if (osName.contains("mac os x") && environment.equals("local")) {
             openInBrowser(html);
         }
     }

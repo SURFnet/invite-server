@@ -33,7 +33,6 @@ class RoleControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", Map.class);
         assertEquals(2, results.size());
-        assertEquals("CANVAS", results.get(0).get("applicationName"));
     }
 
     @Test
@@ -213,7 +212,7 @@ class RoleControllerTest extends AbstractTest {
     @SuppressWarnings("unchecked")
     void getRole() throws IOException {
         Role role = roleRepository.findAll().get(0);
-        given()
+        Map<String, Object> result = given()
                 .when()
                 .accept(ContentType.JSON)
                 .contentType(ContentType.JSON)
@@ -221,7 +220,12 @@ class RoleControllerTest extends AbstractTest {
                 .pathParam("id", role.getId())
                 .get("/api/v1/roles/{id}")
                 .then()
-                .body("name", IsEqual.equalTo(role.getName()));
+                .extract()
+                .body()
+                .jsonPath()
+                .getMap(".");
+        assertEquals(result.get("name"), role.getName());
+        assertNotNull(((Map) ((Map) result.get("application")).get("institution")).get("id"));
     }
 
     @Test

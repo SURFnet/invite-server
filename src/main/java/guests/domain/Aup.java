@@ -10,6 +10,8 @@ import org.hibernate.LazyInitializationException;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity(name = "aups")
 @NoArgsConstructor
@@ -47,11 +49,17 @@ public class Aup implements Serializable {
         this.url = institution.getAupUrl();
     }
 
-    @JsonProperty(value = "institutionId", access = JsonProperty.Access.READ_ONLY)
-    public Long getInstitutionId() {
+    @JsonProperty(value = "institution", access = JsonProperty.Access.READ_ONLY)
+    public Map<String, Object> getInstitutionMap() {
         try {
-            return this.getInstitution().getId();
-        } catch (LazyInitializationException | NullPointerException e) {
+            Institution institution = getInstitution();
+
+            Map<String, Object> institutionMap = new HashMap<>();
+            institutionMap.put("id", institution.getId());
+            institutionMap.put("name", institution.getDisplayName());
+
+            return institutionMap;
+        } catch (LazyInitializationException e) {
             return null;
         }
     }

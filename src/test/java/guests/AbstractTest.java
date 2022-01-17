@@ -7,8 +7,11 @@ import guests.config.HashGenerator;
 import guests.domain.*;
 import guests.repository.*;
 import io.restassured.RestAssured;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.config.RestAssuredConfig;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -30,10 +33,11 @@ import java.util.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 @ExtendWith(SpringExtension.class)
-@ActiveProfiles(value = "dev")
+@ActiveProfiles(value = "test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "oidc.introspection_uri=http://localhost:8081/introspect"
+                "oidc.introspection_uri=http://localhost:8081/introspect",
+                "email.environment=test"
         })
 @SuppressWarnings("unchecked")
 public abstract class AbstractTest {
@@ -71,6 +75,13 @@ public abstract class AbstractTest {
 
     @LocalServerPort
     protected int port;
+
+    @BeforeAll
+    protected static void beforeAll() {
+        RestAssured.config = RestAssuredConfig.config()
+                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                        new ConfigurableJackson2ObjectMapperFactory()));
+    }
 
     @BeforeEach
     protected void beforeEach() throws FolderException {

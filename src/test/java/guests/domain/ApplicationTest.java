@@ -55,9 +55,4 @@ class ApplicationTest {
         assertTrue(application.provisioningEnabled());
     }
 
-    @Test
-    void institutionName() {
-        Application application = new Application();
-        assertNull(application.getInstitutionName());
-    }
 }

@@ -12,7 +12,9 @@ import org.springframework.util.StringUtils;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Entity(name = "applications")
@@ -83,20 +85,17 @@ public class Application implements Serializable, NameHolder {
         this.provisioningHookPassword = provisioningHookPassword;
     }
 
-    @JsonProperty(value = "institutionName", access = JsonProperty.Access.READ_ONLY)
-    public String getInstitutionName() {
+    @JsonProperty(value = "institution", access = JsonProperty.Access.READ_ONLY)
+    public Map<String, Object> getInstitutionMap() {
         try {
-            return this.getInstitution().getDisplayName();
-        } catch (LazyInitializationException | NullPointerException e) {
-            return null;
-        }
-    }
+            Institution institution = getInstitution();
 
-    @JsonProperty(value = "institutionId", access = JsonProperty.Access.READ_ONLY)
-    public Long getInstitutionId() {
-        try {
-            return this.getInstitution().getId();
-        } catch (LazyInitializationException | NullPointerException e) {
+            Map<String, Object> institutionMap = new HashMap<>();
+            institutionMap.put("id", institution.getId());
+            institutionMap.put("name", institution.getDisplayName());
+
+            return institutionMap;
+        } catch (LazyInitializationException e) {
             return null;
         }
     }
@@ -133,8 +132,7 @@ public class Application implements Serializable, NameHolder {
     public String toString() {
         return "Application{" +
                 "name='" + name + '\'' +
-                ", entityId='" + entityId + '\'' +
-                ", institutionName='" + getInstitutionName() + '\'' +
+                ", entityId='" + entityId +
                 '}';
     }
 

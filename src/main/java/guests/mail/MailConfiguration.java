@@ -30,13 +30,13 @@ public class MailConfiguration {
     private JavaMailSender mailSender;
 
     @Bean
-    @Profile({"!dev"})
+    @Profile({"!test"})
     public MailBox mailSenderProd() {
         return new MailBox(mailSender, emailFrom, baseUrl, scimFailureEmail, environment);
     }
 
     @Bean
-    @Profile({"dev"})
+    @Profile({"test"})
     @Primary
     public MailBox mailSenderDev() {
         return new MockMailBox(mailSender, emailFrom, baseUrl, scimFailureEmail, environment);
