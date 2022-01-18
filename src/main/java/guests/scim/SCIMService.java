@@ -106,8 +106,12 @@ public class SCIMService {
     public void updateUserRequest(User user) {
         user.userRolesPerApplicationProvisioningEnabled().forEach((application, userRoles) -> {
             UserRole userRole = userRoles.get(0);
-            String userRequest = prettyJson(new UserRequest(user, userRole));
-            this.updateRequest(application, userRequest, USER_API, userRole);
+            if (StringUtils.hasText(userRole.getServiceProviderId())) {
+                String userRequest = prettyJson(new UserRequest(user, userRole));
+                this.updateRequest(application, userRequest, USER_API, userRole);
+            } else {
+                this.newUserRequest(user);
+            }
         });
     }
 
@@ -118,8 +122,10 @@ public class SCIMService {
 
         user.userRolesPerApplicationProvisioningEnabled().forEach((application, userRoles) -> {
             UserRole userRole = userRoles.get(0);
-            String userRequest = prettyJson(new UserRequest(user, userRole));
-            this.deleteRequest(application, userRequest, USER_API, userRole);
+            if (StringUtils.hasText(userRole.getServiceProviderId())) {
+                String userRequest = prettyJson(new UserRequest(user, userRole));
+                this.deleteRequest(application, userRequest, USER_API, userRole);
+            }
         });
     }
 
@@ -143,24 +149,24 @@ public class SCIMService {
 
     private void doUpdateRoleRequest(Role role, Collection<UserRole> userRolesToBeDeleted) {
         if (role.getApplication().provisioningEnabled()) {
-            String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
-            Set<Long> userRoleIdentifiers = userRolesToBeDeleted.stream()
-                    .map(UserRole::getId)
-                    .collect(Collectors.toSet());
-            List<UserRole> userRoles = userRoleRepository
-                    .findByRoleId(role.getId())
-                    .stream()
-                    .filter(userRole -> !userRoleIdentifiers.contains(userRole.getId()))
-                    .collect(Collectors.toList());
-            Collection<Member> members = userRoles.stream()
-                    .map(userRole -> new Member(userRole.getServiceProviderId()))
-                    .collect(Collectors.toMap(
-                            Member::getValue,
-                            member -> member,
-                            (a1, a2) -> a1))
-                    .values();
-            String groupRequest = prettyJson(new GroupRequest(externalId, role, role.getName(), new ArrayList<>(members)));
             if (StringUtils.hasText(role.getServiceProviderId())) {
+                String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
+                Set<Long> userRoleIdentifiers = userRolesToBeDeleted.stream()
+                        .map(UserRole::getId)
+                        .collect(Collectors.toSet());
+                List<UserRole> userRoles = userRoleRepository
+                        .findByRoleId(role.getId())
+                        .stream()
+                        .filter(userRole -> !userRoleIdentifiers.contains(userRole.getId()))
+                        .collect(Collectors.toList());
+                Collection<Member> members = userRoles.stream()
+                        .map(userRole -> new Member(userRole.getServiceProviderId()))
+                        .collect(Collectors.toMap(
+                                Member::getValue,
+                                member -> member,
+                                (a1, a2) -> a1))
+                        .values();
+                String groupRequest = prettyJson(new GroupRequest(externalId, role, role.getName(), new ArrayList<>(members)));
                 this.updateRequest(role.getApplication(), groupRequest, GROUP_API, role);
             } else {
                 this.newRoleRequest(role);
@@ -169,7 +175,7 @@ public class SCIMService {
     }
 
     public void deleteRolesRequest(Role role) {
-        if (role.getApplication().provisioningEnabled()) {
+        if (role.getApplication().provisioningEnabled() && StringUtils.hasText(role.getServiceProviderId())) {
             String externalId = GroupURN.urnFromRole(groupUrnPrefix, role);
             String groupRequest = prettyJson(new GroupRequest(externalId, role, role.getName(), Collections.emptyList()));
             this.deleteRequest(role.getApplication(), groupRequest, GROUP_API, role);

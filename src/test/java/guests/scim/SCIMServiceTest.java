@@ -52,6 +52,16 @@ class SCIMServiceTest extends AbstractMailTest {
     }
 
     @Test
+    void updateUnknownUserRequest() throws JsonProcessingException {
+        User user = seedUser();
+        stubForCreateUser();
+
+        scimService.updateUserRequest(user);
+        assertNoSCIMFailures();
+        assertNotNull(user.getUserRoles().iterator().next().getServiceProviderId());
+    }
+
+    @Test
     void updateUserRequestMail() throws Exception {
         User user = seedUserWithEmailProvisioning();
         String serviceProviderId = UUID.randomUUID().toString();
@@ -77,6 +87,15 @@ class SCIMServiceTest extends AbstractMailTest {
 
         stubForUpdateRole();
         stubForDeleteUser();
+
+        scimService.deleteUserRequest(user);
+        assertNoSCIMFailures();
+    }
+
+    @Test
+    void deleteUnknownUserRequest() throws JsonProcessingException {
+        User user = seedUser();
+        stubForCreateRole();
 
         scimService.deleteUserRequest(user);
         assertNoSCIMFailures();
