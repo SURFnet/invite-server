@@ -130,11 +130,12 @@ public class UserController {
                 .filter(userRole -> userRole.getRole().getApplication().getInstitution().getId().equals(institutionId))
                 .collect(Collectors.toList());
 
-        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole.getRole()));
-
         userRoles.forEach(subject::removeUserRole);
         subject.removeMembership(institutionMembership);
         userRepository.save(subject);
+
+        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole.getRole()));
+
         return createdResponse();
     }
 
