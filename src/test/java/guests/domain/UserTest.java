@@ -1,12 +1,11 @@
 package guests.domain;
 
+import guests.scim.Member;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -78,7 +77,6 @@ class UserTest {
         Map<Application, List<UserRole>> applicationListMap = user.userRolesPerApplicationProvisioningEnabled();
         assertEquals(0, applicationListMap.size());
     }
-
 
     @Test
     void removeUserRole() {

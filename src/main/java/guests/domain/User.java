@@ -2,10 +2,12 @@ package guests.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import guests.api.Shared;
 import guests.exception.NotFoundException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;

@@ -38,4 +38,5 @@ public class UserRole implements Serializable, ServiceProviderIdentifier {
         this.role = role;
         this.endDate = endDate;
     }
+
 }

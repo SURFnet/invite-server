@@ -43,9 +43,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void updateUserRequest() {
         User user = seedUser();
-        String serviceProviderId = stubForUpdateUser();
-        UserRole userRole = user.getUserRoles().iterator().next();
-        userRole.setServiceProviderId(serviceProviderId);
+        seedSCIMUserRole(user);
 
         scimService.updateUserRequest(user);
         assertNoSCIMFailures();
@@ -64,9 +62,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void updateUserRequestMail() throws Exception {
         User user = seedUserWithEmailProvisioning();
-        String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getUserRoles().iterator().next();
-        userRole.setServiceProviderId(serviceProviderId);
+        String serviceProviderId = seedSCIMUserRole(user);
 
         scimService.updateUserRequest(user);
 
@@ -80,10 +76,8 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void deleteUserRequest() throws JsonProcessingException {
         User user = seedUser();
-        String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getUserRoles().iterator().next();
-        userRole.setServiceProviderId(serviceProviderId);
-        userRole.getRole().setServiceProviderId(UUID.randomUUID().toString());
+        String serviceProviderId = seedSCIMUserRole(user);
+        user.getUserRoles().iterator().next().getRole().setServiceProviderId(serviceProviderId);
 
         stubForUpdateRole();
         stubForDeleteUser();
@@ -104,9 +98,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void deleteUserRequestMail() throws Exception {
         User user = seedUserWithEmailProvisioning();
-        String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getUserRoles().iterator().next();
-        userRole.setServiceProviderId(serviceProviderId);
+        String serviceProviderId = seedSCIMUserRole(user);
 
         scimService.deleteUserRequest(user);
         assertNoSCIMFailures();
@@ -150,21 +142,34 @@ class SCIMServiceTest extends AbstractMailTest {
         stubForCreateRole();
         scimService.updateRoleRequest(role);
         assertNoSCIMFailures();
-
     }
 
     @Test
     void updateRoleRequest() throws JsonProcessingException {
         User user = seedUser();
-        UserRole userRole = user.getUserRoles().iterator().next();
-        String serviceProviderId = stubForUpdateRole();
-        userRole.setServiceProviderId(serviceProviderId);
-        Role role = userRole.getRole();
+        seedSCIMUserRole(user);
+        Role role = user.getUserRoles().iterator().next().getRole();
         role.setServiceProviderId(UUID.randomUUID().toString());
+        roleRepository.save(role);
+
+        stubForUpdateRole();
+        scimService.updateRoleRequest(role);
+        assertNoSCIMFailures();
+    }
+
+    @Test
+    void updateRoleRequestUnprovisionedUsers() throws JsonProcessingException {
+        User user = seedUser();
+
+        Role role = user.getUserRoles().iterator().next().getRole();
+        role.setServiceProviderId(UUID.randomUUID().toString());
+        roleRepository.save(role);
+
+        stubForCreateUser();
+        stubForUpdateRole();
 
         scimService.updateRoleRequest(role);
         assertNoSCIMFailures();
-
     }
 
     @Test
@@ -190,9 +195,7 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void deleteUserRequestFailure() {
         User user = seedUser();
-        String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getUserRoles().iterator().next();
-        userRole.setServiceProviderId(serviceProviderId);
+        seedSCIMUserRole(user);
 
         scimService.deleteUserRequest(user);
 
@@ -203,9 +206,11 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void updateUserRequestFailure() {
         User user = seedUser();
-        String serviceProviderId = UUID.randomUUID().toString();
         UserRole userRole = user.getUserRoles().iterator().next();
+        String serviceProviderId = UUID.randomUUID().toString();
         userRole.setServiceProviderId(serviceProviderId);
+        userRoleRepository.save(userRole);
+        user.getUserRoles().iterator().next().getRole().setServiceProviderId(serviceProviderId);
 
         scimService.updateUserRequest(user);
         assertSCIMFailure("http://localhost:8081/scim/v1/users/" + serviceProviderId);
@@ -223,11 +228,9 @@ class SCIMServiceTest extends AbstractMailTest {
     @Test
     void updateRoleRequestFailure() throws Exception {
         User user = seedUser();
-        String serviceProviderId = UUID.randomUUID().toString();
-        UserRole userRole = user.getUserRoles().iterator().next();
-        userRole.setServiceProviderId(serviceProviderId);
+        String serviceProviderId = seedSCIMUserRole(user);
 
-        Role role = userRole.getRole();
+        Role role = user.getUserRoles().iterator().next().getRole();
         role.setServiceProviderId(serviceProviderId);
         role.setId(1L);
 
@@ -271,6 +274,17 @@ class SCIMServiceTest extends AbstractMailTest {
         Application application = user.getUserRoles().iterator().next().getRole().getApplication();
         application.setProvisioningHookUrl(null);
         application.setProvisioningHookEmail("admin@uva.nl");
+
+        applicationRepository.save(application);
+
         return user;
+    }
+
+    private String seedSCIMUserRole(User user) {
+        UserRole userRole = user.getUserRoles().iterator().next();
+        String serviceProviderId = stubForUpdateUser();
+        userRole.setServiceProviderId(serviceProviderId);
+        userRoleRepository.save(userRole);
+        return serviceProviderId;
     }
 }

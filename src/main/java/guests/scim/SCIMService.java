@@ -105,8 +105,11 @@ public class SCIMService {
     @SneakyThrows
     public void updateUserRequest(User user) {
         user.userRolesPerApplicationProvisioningEnabled().forEach((application, userRoles) -> {
-            UserRole userRole = userRoles.get(0);
-            if (StringUtils.hasText(userRole.getServiceProviderId())) {
+            Optional<UserRole> userRoleProvisioned = userRoles.stream()
+                    .filter(userRole -> StringUtils.hasText(userRole.getServiceProviderId()))
+                    .findFirst();
+            if (userRoleProvisioned.isPresent()) {
+                UserRole userRole = userRoleProvisioned.get();
                 String userRequest = prettyJson(new UserRequest(user, userRole));
                 this.updateRequest(application, userRequest, USER_API, userRole);
             } else {
@@ -159,6 +162,13 @@ public class SCIMService {
                         .stream()
                         .filter(userRole -> !userRoleIdentifiers.contains(userRole.getId()))
                         .collect(Collectors.toList());
+                //First provision Users that have not yet been provisioned
+                Collection<User> nonProvisionedUsers = userRoles.stream()
+                        .filter(userRole -> !StringUtils.hasText(userRole.getServiceProviderId()))
+                        .collect(Collectors.toMap(userRole -> userRole.getUser().getId(), userRole -> userRole.getUser(), (u1,u2)-> u1))
+                        .values();
+                nonProvisionedUsers.forEach(user -> this.updateUserRequest(user));
+
                 Collection<Member> members = userRoles.stream()
                         .map(userRole -> new Member(userRole.getServiceProviderId()))
                         .collect(Collectors.toMap(

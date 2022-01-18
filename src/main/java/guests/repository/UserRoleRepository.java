@@ -1,6 +1,7 @@
 package guests.repository;
 
 import guests.domain.UserRole;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +13,8 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
 
     List<UserRole> findByEndDateBefore(Instant instant);
 
+    @EntityGraph(value = "findByRoleId", type = EntityGraph.EntityGraphType.LOAD,
+            attributePaths = {"role.application"})
     List<UserRole> findByRoleId(Long roleId);
 
 
