@@ -92,7 +92,7 @@ public class Application implements Serializable, NameHolder {
 
             Map<String, Object> institutionMap = new HashMap<>();
             institutionMap.put("id", institution.getId());
-            institutionMap.put("name", institution.getDisplayName());
+            institutionMap.put("displayName", institution.getDisplayName());
 
             return institutionMap;
         } catch (LazyInitializationException e) {

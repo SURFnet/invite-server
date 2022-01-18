@@ -167,12 +167,14 @@ public class User implements Serializable {
     }
 
     @JsonIgnore
-    public Map<Application, List<UserRole>> userRolesPerApplication() {
+    public Map<Application, List<UserRole>> userRolesPerApplicationProvisioningEnabled() {
         Map<Long, List<UserRole>> userRolesPerApplicationId = getUserRoles().stream()
                 .filter(userRole -> userRole.getRole() != null && userRole.getRole().getApplication() != null)
                 .collect(Collectors.groupingBy(userRole -> userRole.getRole().getApplication().getId()));
-        return userRolesPerApplicationId.entrySet().stream()
+        Map<Application, List<UserRole>> result = userRolesPerApplicationId.entrySet().stream()
                 .collect(Collectors.toMap(entry -> findApplication(entry.getKey()), Map.Entry::getValue));
+        result.keySet().removeIf(application -> !application.provisioningEnabled());
+        return result;
     }
 
     @JsonIgnore

@@ -57,13 +57,14 @@ class UserTest {
         User user = new User();
         AtomicLong id = new AtomicLong();
         List<Application> apps = Arrays.asList(
-                application("LMS", id, "Guests", "Admins"),
-                application("Blackboard", id, "Students"),
-                application("Canvas", id)
+                application("LMS", "provision@scim.org", id, "Guests", "Admins"),
+                application("Blackboard", "provision@scim.org", id, "Students"),
+                application("CGI", null, id, "Exchange"),
+                application("Canvas", null, id)
         );
         apps.forEach(app -> app.getRoles().forEach(role -> user.addUserRole(new UserRole(role, null))));
 
-        Map<Application, List<UserRole>> applicationListMap = user.userRolesPerApplication();
+        Map<Application, List<UserRole>> applicationListMap = user.userRolesPerApplicationProvisioningEnabled();
         assertEquals(2, applicationListMap.size());
         applicationListMap.forEach((app, userRoles) ->
                 assertEquals(app.getName().equals("LMS") ? 2 : 1, userRoles.size()));
@@ -74,7 +75,7 @@ class UserTest {
         User user = new User();
         user.addUserRole(new UserRole());
         user.addUserRole(new UserRole(new Role(), null));
-        Map<Application, List<UserRole>> applicationListMap = user.userRolesPerApplication();
+        Map<Application, List<UserRole>> applicationListMap = user.userRolesPerApplicationProvisioningEnabled();
         assertEquals(0, applicationListMap.size());
     }
 
@@ -118,9 +119,9 @@ class UserTest {
         User user = new User();
         AtomicLong id = new AtomicLong();
         List<Application> apps = Arrays.asList(
-                application("LMS", id, "Guests", "Admins"),
-                application("Blackboard", id, "Students"),
-                application("Canvas", id)
+                application("LMS", "provision@scim.org", id, "Guests", "Admins"),
+                application("Blackboard", "provision@scim.org", id, "Students"),
+                application("Canvas", "provision@scim.org", id)
         );
         apps.forEach(app -> app.getRoles().forEach(role -> user.addUserRole(new UserRole(role, null))));
         apps.forEach(app -> user.addMembership(new InstitutionMembership(Authority.INVITER, app.getInstitution())));
@@ -133,19 +134,20 @@ class UserTest {
 
         User other = new User();
         apps.get(0).getRoles().forEach(role -> other.addUserRole(new UserRole(role, null)));
-        other.addMembership(new InstitutionMembership(Authority.INVITER, apps.get(1) .getInstitution()));
+        other.addMembership(new InstitutionMembership(Authority.INVITER, apps.get(1).getInstitution()));
 
         user.removeOtherInstitutionData(other);
         assertEquals(0, user.getUserRoles().size());
         assertEquals(0, user.getInstitutionMemberships().size());
     }
 
-    private Application application(String name, AtomicLong id, String... roles) {
+    private Application application(String name, String provisioningHookEmail, AtomicLong id, String... roles) {
         Institution institution = new Institution();
         institution.setId(id.incrementAndGet());
 
         Application app = new Application();
         app.setName(name);
+        app.setProvisioningHookEmail(provisioningHookEmail);
         app.setId(id.incrementAndGet());
         app.setInstitution(institution);
 

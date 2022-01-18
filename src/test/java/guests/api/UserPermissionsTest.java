@@ -24,6 +24,8 @@ class UserPermissionsTest {
     void superAdminIsAllowedAll() {
         User authenticatedUser = getUser(Authority.SUPER_ADMIN);
         User subject = getUser(Authority.SUPER_ADMIN);
+        subject.setId(99L);
+
         viewOtherUserAllowed(authenticatedUser, subject);
         deleteOtherUserAllowed(authenticatedUser, subject);
 
@@ -58,16 +60,32 @@ class UserPermissionsTest {
     }
 
     @Test
+    void viewOtherUserSelfAllowed() {
+        User authenticatedUser = getUser(Authority.INVITER);
+        User subject = getUser(Authority.INVITER);
+
+        viewOtherUserAllowed(authenticatedUser, subject);
+    }
+
+    @Test
+    void deleteOtherUserSelfAllowed() {
+        User authenticatedUser = getUser(Authority.INVITER);
+        User subject = getUser(Authority.INVITER);
+
+        deleteOtherUserAllowed(authenticatedUser, subject);
+    }
+
+    @Test
     void deleteOtherUserNotAllowed() {
         User authenticatedUser = getUser(Authority.INVITER);
         User subject = getUser(Authority.GUEST);
         subject.setId(99L);
 
-        viewOtherUserAllowed(authenticatedUser, subject);
+        deleteOtherUserAllowed(authenticatedUser, subject);
 
         //ensure mismatch in InstitutionMembership.Institution
         subject.getInstitutionMemberships().iterator().next().getInstitution().setId(99L);
-        assertThrows(UserRestrictionException.class, () -> viewOtherUserAllowed(authenticatedUser, subject));
+        assertThrows(UserRestrictionException.class, () -> deleteOtherUserAllowed(authenticatedUser, subject));
     }
 
     @Test

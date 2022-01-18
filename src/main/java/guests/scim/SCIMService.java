@@ -82,7 +82,7 @@ public class SCIMService {
 
     @SneakyThrows
     public void newUserRequest(User user) {
-        user.userRolesPerApplication().forEach((application, userRoles) -> {
+        user.userRolesPerApplicationProvisioningEnabled().forEach((application, userRoles) -> {
             /*
              * Contract of userRolesPerApplication is that there is at least one UserRole
              *
@@ -104,7 +104,7 @@ public class SCIMService {
 
     @SneakyThrows
     public void updateUserRequest(User user) {
-        user.userRolesPerApplication().forEach((application, userRoles) -> {
+        user.userRolesPerApplicationProvisioningEnabled().forEach((application, userRoles) -> {
             UserRole userRole = userRoles.get(0);
             String userRequest = prettyJson(new UserRequest(user, userRole));
             this.updateRequest(application, userRequest, USER_API, userRole);
@@ -116,7 +116,7 @@ public class SCIMService {
         //First send update role requests
         user.getUserRoles().forEach(userRole -> this.doUpdateRoleRequest(userRole.getRole(), user.getUserRoles()));
 
-        user.userRolesPerApplication().forEach((application, userRoles) -> {
+        user.userRolesPerApplicationProvisioningEnabled().forEach((application, userRoles) -> {
             UserRole userRole = userRoles.get(0);
             String userRequest = prettyJson(new UserRequest(user, userRole));
             this.deleteRequest(application, userRequest, USER_API, userRole);
