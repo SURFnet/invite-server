@@ -87,7 +87,8 @@ class InvitationMailControllerTest extends AbstractMailTest {
                 .collect(Collectors.toMap(parser -> getSubject(parser), parser -> getPlainContent(parser)));
 
         assertEquals(3, messages.size());
-        assertTrue(messages.containsKey("SCIM users: CREATE"));
+        assertTrue(messages.get("SCIM users: CREATE")
+                .contains("guest@utrecht.nl"));
         assertTrue(messages.get("SCIM groups: UPDATE")
                 .contains("urn:collab:group:test.eduid.nl:uva.nl:blackboard:guestblackboard"));
         assertTrue(messages.get("SCIM groups: CREATE")
