@@ -185,6 +185,14 @@ class SCIMServiceTest extends AbstractMailTest {
     }
 
     @Test
+    void deleteRolesRequestNoProvisioningNoServiceId() {
+        Application application = new Application();
+        application.setProvisioningHookUrl("https://prov");
+        scimService.deleteRolesRequest(new Role("name", application));
+        assertNoSCIMFailures();
+    }
+
+    @Test
     void newUserRequestFailure() {
         User user = seedUser();
 

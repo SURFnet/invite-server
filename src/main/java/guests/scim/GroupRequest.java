@@ -16,10 +16,10 @@ public class GroupRequest implements Serializable {
     private final String displayName;
     private final List<Member> members;
 
-    public GroupRequest(String externalId, String displayName) {
+    public GroupRequest(String externalId, String displayName, List<Member> members) {
         this.externalId = externalId;
         this.displayName = displayName;
-        this.members = Collections.emptyList();
+        this.members = members;
     }
 
     public GroupRequest(String externalId, ServiceProviderIdentifier serviceProviderIdentifier, String displayName, List<Member> members) {

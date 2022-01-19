@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -127,8 +128,8 @@ class SCIMFailureControllerTest extends AbstractTest {
     void resendSCIMFailureCreateUser() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         UserRole userRole = user.getUserRoles().iterator().next();
-
-        assertNotNull(userRole.getServiceProviderId());
+        userRole.setServiceProviderId(null);
+        userRoleRepository.save(userRole);
 
         SCIMFailure scimFailure = new SCIMFailure(
                 objectMapper.writeValueAsString(new UserRequest(user)),
@@ -147,7 +148,6 @@ class SCIMFailureControllerTest extends AbstractTest {
         UserRole userRoleAfter = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get().getUserRoles().iterator().next();
 
         assertNotNull(userRoleAfter.getServiceProviderId());
-        assertNotEquals(userRole.getServiceProviderId(), userRoleAfter.getServiceProviderId());
     }
 
     @Test
@@ -192,8 +192,8 @@ class SCIMFailureControllerTest extends AbstractTest {
     void resendSCIMFailureCreateUserEndpointDown() throws IOException {
         User user = userRepository.findByEduPersonPrincipalNameIgnoreCase("admin@utrecht.nl").get();
         UserRole userRole = user.getUserRoles().iterator().next();
-
-        assertNotNull(userRole.getServiceProviderId());
+        userRole.setServiceProviderId(null);
+        userRoleRepository.save(userRole);
 
         SCIMFailure scimFailure = new SCIMFailure(
                 objectMapper.writeValueAsString(new UserRequest(user)),
@@ -226,7 +226,7 @@ class SCIMFailureControllerTest extends AbstractTest {
         String externalId = GroupURN.urnFromRole("groupUrnPrefix", role);
 
         SCIMFailure scimFailure = new SCIMFailure(
-                objectMapper.writeValueAsString(new GroupRequest(externalId, role.getName())),
+                objectMapper.writeValueAsString(new GroupRequest(externalId, role.getName(), Collections.emptyList())),
                 GROUP_API,
                 HttpMethod.POST.name(),
                 "http://localhost:8081/scim/v1/groups",

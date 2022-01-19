@@ -3,6 +3,7 @@ package guests;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.store.FolderException;
 import com.icegreen.greenmail.util.ServerSetupTest;
+import lombok.SneakyThrows;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,12 +46,23 @@ public class AbstractMailTest extends AbstractTest {
     protected List<MimeMessageParser> allMailMessages(int expectedLength) throws Exception {
         await().until(() -> greenMail.getReceivedMessages().length == expectedLength);
         MimeMessage[] receivedMessages = greenMail.getReceivedMessages();
-        return Stream.of(receivedMessages).map(mimeMessage -> {
-            try {
-                return new MimeMessageParser(mimeMessage).parse();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).collect(Collectors.toList());
+        return Stream.of(receivedMessages)
+                .map(mimeMessage -> this.mimeMessageParser(mimeMessage))
+                .collect(Collectors.toList());
+    }
+
+    @SneakyThrows
+    protected MimeMessageParser mimeMessageParser(MimeMessage mimeMessage) {
+        return new MimeMessageParser(mimeMessage).parse();
+    }
+
+    @SneakyThrows
+    protected String getSubject(MimeMessageParser parser) {
+        return parser.getSubject();
+    }
+
+    @SneakyThrows
+    protected String getPlainContent(MimeMessageParser parser) {
+        return parser.getPlainContent();
     }
 }

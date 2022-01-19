@@ -69,9 +69,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info"
+        include: "health,info,mappings"
   endpoint:
     info:
+      enabled: true
+    mappings:
       enabled: true
   info:
     git:

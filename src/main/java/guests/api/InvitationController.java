@@ -126,11 +126,12 @@ public class InvitationController {
                     }
                 });
         // This will assign the external ID to the userRoles
-        if (user.getId() == null || user.getUserRoles().stream().noneMatch(userRole -> StringUtils.hasText(userRole.getServiceProviderId()))) {
+        if (user.getId() == null || user.getUserRoles().stream().anyMatch(userRole -> !StringUtils.hasText(userRole.getServiceProviderId()))) {
             scimService.newUserRequest(user);
         }
         newUser = userRepository.save(user);
 
+        //The SCIM service will detect that the User needs to be SCIM provisioned
         newRoles.forEach(scimService::updateRoleRequest);
 
         invitationRepository.delete(invitation);

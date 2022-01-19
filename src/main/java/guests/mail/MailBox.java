@@ -13,7 +13,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +48,7 @@ public class MailBox {
         variables.put("invitation", invitation);
         variables.put("user", user);
         variables.put("url", String.format("%s/invitations?h=%s", baseUrl, invitation.getHash()));
-        sendMail(String.format("invitation_%s.html", languageCode),
+        sendMail(String.format("invitation_%s", languageCode),
                 title,
                 variables,
                 invitation.getEmail());
@@ -60,7 +59,7 @@ public class MailBox {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put("userRequest", userRequest);
-        sendMail(String.format("scim_provisioning_%s.html", languageCode),
+        sendMail(String.format("scim_provisioning_%s", languageCode),
                 title,
                 variables,
                 email);
@@ -69,7 +68,7 @@ public class MailBox {
     public void sendScimFailureMail(SCIMFailure scimFailure) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("scimFailure", scimFailure);
-        sendMail(String.format("scim_failure_%s.html", languageCode),
+        sendMail(String.format("scim_failure_%s", languageCode),
                 String.format("SCIM failure in environment %s", environment),
                 variables,
                 scimFailureEmail);
@@ -77,19 +76,20 @@ public class MailBox {
 
     @SneakyThrows
     private void sendMail(String templateName, String subject, Map<String, Object> variables, String... to) {
-        String html = this.mailTemplate(templateName, variables);
+        String htmlText = this.mailTemplate(templateName + ".html", variables);
+        String plainText = this.mailTemplate(templateName + ".txt", variables);
 
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, false);
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setSubject(subject);
+        setText(plainText, htmlText, helper);
         helper.setTo(to);
-        setText(html, helper);
         helper.setFrom(emailFrom);
         doSendMail(message);
     }
 
-    protected void setText(String html, MimeMessageHelper helper) throws MessagingException, IOException {
-        helper.setText(html, true);
+    protected void setText(String plainText, String htmlText, MimeMessageHelper helper) throws MessagingException {
+        helper.setText(plainText, htmlText);
     }
 
     protected void doSendMail(MimeMessage message) {

@@ -201,9 +201,9 @@ public class User implements Serializable {
     }
 
     private String toScimString() {
-        return String.format("%s%s%s",
-                this.familyName,
+        return String.format("%s %s <%s>",
                 this.givenName,
+                this.familyName,
                 this.email);
 
     }

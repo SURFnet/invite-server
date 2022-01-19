@@ -77,9 +77,4 @@ class SCIMScenarioTest extends AbstractMailTest {
         ), subjects);
     }
 
-    @SneakyThrows
-    private String getSubject(MimeMessageParser parser) {
-        return parser.getSubject();
-    }
-
 }
