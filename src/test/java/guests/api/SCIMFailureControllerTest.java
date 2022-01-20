@@ -257,7 +257,7 @@ class SCIMFailureControllerTest extends AbstractTest {
                 .map(u -> new Member(userRole.getServiceProviderId()))
                 .collect(Collectors.toList());
         SCIMFailure scimFailure = new SCIMFailure(
-                objectMapper.writeValueAsString(new GroupRequest(externalId, role, role.getName(),  members)),
+                objectMapper.writeValueAsString(new GroupRequest(externalId, role, role.getName(), members)),
                 GROUP_API,
                 HttpMethod.PATCH.name(),
                 "http://localhost:8081/scim/v1/groups",

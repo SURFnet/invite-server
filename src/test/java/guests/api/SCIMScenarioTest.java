@@ -4,7 +4,6 @@ import guests.AbstractMailTest;
 import guests.config.HashGenerator;
 import guests.domain.*;
 import io.restassured.http.ContentType;
-import lombok.SneakyThrows;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.junit.jupiter.api.Test;
 

@@ -6,9 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;

@@ -195,7 +195,7 @@ public class User implements Serializable {
                                 .findFirst().orElse(Authority.GUEST)
                 ))
                 .map(membership -> membership.getInstitution().getId())
-                        .collect(Collectors.toSet());
+                .collect(Collectors.toSet());
         getInstitutionMemberships().removeIf(membership -> !institutionIdentifiers.contains(membership.getInstitution().getId()));
         getUserRoles().removeIf(userRole -> !institutionIdentifiers.contains(userRole.getRole().getInstitutionId()));
     }

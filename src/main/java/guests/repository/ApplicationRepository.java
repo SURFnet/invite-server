@@ -14,7 +14,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     Optional<Application> findByInstitution_idAndEntityIdIgnoreCase(Long institutionId, String entityId);
 
-    List<Application> findByRoles_IdIn(List roleIdentifiers);
+    List<Application> findByRoles_IdIn(List<Long> roleIdentifiers);
 
     List<Application> findByInstitution_id(long institutionId);
 

@@ -26,7 +26,7 @@ class VootControllerTest extends AbstractTest {
                 .jsonPath()
                 .getList(".", Map.class);
         assertEquals(1, results.size());
-        assertEquals( "urn:collab:group:test.eduid.nl:utrecht.nl:canvas:administratorcanvas",results.get(0).get("urn"));
+        assertEquals("urn:collab:group:test.eduid.nl:utrecht.nl:canvas:administratorcanvas", results.get(0).get("urn"));
     }
 
     @Test
