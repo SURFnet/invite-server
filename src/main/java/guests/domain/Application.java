@@ -63,6 +63,9 @@ public class Application implements Serializable, NameHolder {
     @OneToMany(mappedBy = "application", orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
 
+    @Column(name = "update_role_put_method")
+    private boolean updateRolePutMethod;
+
     @Embedded
     private Auditable auditable = new Auditable();
 

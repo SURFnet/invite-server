@@ -14,8 +14,6 @@ class RoleRepositoryTest extends AbstractTest {
                 "UTRECHT.nl", "canvas", "ADMINISTRATORcanvas"
         ).get();
         assertEquals("administratorCanvas", role.getName());
-
-        roleRepository.findByServiceProviderId(role.getServiceProviderId()).get();
     }
 
 }
