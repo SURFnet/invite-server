@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
 @Getter
 @AllArgsConstructor
 public class ServiceProviderIdentifierRef implements ServiceProviderIdentifier {
@@ -13,6 +12,6 @@ public class ServiceProviderIdentifierRef implements ServiceProviderIdentifier {
 
     @Override
     public void setServiceProviderId(String serviceProviderId) {
-
+        throw new IllegalArgumentException();
     }
 }

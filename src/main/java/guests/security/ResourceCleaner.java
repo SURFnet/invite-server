@@ -5,6 +5,7 @@ import guests.domain.User;
 import guests.domain.UserRole;
 import guests.repository.UserRepository;
 import guests.repository.UserRoleRepository;
+import guests.scim.OperationType;
 import guests.scim.SCIMService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,7 +77,7 @@ public class ResourceCleaner {
                         .map(userRole -> String.format("%s - %s", userRole.getUser().getEduPersonPrincipalName(), userRole.getRole().getName()))
                         .collect(Collectors.toList())));
 
-        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole.getRole()));
+        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole, OperationType.Remove));
 
         userRoles.forEach(userRole -> {
             User user = userRole.getUser();

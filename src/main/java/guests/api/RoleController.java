@@ -68,8 +68,6 @@ public class RoleController {
         if (isTransientRole) {
             role.setApplication(applicationRepository.findById(role.getApplication().getId()).get());
             scimService.newRoleRequest(role);
-        } else {
-            scimService.updateRoleRequest(role);
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(role);
     }

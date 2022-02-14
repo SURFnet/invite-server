@@ -7,6 +7,7 @@ import guests.exception.InvitationEmailMatchingException;
 import guests.exception.NotFoundException;
 import guests.mail.MailBox;
 import guests.repository.*;
+import guests.scim.OperationType;
 import guests.scim.SCIMService;
 import guests.validation.EmailFormatValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,13 +117,14 @@ public class InvitationController {
          * Chicken & egg problem. The user including his / hers roles must be first known in Scim, and then we
          * need to send the updateRoleRequests for each new Role of this user.
          */
-        List<Role> newRoles = new ArrayList<>();
+        List<UserRole> newUserRoles = new ArrayList<>();
         invitationFromDB.getRoles()
                 .forEach(invitationRole -> {
                     Role role = invitationRole.getRole();
                     if (user.getUserRoles().stream().noneMatch(userRole -> userRole.getRole().getId().equals(role.getId()))) {
-                        user.addUserRole(new UserRole(role, invitationRole.getEndDate()));
-                        newRoles.add(role);
+                        UserRole userRole = new UserRole(role, invitationRole.getEndDate());
+                        user.addUserRole(userRole);
+                        newUserRoles.add(userRole);
                     }
                 });
         // This will assign the external ID to the userRoles
@@ -131,8 +133,7 @@ public class InvitationController {
         }
         newUser = userRepository.save(user);
 
-        //The SCIM service will detect that the User needs to be SCIM provisioned
-        newRoles.forEach(scimService::updateRoleRequest);
+        newUserRoles.forEach(userRole -> scimService.updateRoleRequest(userRole, OperationType.Add));
 
         invitationRepository.delete(invitation);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);

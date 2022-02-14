@@ -8,6 +8,7 @@ import guests.domain.UserRole;
 import guests.exception.NotFoundException;
 import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
+import guests.scim.OperationType;
 import guests.scim.SCIMService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -111,7 +112,7 @@ public class UserController {
 
         subject.removeUserRole(userRole);
         userRepository.save(subject);
-        scimService.updateRoleRequest(userRole.getRole());
+        scimService.updateRoleRequest(userRole, OperationType.Remove);
         return createdResponse();
     }
 
@@ -134,7 +135,7 @@ public class UserController {
         subject.removeMembership(institutionMembership);
         userRepository.save(subject);
 
-        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole.getRole()));
+        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole, OperationType.Remove));
 
         return createdResponse();
     }

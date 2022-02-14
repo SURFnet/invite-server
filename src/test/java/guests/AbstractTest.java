@@ -182,6 +182,12 @@ public abstract class AbstractTest {
     }
 
     protected Application application(Institution institution, String entityId) {
+        Application application = applicationWithPatchRequestsPreferred(institution, entityId);
+        application.setUpdateRolePutMethod(true);
+        return application;
+    }
+
+    protected Application applicationWithPatchRequestsPreferred(Institution institution, String entityId) {
         return new Application(institution, entityId, "https://landing.nl", "http://localhost:8081", "inviter", "secret");
     }
 
@@ -229,7 +235,7 @@ public abstract class AbstractTest {
     protected String stubForUpdateRole() throws JsonProcessingException {
         String value = UUID.randomUUID().toString();
         String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
-        stubFor(patch(urlPathMatching(String.format("/scim/v1/groups/(.*)")))
+        stubFor(put(urlPathMatching(String.format("/scim/v1/groups/(.*)")))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(body)));
@@ -240,7 +246,7 @@ public abstract class AbstractTest {
     protected String stubForUpdateUser() {
         String value = UUID.randomUUID().toString();
         String body = objectMapper.writeValueAsString(Collections.singletonMap("id", value));
-        stubFor(patch(urlPathMatching(String.format("/scim/v1/users/(.*)")))
+        stubFor(put(urlPathMatching(String.format("/scim/v1/users/(.*)")))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(body)));
@@ -257,6 +263,7 @@ public abstract class AbstractTest {
         institutionRepository.save(institution);
 
         Application application = this.application(institution, "https://entity");
+        application.setUpdateRolePutMethod(true);
         String provisioningUri = "http://localhost:8081";
         application.setProvisioningHookUrl(provisioningUri);
         application.setProvisioningHookUsername("user");

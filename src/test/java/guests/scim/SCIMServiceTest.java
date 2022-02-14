@@ -137,10 +137,8 @@ class SCIMServiceTest extends AbstractMailTest {
     void updateRoleRequestWithNoServiceProviderId() throws JsonProcessingException {
         User user = seedUser();
         UserRole userRole = user.getUserRoles().iterator().next();
-        Role role = userRole.getRole();
-
         stubForCreateRole();
-        scimService.updateRoleRequest(role);
+        scimService.updateRoleRequest(userRole, OperationType.Add);
         assertNoSCIMFailures();
     }
 
@@ -148,12 +146,13 @@ class SCIMServiceTest extends AbstractMailTest {
     void updateRoleRequest() throws JsonProcessingException {
         User user = seedUser();
         seedSCIMUserRole(user);
-        Role role = user.getUserRoles().iterator().next().getRole();
+        UserRole userRole = user.getUserRoles().iterator().next();
+        Role role = userRole.getRole();
         role.setServiceProviderId(UUID.randomUUID().toString());
         roleRepository.save(role);
 
         stubForUpdateRole();
-        scimService.updateRoleRequest(role);
+        scimService.updateRoleRequest(userRole, OperationType.Add);
         assertNoSCIMFailures();
     }
 
@@ -161,20 +160,25 @@ class SCIMServiceTest extends AbstractMailTest {
     void updateRoleRequestUnprovisionedUsers() throws JsonProcessingException {
         User user = seedUser();
 
-        Role role = user.getUserRoles().iterator().next().getRole();
+        UserRole userRole = user.getUserRoles().iterator().next();
+        Role role = userRole.getRole();
         role.setServiceProviderId(UUID.randomUUID().toString());
         roleRepository.save(role);
 
         stubForCreateUser();
         stubForUpdateRole();
 
-        scimService.updateRoleRequest(role);
+        scimService.updateRoleRequest(userRole, OperationType.Add);
         assertNoSCIMFailures();
     }
 
     @Test
     void updateRoleRequestNoProvisioning() {
-        scimService.updateRoleRequest(new Role("name", new Application()));
+        User user = seedUser();
+
+        UserRole userRole = user.getUserRoles().iterator().next();
+        userRole.getRole().setApplication(new Application());
+        scimService.updateRoleRequest(userRole, OperationType.Remove);
         assertNoSCIMFailures();
     }
 
@@ -238,11 +242,12 @@ class SCIMServiceTest extends AbstractMailTest {
         User user = seedUser();
         String serviceProviderId = seedSCIMUserRole(user);
 
-        Role role = user.getUserRoles().iterator().next().getRole();
+        UserRole userRole = user.getUserRoles().iterator().next();
+        Role role = userRole.getRole();
         role.setServiceProviderId(serviceProviderId);
         role.setId(1L);
 
-        scimService.updateRoleRequest(role);
+        scimService.updateRoleRequest(userRole, OperationType.Add);
         assertSCIMFailure("http://localhost:8081/scim/v1/groups/" + serviceProviderId);
     }
 

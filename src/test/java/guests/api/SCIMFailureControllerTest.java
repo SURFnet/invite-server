@@ -157,7 +157,7 @@ class SCIMFailureControllerTest extends AbstractTest {
         SCIMFailure scimFailure = new SCIMFailure(
                 objectMapper.writeValueAsString(new UserRequest(user)),
                 USER_API,
-                HttpMethod.PATCH.name(),
+                HttpMethod.PUT.name(),
                 "http://localhost:8081/scim/v1/users",
                 user.getEduPersonPrincipalName(),
                 userRole.getRole().getApplication()
@@ -259,7 +259,7 @@ class SCIMFailureControllerTest extends AbstractTest {
         SCIMFailure scimFailure = new SCIMFailure(
                 objectMapper.writeValueAsString(new GroupRequest(externalId, role, role.getName(), members)),
                 GROUP_API,
-                HttpMethod.PATCH.name(),
+                HttpMethod.PUT.name(),
                 "http://localhost:8081/scim/v1/groups",
                 role.getServiceProviderId(),
                 role.getApplication()
