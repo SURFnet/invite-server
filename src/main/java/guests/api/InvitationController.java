@@ -92,7 +92,6 @@ public class InvitationController {
     public ResponseEntity<User> accept(BearerTokenAuthentication authentication,
                                        @RequestBody Invitation invitation) throws JsonProcessingException {
         Invitation invitationFromDB = invitationRepository.findByHashAndStatus(invitation.getHash(), Status.OPEN).orElseThrow(NotFoundException::new);
-        invitationFromDB.setStatus(invitation.getStatus());
         Object details = authentication.getDetails();
         User newUser;
         User user;
@@ -108,6 +107,10 @@ public class InvitationController {
 
         } else {
             user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
+            Optional<User> userByUnspecifiedId = userRepository.findByUnspecifiedIdIgnoreCase(user.getUnspecifiedId());
+            if (userByUnspecifiedId.isPresent()) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
+            }
         }
         checkEmailEquality(user, invitationFromDB);
         if (!user.hasAgreedWithAup(institution)) {
@@ -135,7 +138,7 @@ public class InvitationController {
 
         newUserRoles.forEach(userRole -> scimService.updateRoleRequest(userRole, OperationType.Add));
 
-        invitationRepository.delete(invitation);
+        invitationRepository.delete(invitationFromDB);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 

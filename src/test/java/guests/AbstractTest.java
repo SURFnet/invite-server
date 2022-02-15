@@ -151,8 +151,8 @@ public abstract class AbstractTest {
     }
 
 
-    protected User user(Institution institution, Authority authority, String eppn, String givenName, String familyNmae, String email) {
-        return new User(authority, eppn, eppn, givenName, familyNmae, email, institution);
+    protected User user(Institution institution, Authority authority, String eppn, String givenName, String familyName, String email) {
+        return new User(authority, eppn, eppn, givenName, familyName, email, institution);
     }
 
     protected String opaqueAccessToken(String eppn, String responseJsonFileName, String... scopes) throws IOException {

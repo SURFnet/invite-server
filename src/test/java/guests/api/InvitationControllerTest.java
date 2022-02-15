@@ -172,6 +172,27 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
+    void postUnspecifiedUrnConflict() throws IOException {
+        Map<String, Object> invitation = new HashMap<>();
+        invitation.put("hash", INVITATION_UTRECHT_HASH);
+        invitation.put("status", Status.ACCEPTED);
+
+        User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
+        inviter.setUnspecifiedId("new@user.nl");
+        userRepository.save(inviter);
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .auth().oauth2(opaqueAccessToken("new@user.nl", "introspect.json"))
+                .body(invitation)
+                .post("/api/v1/invitations")
+                .then()
+                .statusCode(HttpStatus.PRECONDITION_FAILED.value());
+    }
+
+    @Test
     void postExistingUser() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("hash", INVITATION_UTRECHT_HASH);
