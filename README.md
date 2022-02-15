@@ -1,5 +1,6 @@
 # invite-server
 [![Build Status](https://github.com/SURFnet/invite-server/actions/workflows/maven.yml/badge.svg)](https://github.com/SURFnet/invite-server/actions/workflows/maven.yml/badge.svg)
+[![codecov](https://codecov.io/gh/SURFnet/invite-server/branch/main/graph/badge.svg?token=HZ7ES3TLQ9)](https://codecov.io/gh/SURFnet/invite-server)
 
 Guest application API
 
