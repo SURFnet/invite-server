@@ -107,8 +107,8 @@ public class InvitationController {
 
         } else {
             user = new User(institution, invitationFromDB.getIntendedAuthority(), authentication.getTokenAttributes());
-            Optional<User> userByUnspecifiedId = userRepository.findByUnspecifiedIdIgnoreCase(user.getUnspecifiedId());
-            if (userByUnspecifiedId.isPresent()) {
+            Optional<User> userBySub = userRepository.findBySubIgnoreCase(user.getSub());
+            if (userBySub.isPresent()) {
                 return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
             }
         }

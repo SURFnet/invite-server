@@ -172,13 +172,13 @@ class InvitationControllerTest extends AbstractTest {
     }
 
     @Test
-    void postUnspecifiedUrnConflict() throws IOException {
+    void postSubConflict() throws IOException {
         Map<String, Object> invitation = new HashMap<>();
         invitation.put("hash", INVITATION_UTRECHT_HASH);
         invitation.put("status", Status.ACCEPTED);
 
         User inviter = userRepository.findByEduPersonPrincipalNameIgnoreCase("inviter@utrecht.nl").get();
-        inviter.setUnspecifiedId("new@user.nl");
+        inviter.setSub("new@user.nl");
         userRepository.save(inviter);
 
         given()

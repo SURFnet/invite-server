@@ -2,12 +2,10 @@ package guests.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import guests.api.Shared;
 import guests.exception.NotFoundException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.Hibernate;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
@@ -31,9 +29,9 @@ public class User implements Serializable {
     @NotNull
     private String eduPersonPrincipalName;
 
-    @Column(name = "unspecified_id")
+    @Column(name = "sub")
     @NotNull
-    private String unspecifiedId;
+    private String sub;
 
     @Column(name = "given_name")
     private String givenName;
@@ -62,16 +60,16 @@ public class User implements Serializable {
     public User(Institution institution, Authority authority, Map<String, Object> tokenAttributes) {
         this(authority,
                 (String) tokenAttributes.get("eduperson_principal_name"),
-                (String) tokenAttributes.get("unspecified_id"),
+                (String) tokenAttributes.get("sub"),
                 (String) tokenAttributes.get("given_name"),
                 (String) tokenAttributes.get("family_name"),
                 (String) tokenAttributes.get("email"),
                 institution);
     }
 
-    public User(Authority authority, String eppn, String unspecifiedId, String givenName, String familyName, String email, Institution institution) {
+    public User(Authority authority, String eppn, String sub, String givenName, String familyName, String email, Institution institution) {
         this.eduPersonPrincipalName = eppn;
-        this.unspecifiedId = unspecifiedId;
+        this.sub = sub;
         this.givenName = givenName;
         this.familyName = familyName;
         this.email = email;

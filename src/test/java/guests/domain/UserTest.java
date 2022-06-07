@@ -16,7 +16,7 @@ class UserTest {
     void hasChanged() {
         Map<String, Object> tokenAttributes = new HashMap<>();
         tokenAttributes.put("eduperson_principal_name", "eppn@example.com");
-        tokenAttributes.put("unspecified_id", "urn:collab:test");
+        tokenAttributes.put("sub", "urn:collab:test");
         tokenAttributes.put("given_name", "John");
         tokenAttributes.put("family_name", "Doe");
         tokenAttributes.put("email", "jdoe@example.com");

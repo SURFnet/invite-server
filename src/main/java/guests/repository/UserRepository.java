@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             attributePaths = {"userRoles.role.application"})
     Optional<User> findByEduPersonPrincipalNameIgnoreCase(String eduPersonPrincipalName);
 
-    Optional<User> findByUnspecifiedIdIgnoreCase(String unspecifiedId);
+    Optional<User> findBySubIgnoreCase(String sub);
 
     List<User> findByInstitutionMemberships_Institution_id(Long institutionId);
 

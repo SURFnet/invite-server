@@ -33,7 +33,7 @@ public class VootController {
 
     @GetMapping("/{unspecified_id}")
     public ResponseEntity<List<Map<String, String>>> getGroupMemberships(@PathVariable("unspecified_id") String unspecifiedId) {
-        Optional<User> optionalUser = userRepository.findByUnspecifiedIdIgnoreCase(unspecifiedId);
+        Optional<User> optionalUser = userRepository.findBySubIgnoreCase(unspecifiedId);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             user.setLastActivity(Instant.now());

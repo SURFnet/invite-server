@@ -334,11 +334,12 @@ public class SCIMService {
                                           ParameterizedTypeReference<T> typeReference,
                                           Application application) {
         try {
-            LOG.info(String.format("Send %s SCIM request to %s httpMethod %s and body %s",
+            LOG.info(String.format("Send %s SCIM request with %s httpMethod %s and body %s to %s",
                     api,
                     requestEntity.getUrl(),
                     requestEntity.getMethod(),
-                    requestEntity.getBody()));
+                    requestEntity.getBody(),
+                    application.getName()));
             return Optional.ofNullable(restTemplate.exchange(requestEntity, typeReference).getBody());
         } catch (RestClientException e) {
             LOG.error("Exception in SCIM exchange", e);
