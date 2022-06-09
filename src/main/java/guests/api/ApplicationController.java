@@ -4,6 +4,7 @@ import guests.domain.Application;
 import guests.domain.ApplicationExists;
 import guests.domain.Authority;
 import guests.domain.User;
+import guests.exception.NotAllowedException;
 import guests.exception.NotFoundException;
 import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
@@ -39,6 +40,11 @@ public class ApplicationController {
     public ApplicationController(ApplicationRepository applicationRepository, UserRepository userRepository) {
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
+    }
+
+    @GetMapping("/user-count/{applicationId}")
+    public ResponseEntity<Long> userCount(@PathVariable("applicationId") Long applicationId) {
+        return ResponseEntity.ok(applicationRepository.countUsers(applicationId));
     }
 
     @GetMapping("/user")
@@ -77,7 +83,16 @@ public class ApplicationController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Integer>> delete(User authenticatedUser, @PathVariable("id") Long id) {
         Application application = applicationRepository.findById(id).orElseThrow(NotFoundException::new);
+
         verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
+
+        Long countUsers = applicationRepository.countUsers(application.getId());
+        if (countUsers > 0) {
+            throw new NotAllowedException(String.format("Application %s can not be deleted as there are %s active users",
+                    application.getName(),
+                    countUsers));
+        }
+
         applicationRepository.delete(application);
 
         LOG.debug(String.format("Deleting application %s by user %s",

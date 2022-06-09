@@ -4,6 +4,7 @@ import guests.domain.Authority;
 import guests.domain.Institution;
 import guests.domain.ObjectExists;
 import guests.domain.User;
+import guests.exception.NotAllowedException;
 import guests.exception.NotFoundException;
 import guests.repository.InstitutionRepository;
 import org.apache.commons.logging.Log;
@@ -46,6 +47,11 @@ public class InstitutionController {
     @GetMapping("/mine")
     public ResponseEntity<List<Institution>> mine(User user) {
         return ResponseEntity.ok(institutionRepository.findByInstitutionMemberships_user_id(user.getId()));
+    }
+
+    @GetMapping("/user-count/{institutionId}")
+    public ResponseEntity<Long> userCount(@PathVariable("institutionId") Long institutionId) {
+        return ResponseEntity.ok(institutionRepository.countUsers(institutionId));
     }
 
     @GetMapping("/{id}")
@@ -116,6 +122,14 @@ public class InstitutionController {
     public ResponseEntity<Map<String, Integer>> delete(User user, @PathVariable("id") Long id) {
         verifySuperUser(user);
         Institution institution = institutionRepository.findById(id).orElseThrow(NotFoundException::new);
+
+        Long countUsers = institutionRepository.countUsers(institution.getId());
+        if (countUsers > 0) {
+            throw new NotAllowedException(String.format("Institution %s can not be deleted as there are %s active users",
+                    institution.getHomeInstitution(),
+                    countUsers));
+        }
+
         institutionRepository.delete(institution);
 
         LOG.debug(String.format("Deleting Institution %s by user %s",

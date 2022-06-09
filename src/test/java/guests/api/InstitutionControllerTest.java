@@ -242,7 +242,7 @@ class InstitutionControllerTest extends AbstractTest {
 
     @Test
     void deleteInstitution() throws IOException {
-        Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
+        Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("uva.nl").get();
         given()
                 .when()
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
@@ -250,8 +250,22 @@ class InstitutionControllerTest extends AbstractTest {
                 .delete("/api/v1/institutions/{id}")
                 .then()
                 .statusCode(201);
-        Optional<Institution> optionalInstitution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl");
+        Optional<Institution> optionalInstitution = institutionRepository.findByHomeInstitutionIgnoreCase("uva.nl");
         assertEquals(false, optionalInstitution.isPresent());
+    }
+
+    @Test
+    void deleteInstitutionActiveUsers() throws IOException {
+        Institution institution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl").get();
+        given()
+                .when()
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("id", institution.getId())
+                .delete("/api/v1/institutions/{id}")
+                .then()
+                .statusCode(409);
+        Optional<Institution> optionalInstitution = institutionRepository.findByHomeInstitutionIgnoreCase("utrecht.nl");
+        assertEquals(true, optionalInstitution.isPresent());
     }
 
     @Test

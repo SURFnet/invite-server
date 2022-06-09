@@ -103,7 +103,7 @@ class ApplicationControllerTest extends AbstractTest {
 
     @Test
     void deleteApplication() throws IOException {
-        Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
+        Application application = applicationRepository.findByEntityIdIgnoreCase("blackboard").get();
         given()
                 .when()
                 .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
@@ -111,8 +111,22 @@ class ApplicationControllerTest extends AbstractTest {
                 .delete("/api/v1/applications/{id}")
                 .then()
                 .statusCode(201);
-        Optional<Application> optionalApplication = applicationRepository.findByEntityIdIgnoreCase("canvas");
+        Optional<Application> optionalApplication = applicationRepository.findByEntityIdIgnoreCase("blackboard");
         assertEquals(false, optionalApplication.isPresent());
+    }
+
+    @Test
+    void deleteApplicationWithUsersNotAllowed() throws IOException {
+        Application application = applicationRepository.findByEntityIdIgnoreCase("canvas").get();
+        given()
+                .when()
+                .auth().oauth2(opaqueAccessToken("j.doe@example.com", "introspect.json"))
+                .pathParam("id", application.getId())
+                .delete("/api/v1/applications/{id}")
+                .then()
+                .statusCode(409);
+        Optional<Application> optionalApplication = applicationRepository.findByEntityIdIgnoreCase("canvas");
+        assertEquals(true, optionalApplication.isPresent());
     }
 
     @Test
