@@ -10,6 +10,8 @@ import guests.repository.*;
 import guests.scim.OperationType;
 import guests.scim.SCIMService;
 import guests.validation.EmailFormatValidator;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +32,8 @@ import static guests.api.UserPermissions.verifyAuthority;
 @RequestMapping(value = "/api/v1/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class InvitationController {
+
+    private static final Log LOG = LogFactory.getLog(InvitationController.class);
 
     private final InvitationRepository invitationRepository;
     private final UserRepository userRepository;
@@ -139,6 +143,12 @@ public class InvitationController {
         newUserRoles.forEach(userRole -> scimService.updateRoleRequest(userRole, OperationType.Add));
 
         invitationRepository.delete(invitationFromDB);
+
+        LOG.debug(String.format("Accepting invitation %s for user %s with roles %s",
+                invitationFromDB.getInstitution().getHomeInstitution(),
+                user.getName(),
+                invitationFromDB.getRoles()));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 

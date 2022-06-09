@@ -7,6 +7,8 @@ import guests.domain.User;
 import guests.exception.NotFoundException;
 import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,18 +16,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static guests.api.Shared.*;
-import static guests.api.UserPermissions.*;
+import static guests.api.UserPermissions.verifyAuthority;
 
 @RestController
 @RequestMapping(value = "/api/v1/applications", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class ApplicationController {
+
+    private static final Log LOG = LogFactory.getLog(ApplicationController.class);
 
     private final ApplicationRepository applicationRepository;
     private final UserRepository userRepository;
@@ -57,9 +62,15 @@ public class ApplicationController {
     }
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
-    public ResponseEntity<Application> save(User authenticatedUser, @RequestBody Application application) {
+    public ResponseEntity<Application> save(HttpServletRequest request, User authenticatedUser, @RequestBody Application application) {
         verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
         application.validateProvisioning();
+
+        LOG.debug(String.format("%s application %s by user %s",
+                request.getMethod().equalsIgnoreCase("post") ? "Creating" : "Updating",
+                application.getName(),
+                authenticatedUser.getName()));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(applicationRepository.save(application));
     }
 
@@ -68,6 +79,11 @@ public class ApplicationController {
         Application application = applicationRepository.findById(id).orElseThrow(NotFoundException::new);
         verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
         applicationRepository.delete(application);
+
+        LOG.debug(String.format("Deleting application %s by user %s",
+                application.getName(),
+                authenticatedUser.getName()));
+
         return createdResponse();
     }
 

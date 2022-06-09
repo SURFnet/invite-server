@@ -6,6 +6,8 @@ import guests.domain.ObjectExists;
 import guests.domain.User;
 import guests.exception.NotFoundException;
 import guests.repository.InstitutionRepository;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,6 +27,8 @@ import static guests.api.UserPermissions.*;
 @RequestMapping(value = "/api/v1/institutions", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class InstitutionController {
+
+    private static final Log LOG = LogFactory.getLog(InstitutionController.class);
 
     private final InstitutionRepository institutionRepository;
 
@@ -69,6 +73,11 @@ public class InstitutionController {
     public ResponseEntity<Institution> save(User user, @RequestBody Institution institution) {
         verifySuperUser(user);
         institution.invariantAupVersion();
+
+        LOG.debug(String.format("Saving new institution %s by user %s",
+                institution.getHomeInstitution(),
+                user.getName()));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(institutionRepository.save(institution));
     }
 
@@ -81,6 +90,11 @@ public class InstitutionController {
             institution.setEntityId(institutionFromDb.getEntityId());
         }
         institution.invariantAupVersion();
+
+        LOG.debug(String.format("Updating institution %s by user %s",
+                institution.getHomeInstitution(),
+                user.getName()));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(institutionRepository.save(institution));
     }
 
@@ -90,13 +104,24 @@ public class InstitutionController {
         verifyAuthority(authenticatedUser, id, Authority.INSTITUTION_ADMINISTRATOR);
         institution.incrementAup();
         institutionRepository.save(institution);
+
+        LOG.debug(String.format("Incrementing AUP for institution %s by user %s",
+                institution.getHomeInstitution(),
+                authenticatedUser.getName()));
+
         return createdResponse();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Integer>> delete(User user, @PathVariable("id") Long id) {
         verifySuperUser(user);
-        institutionRepository.deleteById(id);
+        Institution institution = institutionRepository.findById(id).orElseThrow(NotFoundException::new);
+        institutionRepository.delete(institution);
+
+        LOG.debug(String.format("Deleting Institution %s by user %s",
+                institution.getHomeInstitution(),
+                user.getName()));
+
         return createdResponse();
     }
 

@@ -188,7 +188,12 @@ public abstract class AbstractTest {
     }
 
     protected Application applicationWithPatchRequestsPreferred(Institution institution, String entityId) {
-        return new Application(institution, entityId, "https://landing.nl", "http://localhost:8081", "inviter", "secret");
+        return new Application(institution,
+                entityId,
+                "https://landing.nl",
+                "http://localhost:8081/scim/v1",
+                "inviter",
+                "secret");
     }
 
     protected Institution institution(String base) {
@@ -264,8 +269,7 @@ public abstract class AbstractTest {
 
         Application application = this.application(institution, "https://entity");
         application.setUpdateRolePutMethod(true);
-        String provisioningUri = "http://localhost:8081";
-        application.setProvisioningHookUrl(provisioningUri);
+        application.setProvisioningHookUrl("http://localhost:8081/scim/v1");
         application.setProvisioningHookUsername("user");
         application = applicationRepository.save(application);
 

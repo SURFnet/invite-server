@@ -6,6 +6,8 @@ import guests.domain.User;
 import guests.exception.NotFoundException;
 import guests.repository.InstitutionRepository;
 import guests.repository.UserRepository;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,8 @@ import static guests.api.UserPermissions.verifyUser;
 @Transactional
 public class AupController {
 
+    private static final Log LOG = LogFactory.getLog(AupController.class);
+
     private final UserRepository userRepository;
     private final InstitutionRepository institutionRepository;
 
@@ -42,10 +46,15 @@ public class AupController {
             verifyUser(user, institutionIdentifier);
             Institution institution = institutionRepository.findById(institutionIdentifier).orElseThrow(NotFoundException::new);
             if (!user.hasAgreedWithAup(institution)) {
+                LOG.debug(String.format("Adding AUP for institution %s by user %s",
+                        institution.getHomeInstitution(),
+                        authenticatedUser.getName()));
+
                 user.addAup(new Aup(institution));
             }
         });
         userRepository.save(user);
+
         return createdResponse();
     }
 

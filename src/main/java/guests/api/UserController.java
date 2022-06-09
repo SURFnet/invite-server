@@ -10,6 +10,8 @@ import guests.repository.ApplicationRepository;
 import guests.repository.UserRepository;
 import guests.scim.OperationType;
 import guests.scim.SCIMService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,19 +30,18 @@ import static guests.api.UserPermissions.*;
 @Transactional
 public class UserController {
 
+    private static final Log LOG = LogFactory.getLog(UserController.class);
+
     private final UserRepository userRepository;
     private final ApplicationRepository applicationRepository;
     private final SCIMService scimService;
-    private final ObjectMapper objectMapper;
 
     @Autowired
     public UserController(UserRepository userRepository,
                           ApplicationRepository applicationRepository,
-                          ObjectMapper objectMapper,
                           SCIMService scimService) {
         this.userRepository = userRepository;
         this.applicationRepository = applicationRepository;
-        this.objectMapper = objectMapper;
         this.scimService = scimService;
     }
 
@@ -133,6 +134,11 @@ public class UserController {
 
         userRoles.forEach(subject::removeUserRole);
         subject.removeMembership(institutionMembership);
+
+        LOG.debug(String.format("Deleting membership %s for user %s",
+                institutionMembership.getAuthority(),
+                subject.getName()));
+
         userRepository.save(subject);
 
         userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole, OperationType.Remove));
@@ -143,6 +149,8 @@ public class UserController {
     private void doDeleteUser(User subject) {
         scimService.deleteUserRequest(subject);
         userRepository.delete(subject);
+
+        LOG.debug(String.format("Deleting user %s", subject.getName()));
     }
 
     private void removeOtherInstitutionData(User authenticatedUser, Long institutionId, List<User> users) {

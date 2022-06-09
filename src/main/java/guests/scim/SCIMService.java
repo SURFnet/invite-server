@@ -368,7 +368,7 @@ public class SCIMService {
 
     private URI provisioningUri(Application application, String objectType, Optional<ServiceProviderIdentifier> spIdentifier) {
         String postFix = spIdentifier.map(role -> "/" + role.getServiceProviderId()).orElse("");
-        return URI.create(String.format("%s/scim/v1/%s%s",
+        return URI.create(String.format("%s/%s%s",
                 application.getProvisioningHookUrl(),
                 objectType,
                 postFix));

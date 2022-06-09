@@ -5,6 +5,8 @@ import guests.exception.NotFoundException;
 import guests.repository.ApplicationRepository;
 import guests.repository.RoleRepository;
 import guests.scim.SCIMService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,6 +27,8 @@ import static guests.api.Shared.*;
 @RequestMapping(value = "/api/v1/roles", produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class RoleController {
+
+    private static final Log LOG = LogFactory.getLog(RoleController.class);
 
     private final RoleRepository roleRepository;
     private final ApplicationRepository applicationRepository;
@@ -69,6 +73,12 @@ public class RoleController {
             role.setApplication(applicationRepository.findById(role.getApplication().getId()).get());
             scimService.newRoleRequest(role);
         }
+
+        LOG.debug(String.format("Creating role %s for application %s by user %s",
+                role.getName(),
+                role.getApplication().getName(),
+                user.getName()));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(role);
     }
 
@@ -88,6 +98,12 @@ public class RoleController {
         this.restrictUser(authenticatedUser, role);
         roleRepository.delete(role);
         scimService.deleteRolesRequest(role);
+
+        LOG.debug(String.format("Deleting role %s for application %s by user %s",
+                role.getName(),
+                role.getApplication().getName(),
+                authenticatedUser.getName()));
+
         return createdResponse();
     }
 
