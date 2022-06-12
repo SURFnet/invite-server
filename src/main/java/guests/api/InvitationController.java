@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static guests.api.Shared.createdResponse;
 import static guests.api.UserPermissions.userRestrictedException;
@@ -115,6 +116,10 @@ public class InvitationController {
             if (userBySub.isPresent()) {
                 return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
             }
+
+            LOG.debug(String.format("Provisioning new user %s after accept invitation for institution %s",
+                    user.getName(),
+                    institution.getHomeInstitution()));
         }
         checkEmailEquality(user, invitationFromDB);
         if (!user.hasAgreedWithAup(institution)) {
@@ -195,6 +200,11 @@ public class InvitationController {
             });
 
             mailBox.sendInviteMail(authenticatedUser, saved);
+
+            LOG.debug(String.format("Sending invite to %s for roles %s in institution %s",
+                    authenticatedUser.getName(),
+                    saved.getRoles().stream().map(r -> r.getRole().getName()).collect(Collectors.toList()),
+                            invitation.getInstitution().getHomeInstitution()));
         });
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
@@ -209,6 +219,12 @@ public class InvitationController {
         invitationRepository.save(invitationFromDB);
 
         mailBox.sendInviteMail(authenticatedUser, invitationFromDB);
+
+        LOG.debug(String.format("Resending invite to %s for roles %s in institution %s",
+                authenticatedUser.getName(),
+                invitationFromDB.getRoles().stream().map(r -> r.getRole().getName()).collect(Collectors.toList()),
+                invitationFromDB.getInstitution().getHomeInstitution()));
+
         return createdResponse();
     }
 
@@ -226,6 +242,12 @@ public class InvitationController {
         Invitation invitation = getInvitationFromDB(authenticatedUser, id);
 
         invitationRepository.delete(invitation);
+
+        LOG.debug(String.format("Deleting invite to %s for roles %s in institution %s",
+                authenticatedUser.getName(),
+                invitation.getRoles().stream().map(r -> r.getRole().getName()).collect(Collectors.toList()),
+                invitation.getInstitution().getHomeInstitution()));
+
         return createdResponse();
     }
 
