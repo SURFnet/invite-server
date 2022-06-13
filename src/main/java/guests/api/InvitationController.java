@@ -117,7 +117,7 @@ public class InvitationController {
                 return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
             }
 
-            LOG.debug(String.format("Provisioning new user %s after accept invitation for institution %s",
+            LOG.info(String.format("Provisioning new user %s after accept invitation for institution %s",
                     user.getName(),
                     institution.getHomeInstitution()));
         }
@@ -149,7 +149,7 @@ public class InvitationController {
 
         invitationRepository.delete(invitationFromDB);
 
-        LOG.debug(String.format("Accepting invitation %s for user %s with roles %s",
+        LOG.info(String.format("Accepting invitation %s for user %s with roles %s",
                 invitationFromDB.getInstitution().getHomeInstitution(),
                 user.getName(),
                 invitationFromDB.getRoles()));
@@ -201,7 +201,7 @@ public class InvitationController {
 
             mailBox.sendInviteMail(authenticatedUser, saved);
 
-            LOG.debug(String.format("Sending invite to %s for roles %s in institution %s",
+            LOG.info(String.format("Sending invite to %s for roles %s in institution %s",
                     authenticatedUser.getName(),
                     saved.getRoles().stream().map(r -> r.getRole().getName()).collect(Collectors.toList()),
                             invitation.getInstitution().getHomeInstitution()));
@@ -220,7 +220,7 @@ public class InvitationController {
 
         mailBox.sendInviteMail(authenticatedUser, invitationFromDB);
 
-        LOG.debug(String.format("Resending invite to %s for roles %s in institution %s",
+        LOG.info(String.format("Resending invite to %s for roles %s in institution %s",
                 authenticatedUser.getName(),
                 invitationFromDB.getRoles().stream().map(r -> r.getRole().getName()).collect(Collectors.toList()),
                 invitationFromDB.getInstitution().getHomeInstitution()));
@@ -243,7 +243,7 @@ public class InvitationController {
 
         invitationRepository.delete(invitation);
 
-        LOG.debug(String.format("Deleting invite to %s for roles %s in institution %s",
+        LOG.info(String.format("Deleting invite to %s for roles %s in institution %s",
                 authenticatedUser.getName(),
                 invitation.getRoles().stream().map(r -> r.getRole().getName()).collect(Collectors.toList()),
                 invitation.getInstitution().getHomeInstitution()));

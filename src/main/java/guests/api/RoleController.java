@@ -74,7 +74,7 @@ public class RoleController {
             scimService.newRoleRequest(role);
         }
 
-        LOG.debug(String.format("Creating role %s for application %s by user %s",
+        LOG.info(String.format("Creating role %s for application %s by user %s",
                 role.getName(),
                 role.getApplication().getName(),
                 user.getName()));
@@ -99,7 +99,7 @@ public class RoleController {
         roleRepository.delete(role);
         scimService.deleteRolesRequest(role);
 
-        LOG.debug(String.format("Deleting role %s for application %s by user %s",
+        LOG.info(String.format("Deleting role %s for application %s by user %s",
                 role.getName(),
                 role.getApplication().getName(),
                 authenticatedUser.getName()));
