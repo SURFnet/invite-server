@@ -46,7 +46,7 @@ public class AupController {
             verifyUser(user, institutionIdentifier);
             Institution institution = institutionRepository.findById(institutionIdentifier).orElseThrow(NotFoundException::new);
             if (!user.hasAgreedWithAup(institution)) {
-                LOG.debug(String.format("Adding AUP for institution %s by user %s",
+                LOG.info(String.format("Adding AUP for institution %s by user %s",
                         institution.getHomeInstitution(),
                         authenticatedUser.getName()));
 

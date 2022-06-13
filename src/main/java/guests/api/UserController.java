@@ -150,7 +150,7 @@ public class UserController {
         scimService.deleteUserRequest(subject);
         userRepository.delete(subject);
 
-        LOG.debug(String.format("Deleting user %s", subject.getName()));
+        LOG.info(String.format("Deleting user %s", subject.getName()));
     }
 
     private void removeOtherInstitutionData(User authenticatedUser, Long institutionId, List<User> users) {

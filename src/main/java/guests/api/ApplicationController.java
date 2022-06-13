@@ -72,7 +72,7 @@ public class ApplicationController {
         verifyAuthority(authenticatedUser, application.getInstitution().getId(), Authority.INSTITUTION_ADMINISTRATOR);
         application.validateProvisioning();
 
-        LOG.debug(String.format("%s application %s by user %s",
+        LOG.info(String.format("%s application %s by user %s",
                 request.getMethod().equalsIgnoreCase("post") ? "Creating" : "Updating",
                 application.getName(),
                 authenticatedUser.getName()));
@@ -95,7 +95,7 @@ public class ApplicationController {
 
         applicationRepository.delete(application);
 
-        LOG.debug(String.format("Deleting application %s by user %s",
+        LOG.info(String.format("Deleting application %s by user %s",
                 application.getName(),
                 authenticatedUser.getName()));
 

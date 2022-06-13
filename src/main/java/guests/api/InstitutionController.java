@@ -80,7 +80,7 @@ public class InstitutionController {
         verifySuperUser(user);
         institution.invariantAupVersion();
 
-        LOG.debug(String.format("Saving new institution %s by user %s",
+        LOG.info(String.format("Saving new institution %s by user %s",
                 institution.getHomeInstitution(),
                 user.getName()));
 
@@ -97,7 +97,7 @@ public class InstitutionController {
         }
         institution.invariantAupVersion();
 
-        LOG.debug(String.format("Updating institution %s by user %s",
+        LOG.info(String.format("Updating institution %s by user %s",
                 institution.getHomeInstitution(),
                 user.getName()));
 
@@ -132,7 +132,7 @@ public class InstitutionController {
 
         institutionRepository.delete(institution);
 
-        LOG.debug(String.format("Deleting Institution %s by user %s",
+        LOG.info(String.format("Deleting Institution %s by user %s",
                 institution.getHomeInstitution(),
                 user.getName()));
 
