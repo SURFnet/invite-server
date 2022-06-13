@@ -19,6 +19,8 @@ Then create the MySQL database:
 ```
 DROP DATABASE IF EXISTS guests;
 CREATE DATABASE guests CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE USER 'guests'@'localhost' IDENTIFIED BY 'secret';
+GRANT ALL privileges ON `guests`.* TO 'guests'@'localhost';
 ```
 
 ### [Building and running](#building-and-running)
@@ -26,7 +28,8 @@ Make sure a mysql database is running on the build machine, and create a databas
 
 ```
 CREATE DATABASE `guests`;
-GRANT ALL privileges ON `guests`.* TO 'guests'@localhost IDENTIFIED BY 'secret';
+CREATE USER 'guests'@'localhost' IDENTIFIED BY 'secret';
+GRANT ALL privileges ON `guests`.* TO 'guests'@'localhost';
 ```
 
 This project uses Spring Boot and Maven. To run locally, type:
