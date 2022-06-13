@@ -19,8 +19,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost/guests
-    username: root
-    password:
+    username: guests
+    password: secret
   flyway:
     locations: classpath:db/{vendor}/migration
   mail:

@@ -22,6 +22,12 @@ CREATE DATABASE guests CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 ```
 
 ### [Building and running](#building-and-running)
+Make sure a mysql database is running on the build machine, and create a database and user for automated testing:
+
+```
+CREATE DATABASE `guests`;
+GRANT ALL privileges ON `guests`.* TO 'guests'@localhost IDENTIFIED BY 'secret';
+```
 
 This project uses Spring Boot and Maven. To run locally, type:
 ```
