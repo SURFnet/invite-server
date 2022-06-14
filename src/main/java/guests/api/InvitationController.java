@@ -201,10 +201,11 @@ public class InvitationController {
 
             mailBox.sendInviteMail(authenticatedUser, saved);
 
-            LOG.info(String.format("Sending invite to %s for roles %s in institution %s",
-                    authenticatedUser.getName(),
+            LOG.info(String.format("Sending invite to %s for roles %s in institution %s by %s",
+                    email,
                     saved.getRoles().stream().map(r -> r.getRole().getName()).collect(Collectors.toList()),
-                            invitation.getInstitution().getHomeInstitution()));
+                    invitation.getInstitution().getHomeInstitution(),
+                    authenticatedUser.getName()));
         });
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Collections.singletonMap("status", 201));
