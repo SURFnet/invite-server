@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.introspection.SpringOpaqueTokenIntrospector;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -79,7 +80,7 @@ public class SecurityConfig {
                             .antMatchers("/api/v1/**").hasAuthority("SCOPE_openid")
                             .anyRequest().authenticated())
                     .oauth2ResourceServer(oauth2 -> oauth2.opaqueToken(token -> token
-                            .introspector(new CachingOpaqueTokenIntrospector(introspectionUri, clientId, secret))));
+                            .introspector(new SpringOpaqueTokenIntrospector(introspectionUri, clientId, secret))));
         }
     }
 

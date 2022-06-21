@@ -39,7 +39,7 @@ public class PublicController {
     }
 
     @PostMapping(value = "/authorize")
-    public ResponseEntity<Map<String, String>> authorize(@RequestBody(required = false) Map<String, String> additionalParameters) {
+    public ResponseEntity<Map<String, String>> authorize() {
         CodeVerifier codeVerifier = new CodeVerifier();
         CodeChallenge codeChallenge = CodeChallenge.compute(CodeChallengeMethod.S256, codeVerifier);
         Map<String, String> parameters = new HashMap<>();
