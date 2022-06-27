@@ -19,9 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static guests.api.UserPermissions.*;
-
-import static guests.api.Shared.*;
+import static guests.api.Shared.createdResponse;
+import static guests.api.Shared.doesExists;
+import static guests.api.UserPermissions.verifyAuthority;
+import static guests.api.UserPermissions.verifyUser;
 
 @RestController
 @RequestMapping(value = "/api/v1/roles", produces = MediaType.APPLICATION_JSON_VALUE)

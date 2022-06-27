@@ -1,6 +1,5 @@
 package guests.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import guests.domain.Application;
 import guests.domain.InstitutionMembership;
 import guests.domain.User;
@@ -127,9 +126,11 @@ public class UserController {
 
         deleteInstitutionMembershipAllowed(authenticatedUser, institutionMembership);
 
+        scimService.deleteUserByInstitutionRequest(subject, institutionMembership.getInstitution());
+
         Long institutionId = institutionMembership.getInstitution().getId();
         List<UserRole> userRoles = subject.getUserRoles().stream()
-                .filter(userRole -> userRole.getRole().getApplication().getInstitution().getId().equals(institutionId))
+                .filter(userRole -> userRole.getRole().getInstitutionId().equals(institutionId))
                 .collect(Collectors.toList());
 
         userRoles.forEach(subject::removeUserRole);
@@ -141,7 +142,6 @@ public class UserController {
 
         userRepository.save(subject);
 
-        userRoles.forEach(userRole -> scimService.updateRoleRequest(userRole, OperationType.Remove));
 
         return createdResponse();
     }

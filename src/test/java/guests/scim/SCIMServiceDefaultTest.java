@@ -13,10 +13,10 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SCIMServiceTest extends AbstractMailTest {
+class SCIMServiceDefaultTest extends AbstractMailTest {
 
     @Autowired
-    private SCIMService scimService;
+    private SCIMServiceDefault scimService;
 
     @Test
     void newUserRequest() throws JsonProcessingException {

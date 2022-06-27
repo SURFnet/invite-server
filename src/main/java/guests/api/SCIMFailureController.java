@@ -23,9 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static guests.api.Shared.createdResponse;
 import static guests.api.UserPermissions.*;
-
-import static guests.api.Shared.*;
 
 @RestController
 @RequestMapping(value = "/api/v1/scim", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static guests.scim.SCIMService.GROUP_API;
-import static guests.scim.SCIMService.USER_API;
+import static guests.scim.SCIMServiceDefault.GROUP_API;
+import static guests.scim.SCIMServiceDefault.USER_API;
 import static io.restassured.RestAssured.given;
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.*;
